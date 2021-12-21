@@ -1,6 +1,6 @@
 from sqlalchemy.future import select
 
-from common_amirainvest_com.schema import Posts, Users
+from common_amirainvest_com.schemas.schema import Posts, Users
 from common_amirainvest_com.utils.decorators import Session
 from common_amirainvest_com.utils.generic_utils import get_past_datetime
 

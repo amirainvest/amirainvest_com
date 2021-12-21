@@ -51,14 +51,14 @@ jobs:
 #      - name: Test container
 #        run: docker-compose run ${{ matrix.microservice }} pytest # TODO test the container right before pushing
 
-      - name: Tag container version
-        run: docker tag amirainvest_com/${{ matrix.microservice }}:"1" 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:1
+#      - name: Tag container version
+#        run: docker tag amirainvest_com_${{ matrix.microservice }}:latest 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:1
 
-      - name: Push to ECR
-        run: docker push 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:1
+#      - name: Push to ECR
+#        run: docker push 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:1
 
       - name: Tag container latest
-        run: docker tag amirainvest_com/${{ matrix.microservice }}:"latest" 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:"latest"
+        run: docker tag amirainvest_com_${{ matrix.microservice }}:"latest" 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:"latest"
 
       - name: Push to ECR
         run: docker push 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:"latest"

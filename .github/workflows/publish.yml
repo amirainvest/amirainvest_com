@@ -1,0 +1,57 @@
+name: Publish
+
+env:
+  AWS_REGION: us-east-1
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
+
+jobs:
+  bump_package_version:
+    if: github.event.pull_request.merged == true
+    uses: amirainvest/common/.github/workflows/bump_package_version.yml@main
+    with:
+      version_bump: minor
+
+  tests:
+    needs: bump_package_version
+
+    uses: amirainvest/common/.github/workflows/tests.yml@main
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+  publish:
+    needs: tests
+
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Git pull
+        run: git pull
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Publish!
+        run: make publish
+
+  db_container:
+    needs: publish
+
+    uses: amirainvest/common/.github/workflows/build_and_push_postgres_image.yml@main
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+

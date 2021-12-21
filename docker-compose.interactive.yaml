@@ -1,0 +1,8 @@
+services:
+
+  amirainvest_com_common:
+    stdin_open: true
+    tty: true
+    command: "/bin/bash"
+    volumes:
+      - .:/opt

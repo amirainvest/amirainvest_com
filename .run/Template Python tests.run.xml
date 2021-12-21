@@ -1,0 +1,24 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="true" type="tests" factoryName="Autodetect">
+    <module name="common" />
+    <option name="INTERPRETER_OPTIONS" value="" />
+    <option name="PARENT_ENVS" value="true" />
+    <option name="SDK_HOME" value="docker-compose://[$PROJECT_DIR$/docker-compose.yaml, $PROJECT_DIR$/docker-compose.interactive.yaml]:amirainvest_com_common/$PROJECT_DIR$/../../../default/venv/bin/python" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+    <option name="IS_MODULE_SDK" value="false" />
+    <option name="ADD_CONTENT_ROOTS" value="true" />
+    <option name="ADD_SOURCE_ROOTS" value="true" />
+    <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+    <PathMappingSettings>
+      <option name="pathMappings">
+        <list>
+          <mapping local-root="$PROJECT_DIR$" remote-root="/opt" />
+        </list>
+      </option>
+    </PathMappingSettings>
+    <option name="_new_additionalArguments" value="&quot;--no-cov&quot;" />
+    <option name="_new_target" value="&quot;&quot;" />
+    <option name="_new_targetType" value="&quot;PATH&quot;" />
+    <method v="2" />
+  </configuration>
+</component>

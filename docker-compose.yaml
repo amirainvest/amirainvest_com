@@ -1,0 +1,79 @@
+version: "3.9"
+services:
+
+  simple:
+    env_file:
+      - local.env
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - AWS_ACCESS_KEY_ID
+        - AWS_SECRET_ACCESS_KEY
+        - POETRY_HTTP_BASIC_AMIRAPYPI_PASSWORD
+        - SYS_ARCH
+
+
+  publish:
+    env_file:
+      - local.env
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - AWS_ACCESS_KEY_ID
+        - AWS_SECRET_ACCESS_KEY
+        - POETRY_HTTP_BASIC_AMIRAPYPI_PASSWORD
+    command: "poetry publish --build -r amirapypi"
+
+
+  amirainvest_com_common:
+    env_file:
+      - local.env
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - AWS_ACCESS_KEY_ID
+        - AWS_SECRET_ACCESS_KEY
+        - POETRY_HTTP_BASIC_AMIRAPYPI_PASSWORD
+    environment:
+      POSTGRES_DATABASE_URL_ENV: "postgresql://test:test@postgres:5432/test"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - local
+
+
+  postgres:
+    env_file:
+      - local.env
+    image: postgres:10-alpine
+    volumes:
+      - type: volume
+        source: common_postgres_data
+        target: /var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      PGPORT: "5432"
+      POSTGRES_DB: "test"
+      POSTGRES_USER: "test"
+      POSTGRES_PASSWORD: "test"
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q", "-d", "test", "-U", "test" ]
+      timeout: 40s
+      interval: 2s
+      retries: 20
+
+    networks:
+      - local
+
+networks:
+  local:
+    driver: bridge
+    name: local
+
+volumes:
+  common_postgres_data:

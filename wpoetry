@@ -1,0 +1,7 @@
+#!/bin/bash
+
+export POETRY_REPOSITORIES_AMIRAPYPI_URL=$(aws codeartifact get-repository-endpoint --domain amira-pypi --domain-owner 903791206266 --repository amira_pypi --format pypi --query 'repositoryEndpoint' --output text)
+export POETRY_HTTP_BASIC_AMIRAPYPI_USERNAME=aws
+export POETRY_HTTP_BASIC_AMIRAPYPI_PASSWORD=$(aws codeartifact get-authorization-token --domain amira-pypi --domain-owner 903791206266 --query authorizationToken --output text)
+
+poetry "$@"

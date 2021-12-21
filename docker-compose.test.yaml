@@ -1,0 +1,4 @@
+services:
+
+  amirainvest_com_common:
+    command: ["pytest", "tests"]

@@ -1,0 +1,2 @@
+class AmiraInvestExceptionBase(Exception):
+    pass

@@ -13,7 +13,7 @@ jobs:
 
   db_container:
 #    needs: tests
-    uses: amirainvest/common/.github/workflows/build_and_push_postgres_image.yml@main
+    uses: amirainvest/amirainvest_com/.github/workflows/push_containers.yml@main
     with:
       microservice: "[\"backend_amirainvest_com\"]"
     secrets:

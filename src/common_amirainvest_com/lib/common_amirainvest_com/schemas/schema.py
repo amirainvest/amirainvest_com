@@ -474,7 +474,7 @@ class SecurityPrices(Base):
     created_at = Column(DateTime, server_default=UTCNow())
 
 
-class HistoricalJobsStatus(enum.Enum):
+class HistoricalJobsStatus(Enum):
     pending = "PENDING"
     running = "RUNNING"
     succeeded = "SUCCEEDED"

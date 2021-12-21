@@ -43,23 +43,23 @@ jobs:
         run: aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 903791206266.dkr.ecr.us-east-1.amazonaws.com
 
       - name: Build DB container
-        run: docker-compose build ${{ inputs.microservice }}
+        run: docker-compose build --build-arg NO_DEV="--no-dev" ${{ matrix.microservice }}
 
       - name: Kill containers
         run: make _down
 
 #      - name: Test container
-#        run: docker-compose run ${{ inputs.microservice }} pytest # TODO test the container right before pushing
+#        run: docker-compose run ${{ matrix.microservice }} pytest # TODO test the container right before pushing
 
       - name: Tag container version
-        run: docker tag amirainvest_com/${{ inputs.microservice }}:"1" 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ inputs.microservice }}:1
+        run: docker tag amirainvest_com/${{ matrix.microservice }}:"1" 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:1
 
       - name: Push to ECR
-        run: docker push 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ inputs.microservice }}:1
+        run: docker push 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:1
 
       - name: Tag container latest
-        run: docker tag amirainvest_com/${{ inputs.microservice }}:"latest" 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ inputs.microservice }}:"latest"
+        run: docker tag amirainvest_com/${{ matrix.microservice }}:"latest" 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:"latest"
 
       - name: Push to ECR
-        run: docker push 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ inputs.microservice }}:"latest"
+        run: docker push 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:"latest"
 

@@ -35,9 +35,7 @@ async def get_subscriptions_for_creator(creator_id, token: str = Depends(token_a
 
 @router.post("/subscribe", status_code=200, response_model=user_subscriptions.user_subscriptions_pydantic_model)
 @auth_required
-async def create_subscription(
-    subscriber_id: str, creator_id: str, token: str = Depends(token_auth_scheme)
-):
+async def create_subscription(subscriber_id: str, creator_id: str, token: str = Depends(token_auth_scheme)):
     user_subscription = await user_subscriptions.get_user_subscription(subscriber_id, creator_id)
     if not user_subscription:
         user_subscription = await user_subscriptions.create_user_subscription(subscriber_id, creator_id)

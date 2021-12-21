@@ -1,11 +1,11 @@
+from sqlalchemy import select
+
+from backend_amirainvest_com.controllers.data_imports import add_data_import_data_to_sqs_queue
 from common_amirainvest_com.schemas.schema import Users
 from common_amirainvest_com.utils.database_utils import update
 from common_amirainvest_com.utils.decorators import Session
 from common_amirainvest_com.utils.generic_utils import get_class_attrs
 from common_amirainvest_com.utils.pydantic_utils import sqlalchemy_to_pydantic
-from sqlalchemy import select
-
-from backend_amirainvest_com.controllers.data_imports import add_data_import_data_to_sqs_queue
 
 
 users_pydantic_model = sqlalchemy_to_pydantic(Users)

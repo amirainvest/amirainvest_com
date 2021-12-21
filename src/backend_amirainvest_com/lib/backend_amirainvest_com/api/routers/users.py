@@ -81,9 +81,7 @@ async def create_user(user_data: UserCreate, token: str = Depends(token_auth_sch
 # TODO: ALL WORKING OTHER THAN BOTO3 CRED ERROR
 @router.post("/upload_profile_picture/", status_code=200, response_model=users.users_pydantic_model)
 @auth_required
-async def upload_profile_picture(
-    user_id: str, token: str = Depends(token_auth_scheme), image: UploadFile = File(...)
-):
+async def upload_profile_picture(user_id: str, token: str = Depends(token_auth_scheme), image: UploadFile = File(...)):
     # TODO: ADD VALIDATION & SIZING AS REQUESTED BY FRONTEND
     with open(image.filename, "wb+") as file:
         file.write(image.file.read())

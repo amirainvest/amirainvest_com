@@ -3,9 +3,10 @@ from functools import wraps
 
 import jwt
 import requests
-from common_amirainvest_com.config import AUTH0_API_AUDIENCE, AUTH0_DOMAIN, AUTH0_CLIENT_ID, AUTH0_CLIENT_SECRET
 from fastapi import HTTPException
 from fastapi.security import HTTPBearer
+
+from common_amirainvest_com.config import AUTH0_API_AUDIENCE, AUTH0_CLIENT_ID, AUTH0_CLIENT_SECRET, AUTH0_DOMAIN
 
 
 token_auth_scheme = HTTPBearer()
@@ -32,17 +33,17 @@ def get_application_token():
                 "client_id": AUTH0_CLIENT_ID,
                 "client_secret": AUTH0_CLIENT_SECRET,
                 "audience": AUTH0_API_AUDIENCE,
-                "grant_type": "client_credentials"
+                "grant_type": "client_credentials",
             }
         ),
-        headers={'content-type': "application/json"}
+        headers={"content-type": "application/json"},
     ).json()
 
 
 class VerifyToken:
     def __init__(self, token):
         self.token = token
-        self.jwks_client = jwt.PyJWKClient(f'https://{AUTH0_DOMAIN}/.well-known/jwks.json')
+        self.jwks_client = jwt.PyJWKClient(f"https://{AUTH0_DOMAIN}/.well-known/jwks.json")
 
     def verify(self):
         try:
@@ -62,8 +63,7 @@ class VerifyToken:
         return payload
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from pprint import pprint
-
 
     pprint(get_application_token())

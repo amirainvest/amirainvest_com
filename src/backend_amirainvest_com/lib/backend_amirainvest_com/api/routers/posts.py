@@ -12,17 +12,13 @@ router = APIRouter(prefix="/amira_posts", tags=["Amira Posts"])
 
 @router.post("/", status_code=201, response_model=posts.posts_pydantic_model)
 @auth_required
-async def create_amira_post(
-    post_data: posts.posts_pydantic_model, token: str = Depends(token_auth_scheme)
-):
+async def create_amira_post(post_data: posts.posts_pydantic_model, token: str = Depends(token_auth_scheme)):
     data = await posts.create_amira_post(post_data.dict())
     return 201, data
 
 
 @router.put("/", status_code=201, response_model=posts.posts_pydantic_model)
 @auth_required
-async def update_post(
-    post_data: posts.posts_pydantic_model, token: str = Depends(token_auth_scheme)
-):
+async def update_post(post_data: posts.posts_pydantic_model, token: str = Depends(token_auth_scheme)):
     data = await posts.update_amira_post(post_data.dict())
     return 201, data

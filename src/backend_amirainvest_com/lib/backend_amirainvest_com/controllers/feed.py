@@ -2,11 +2,11 @@ import json
 from typing import List
 
 import redis  # noqa: F401
+
+from backend_amirainvest_com.controllers import posts
 from common_amirainvest_com.config import WEBCACHE
 from common_amirainvest_com.schemas.schema import Posts
 from common_amirainvest_com.utils.generic_utils import get_class_attrs
-
-from backend_amirainvest_com.controllers import posts
 
 
 PAGE_SIZE = 30

@@ -4,6 +4,7 @@ from datetime import datetime
 
 from backend_amirainvest_com.controllers.bookmarks import get_all_user_bookmarks
 from common_amirainvest_com.utils.test.factories.schema import BookmarksFactory, PostsFactory, UsersFactory
+
 from .config import client
 
 
@@ -16,27 +17,16 @@ def test_not_authenticated_get_bookmarks():
 def test_get_all_user_bookmarks():
     post_bookmarker = UsersFactory()
     post_creator = UsersFactory()
-    post = PostsFactory(
-        creator_id=post_creator.id
-    )
-    bookmark = BookmarksFactory(
-        user_id=post_bookmarker.id,
-        post_id=post.id
-    )
-    response = client.get(
-        "/bookmarks/", params={
-            "user_id": bookmark.user_id
-        }
-    )
+    post = PostsFactory(creator_id=post_creator.id)
+    bookmark = BookmarksFactory(user_id=post_bookmarker.id, post_id=post.id)
+    response = client.get("/bookmarks/", params={"user_id": bookmark.user_id})
     assert response.status_code == 200
 
 
 def test_create_bookmark():
     post_bookmarker = UsersFactory()
     post_creator = UsersFactory()
-    post = PostsFactory(
-        creator_id=post_creator.id
-    )
+    post = PostsFactory(creator_id=post_creator.id)
     response = client.post(
         "/bookmarks/",
         data=json.dumps(
@@ -47,9 +37,10 @@ def test_create_bookmark():
                 "updated_at": datetime.utcnow(),
                 "is_deleted": False,
             }
-        )
+        ),
     )
     from pprint import pprint
+
     pprint(response.json())
     assert response.status_code == 201
     assert response.json() == {
@@ -64,16 +55,9 @@ def test_create_bookmark():
 def test_delete_bookmark():
     post_bookmarker = UsersFactory()
     post_creator = UsersFactory()
-    post = PostsFactory(
-        creator_id=post_creator.id
-    )
-    bookmark = BookmarksFactory(
-        user_id=post_bookmarker.id,
-        post_id=post.id
-    )
-    response = client.delete("/bookmarks", params={
-        "bookmark_id": bookmark.id
-    })
+    post = PostsFactory(creator_id=post_creator.id)
+    bookmark = BookmarksFactory(user_id=post_bookmarker.id, post_id=post.id)
+    response = client.delete("/bookmarks", params={"bookmark_id": bookmark.id})
     assert response.status_code == 200
     user_bookmarks = await get_all_user_bookmarks(post_bookmarker.id)
     assert bookmark.id not in [x.id for x in user_bookmarks]

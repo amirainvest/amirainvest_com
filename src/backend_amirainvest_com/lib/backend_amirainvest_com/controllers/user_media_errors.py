@@ -1,7 +1,8 @@
+from sqlalchemy import select
+
 from common_amirainvest_com.schemas.schema import UserMediaErrors
 from common_amirainvest_com.utils.decorators import Session
 from common_amirainvest_com.utils.pydantic_utils import sqlalchemy_to_pydantic
-from sqlalchemy import select
 
 
 user_media_errors_pydantic_model = sqlalchemy_to_pydantic(UserMediaErrors)

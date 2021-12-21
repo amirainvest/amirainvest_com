@@ -8,10 +8,10 @@ BUILDKIT_PROGRESS=plain
 .PHONY: check run interactive test db_only initialize_pg run_migrations kill_all_containers remove_all_docker_data _build _down _base _remove_all_pg_data _insert_pg_data
 
 check:
-	poetry run isort tests/ src/
-	poetry run black tests/ src/
-	poetry run flake8 tests/ src/
-	poetry run mypy tests/ src/
+	poetry run isort src/
+	poetry run black src/
+	poetry run flake8 src/
+	poetry run mypy src/
 
 check_docker:_base
 	docker-compose --env-file $(env_file_name) -f docker-compose.yaml run --rm simple isort --check tests/ src/

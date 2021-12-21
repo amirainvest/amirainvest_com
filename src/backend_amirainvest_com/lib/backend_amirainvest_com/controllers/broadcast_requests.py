@@ -1,9 +1,10 @@
 import datetime
 
+from sqlalchemy import select
+
 from common_amirainvest_com.schemas.schema import BroadcastRequests
 from common_amirainvest_com.utils.decorators import Session
 from common_amirainvest_com.utils.pydantic_utils import sqlalchemy_to_pydantic
-from sqlalchemy import select
 
 
 broadcast_requests_pydantic_model = sqlalchemy_to_pydantic(BroadcastRequests)

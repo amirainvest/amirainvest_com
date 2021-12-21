@@ -1,7 +1,8 @@
+from sqlalchemy import delete, select
+
 from common_amirainvest_com.schemas.schema import HuskRequests
 from common_amirainvest_com.utils.decorators import Session
 from common_amirainvest_com.utils.pydantic_utils import sqlalchemy_to_pydantic
-from sqlalchemy import delete, select
 
 
 husk_requests_pydantic_model = sqlalchemy_to_pydantic(HuskRequests)

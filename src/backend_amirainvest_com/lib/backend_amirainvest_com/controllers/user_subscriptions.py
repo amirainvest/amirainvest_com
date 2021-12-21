@@ -1,10 +1,11 @@
 import datetime
 
+from sqlalchemy import delete, select
+
 from common_amirainvest_com.schemas.schema import UserSubscriptions
 from common_amirainvest_com.utils.database_utils import update
 from common_amirainvest_com.utils.decorators import Session
 from common_amirainvest_com.utils.pydantic_utils import sqlalchemy_to_pydantic
-from sqlalchemy import delete, select
 
 
 user_subscriptions_pydantic_model = sqlalchemy_to_pydantic(UserSubscriptions)

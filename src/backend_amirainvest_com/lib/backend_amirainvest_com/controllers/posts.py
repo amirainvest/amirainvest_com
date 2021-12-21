@@ -1,9 +1,10 @@
+from sqlalchemy import func, select
+
 from common_amirainvest_com.schemas.schema import Posts, UserSubscriptions
 from common_amirainvest_com.utils.database_utils import update
 from common_amirainvest_com.utils.decorators import Session
 from common_amirainvest_com.utils.generic_utils import get_past_datetime
 from common_amirainvest_com.utils.pydantic_utils import sqlalchemy_to_pydantic
-from sqlalchemy import func, select
 
 
 posts_pydantic_model = sqlalchemy_to_pydantic(Posts)

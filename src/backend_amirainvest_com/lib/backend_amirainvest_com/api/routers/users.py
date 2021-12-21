@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, File, Response, UploadFile
+from fastapi import APIRouter, Depends, File, UploadFile
 
 from backend_amirainvest_com.controllers import uploads, users
 from backend_amirainvest_com.controllers.auth import auth_required, token_auth_scheme

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Depends
 
 from backend_amirainvest_com.controllers import posts
 from backend_amirainvest_com.controllers.auth import auth_required, token_auth_scheme

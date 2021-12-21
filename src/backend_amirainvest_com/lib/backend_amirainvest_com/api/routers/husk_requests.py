@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Depends
 
 from backend_amirainvest_com.controllers import husk_requests
 from backend_amirainvest_com.controllers.auth import auth_required, token_auth_scheme

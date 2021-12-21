@@ -5,7 +5,19 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
 
-__all__ = ["DEBUG", "ENVIRONMENT", "async_session", "COMMON_ROOT_DIR", "AWS_REGION", "MAX_FEED_SIZE"]
+__all__ = [
+    "DEBUG",
+    "ENVIRONMENT",
+    "async_session",
+    "COMMON_ROOT_DIR",
+    "AWS_REGION",
+    "MAX_FEED_SIZE",
+    "AUTH0_CLIENT_ID",
+    "AUTH0_CLIENT_SECRET",
+    "AUTH0_DOMAIN",
+    "AUTH0_API_AUDIENCE",
+    "WEBCACHE",
+]
 
 DEBUG = os.environ.get("DEBUG", "true").strip().lower()
 ENVIRONMENT = os.environ.get("ENVIRONMENT", "local").strip().lower()
@@ -29,3 +41,8 @@ WEBCACHE = redis.Redis(host="localhost", port=6379)
 
 MAX_FEED_SIZE = 200
 AWS_REGION = "us-east-1"
+
+AUTH0_API_AUDIENCE = ""
+AUTH0_CLIENT_ID = ""
+AUTH0_CLIENT_SECRET = ""
+AUTH0_DOMAIN = ""

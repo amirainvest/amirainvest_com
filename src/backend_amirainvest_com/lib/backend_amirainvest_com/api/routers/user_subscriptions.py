@@ -15,7 +15,7 @@ router = APIRouter(prefix="/user_subscriptions", tags=["User Subscriptions"])
     response_model=List[user_subscriptions.user_subscriptions_pydantic_model],
 )
 @auth_required
-async def get_subscriptions_for_subscriber(subscriber_id, response: Response, token: str = Depends(token_auth_scheme)):
+async def get_subscriptions_for_subscriber(subscriber_id, token: str = Depends(token_auth_scheme)):
     subscriptions = await user_subscriptions.get_subscriptions_for_subscriber(subscriber_id)
     subscriptions = [x.__dict__ for x in subscriptions]
     return subscriptions
@@ -27,7 +27,7 @@ async def get_subscriptions_for_subscriber(subscriber_id, response: Response, to
     response_model=List[user_subscriptions.user_subscriptions_pydantic_model],
 )
 @auth_required
-async def get_subscriptions_for_creator(creator_id, response: Response, token: str = Depends(token_auth_scheme)):
+async def get_subscriptions_for_creator(creator_id, token: str = Depends(token_auth_scheme)):
     subscriptions = await user_subscriptions.get_subscriptions_for_creator(creator_id)
     subscriptions = [x.__dict__ for x in subscriptions]
     return subscriptions
@@ -36,7 +36,7 @@ async def get_subscriptions_for_creator(creator_id, response: Response, token: s
 @router.post("/subscribe", status_code=200, response_model=user_subscriptions.user_subscriptions_pydantic_model)
 @auth_required
 async def create_subscription(
-    subscriber_id: str, creator_id: str, response: Response, token: str = Depends(token_auth_scheme)
+    subscriber_id: str, creator_id: str, token: str = Depends(token_auth_scheme)
 ):
     user_subscription = await user_subscriptions.get_user_subscription(subscriber_id, creator_id)
     if not user_subscription:
@@ -49,7 +49,7 @@ async def create_subscription(
 
 @router.put("/unsubscribe", status_code=200, response_model=user_subscriptions.user_subscriptions_pydantic_model)
 @auth_required
-async def unsubscribe(subscriber_id: str, creator_id: str, response: Response, token: str = Depends(token_auth_scheme)):
+async def unsubscribe(subscriber_id: str, creator_id: str, token: str = Depends(token_auth_scheme)):
     subscription = await user_subscriptions.get_user_subscription(subscriber_id, creator_id)
     subscription.is_deleted = True
     updated_subscription = await user_subscriptions.update_user_subscription(subscription.__dict__)

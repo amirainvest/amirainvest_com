@@ -3,8 +3,8 @@ from functools import wraps
 
 import jwt
 import requests
-from common_amirainvest_com.utils.consts import AUTH0_API_AUDIENCE, AUTH0_DOMAIN, AUTH0_CLIENT_ID, AUTH0_CLIENT_SECRET
-from fastapi import status, HTTPException
+from common_amirainvest_com.config import AUTH0_API_AUDIENCE, AUTH0_DOMAIN, AUTH0_CLIENT_ID, AUTH0_CLIENT_SECRET
+from fastapi import HTTPException
 from fastapi.security import HTTPBearer
 
 
@@ -15,7 +15,6 @@ def auth_required(function):
     @wraps(function)
     async def wrapper(*args, **kwargs):
         token = kwargs["token"]
-        response = kwargs["response"]
         verification_data = VerifyToken(token.credentials).verify()
         if "status" in verification_data:
             raise HTTPException(status_code=403, detail=verification_data["message"])
@@ -25,7 +24,7 @@ def auth_required(function):
     return wrapper
 
 
-def get_token():
+def get_application_token():
     return requests.post(
         url="https://dev-0nn4c3x4.us.auth0.com/oauth/token",
         data=json.dumps(
@@ -61,3 +60,10 @@ class VerifyToken:
         except Exception as e:
             return {"status": "error", "message": str(e)}
         return payload
+
+
+if __name__ == '__main__':
+    from pprint import pprint
+
+
+    pprint(get_application_token())

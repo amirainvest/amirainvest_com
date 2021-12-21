@@ -15,7 +15,6 @@ post_pydantic_model = sqlalchemy_to_pydantic(Posts)
 @auth_required
 async def get_subscriber_feed(
     creator_id,
-    response: Response,
     token: str = Depends(token_auth_scheme),
     page: int = 0,
 ):
@@ -27,7 +26,6 @@ async def get_subscriber_feed(
 @auth_required
 async def get_creator_feed(
     creator_id,
-    response: Response,
     token: str = Depends(token_auth_scheme),
     page: int = 0,
 ):
@@ -39,7 +37,6 @@ async def get_creator_feed(
 @auth_required
 async def get_discovery_feed(
     user_id: str,
-    response: Response,
     token: str = Depends(token_auth_scheme),
     page: int = 0,
 ):

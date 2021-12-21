@@ -7,10 +7,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        - AWS_ACCESS_KEY_ID
-        - AWS_SECRET_ACCESS_KEY
-        - POETRY_HTTP_BASIC_AMIRAPYPI_PASSWORD
 
 
   amirainvest_com:
@@ -19,10 +15,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        - AWS_ACCESS_KEY_ID
-        - AWS_SECRET_ACCESS_KEY
-        - POETRY_HTTP_BASIC_AMIRAPYPI_PASSWORD
     environment:
       POSTGRES_DATABASE_URL_ENV: "postgresql://test:test@postgres:5432/test"
     depends_on:
@@ -31,6 +23,23 @@ services:
     networks:
       - local
 
+
+  backend_amirainvest_com:
+    env_file:
+      - local.env
+    build:
+      context: .
+      dockerfile: ./Dockerfiles/backend_amirainvest_com.Dockerfile
+    environment:
+      POSTGRES_DATABASE_URL_ENV: "postgresql://test:test@postgres:5432/test"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - local
+    stdin_open: true
+    tty: true
+    command: "/bin/bash"
 
   postgres:
     env_file:

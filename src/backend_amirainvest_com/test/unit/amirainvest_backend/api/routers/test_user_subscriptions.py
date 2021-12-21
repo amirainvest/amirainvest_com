@@ -30,5 +30,5 @@ def test_get_subscriptions_for_creator():
 
 def test_create_subscription():
     subscriber = await UsersFactory()
-    creator = await UsersFactory()
-    response = client.get("/user_subscriptions/subscribe/", params={"subscriber_id": subscriber.id})
+    await UsersFactory()
+    client.get("/user_subscriptions/subscribe/", params={"subscriber_id": subscriber.id})

@@ -9,7 +9,7 @@ version = "0.1.0"
 description = ""
 authors = ["Peter Hoburg <peterHoburg@users.noreply.github.com>"]
 packages = [
-    {include = "backend_amirainvest_com", from="lib"}
+    { include = "backend_amirainvest_com", from = "lib" }
 ]
 
 [[tool.poetry.source]]
@@ -18,11 +18,11 @@ url = "https://amira-pypi-903791206266.d.codeartifact.us-east-1.amazonaws.com/py
 default = true
 
 [tool.poetry.dependencies]
-common_amirainvest_com = {path = "../common_amirainvest_com", develop = true}
+common_amirainvest_com = { path = "../common_amirainvest_com", develop = true }
 
 asyncpg = "^0.25.0"
 boto3 = "^1.20.20"
-boto3-stubs = {extras = ["sqs"], version = "^1.20.24"}
+boto3-stubs = { extras = ["sqs"], version = "^1.20.24" }
 pycryptodome = "^3.12.0"
 PyJWT = "^2.3.0"
 python = "^3.9"

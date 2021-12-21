@@ -26,6 +26,6 @@ async def test_users_factory(session_test: AsyncSession):
 @pytest.mark.asyncio
 async def test_posts_factory(session_test: AsyncSession):
     user_1: Users = await schema.UsersFactory()
-    post_1: Posts = await schema.PostsFactory(creator_id=user_1.id)
+    await schema.PostsFactory(creator_id=user_1.id)
     posts = (await session_test.execute(select(Posts))).scalars().all()
     assert len(posts) == 1

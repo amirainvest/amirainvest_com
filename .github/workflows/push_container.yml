@@ -1,0 +1,65 @@
+name: Push container
+
+env:
+  AWS_REGION: us-east-1
+
+on:
+  workflow_call:
+    inputs:
+      microservice_list:
+        description: "List of microservice names"
+        default: "[\"backend_amirainvest_com\"]"
+        required: true
+        type: string
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+
+jobs:
+  build_and_push_container:
+
+    strategy:
+      matrix:
+        microservice: ${{fromJson(inputs.microservice_list)}}
+
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Git pull
+        run: git pull
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to ECR
+        run: aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 903791206266.dkr.ecr.us-east-1.amazonaws.com
+
+      - name: Build DB container
+        run: docker-compose build ${{ inputs.microservice }}
+
+      - name: Kill containers
+        run: make _down
+
+#      - name: Test container
+#        run: docker-compose run ${{ inputs.microservice }} pytest # TODO test the container right before pushing
+
+      - name: Tag container version
+        run: docker tag amirainvest_com/${{ inputs.microservice }}:"1" 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ inputs.microservice }}:1
+
+      - name: Push to ECR
+        run: docker push 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ inputs.microservice }}:1
+
+      - name: Tag container latest
+        run: docker tag amirainvest_com/${{ inputs.microservice }}:"latest" 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ inputs.microservice }}:"latest"
+
+      - name: Push to ECR
+        run: docker push 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ inputs.microservice }}:"latest"
+

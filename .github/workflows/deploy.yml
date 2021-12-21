@@ -1,0 +1,22 @@
+name: Deploy
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
+
+jobs:
+  tests:
+    uses: amirainvest/common/.github/workflows/tests.yml@main
+
+  db_container:
+    uses: amirainvest/common/.github/workflows/build_and_push_postgres_image.yml@main
+    with:
+      microservice: "[\"backend_amirainvest_com\"]"
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+

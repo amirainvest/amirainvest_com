@@ -2,6 +2,8 @@ pytest_plugins = ["common_amirainvest_com.utils.test.fixtures.database"]
 import json
 from datetime import datetime
 
+import pytest
+
 from backend_amirainvest_com.controllers.bookmarks import get_all_user_bookmarks
 from common_amirainvest_com.utils.test.factories.schema import BookmarksFactory, PostsFactory, UsersFactory
 
@@ -52,7 +54,8 @@ def test_create_bookmark():
     }
 
 
-def test_delete_bookmark():
+@pytest.mark.asyncio
+async def test_delete_bookmark():
     post_bookmarker = UsersFactory()
     post_creator = UsersFactory()
     post = PostsFactory(creator_id=post_creator.id)

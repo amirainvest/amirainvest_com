@@ -1,4 +1,6 @@
 pytest_plugins = ["common_amirainvest_com.utils.test.fixtures.database"]
+import pytest
+
 from common_amirainvest_com.utils.test.factories.schema import UsersFactory, UserSubscriptionsFactory
 
 from .config import client
@@ -10,7 +12,8 @@ def test_not_authenticated_get_user_subscriptions():
     assert response.json() == {"detail": "Not authenticated"}
 
 
-def test_get_subscriptions_for_subscriber():
+@pytest.mark.asyncio
+async def test_get_subscriptions_for_subscriber():
     subscriber = await UsersFactory()
     creator = await UsersFactory()
     await UserSubscriptionsFactory(creator_id=creator.id, subscriber_id=subscriber.id)
@@ -19,7 +22,8 @@ def test_get_subscriptions_for_subscriber():
     assert creator.id in [x.creator_id for x in response.json()]
 
 
-def test_get_subscriptions_for_creator():
+@pytest.mark.asyncio
+async def test_get_subscriptions_for_creator():
     subscriber = await UsersFactory()
     creator = await UsersFactory()
     await UserSubscriptionsFactory(creator_id=creator.id, subscriber_id=subscriber.id)
@@ -28,7 +32,8 @@ def test_get_subscriptions_for_creator():
     assert subscriber.id in [x.subscriber_id for x in response.json()]
 
 
-def test_create_subscription():
+@pytest.mark.asyncio
+async def test_create_subscription():
     subscriber = await UsersFactory()
     await UsersFactory()
     client.get("/user_subscriptions/subscribe/", params={"subscriber_id": subscriber.id})

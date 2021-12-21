@@ -8,10 +8,11 @@ on:
       - closed
 
 jobs:
-  tests:
-    uses: amirainvest/common/.github/workflows/tests.yml@main
+#  tests:
+#    uses: amirainvest/common/.github/workflows/tests.yml@main
 
   db_container:
+#    needs: tests
     uses: amirainvest/common/.github/workflows/build_and_push_postgres_image.yml@main
     with:
       microservice: "[\"backend_amirainvest_com\"]"

@@ -79,6 +79,8 @@ async def session_test(db_engine: AsyncEngine, monkeypatch: pytest.MonkeyPatch) 
     monkeypatch.setattr(consts, "POSTGRES_DATABASE_URL", str(db_engine.url))
     monkeypatch.setenv("POSTGRES_DATABASE_URL_ENV", str(db_engine.url))
 
+    monkeypatch.setattr(consts, "engine", db_engine)
+
     monkeypatch.setattr(decorators, "_session", session)
     await session.begin_nested()
 

@@ -6,7 +6,7 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from common_amirainvest_com.schemas.schema import Users
+from common_amirainvest_com.schemas.schema import Posts, Users
 from common_amirainvest_com.utils.test.factories import schema
 
 
@@ -23,3 +23,9 @@ async def test_users_factory(session_test: AsyncSession):
     assert len(users) == 2
 
 
+@pytest.mark.asyncio
+async def test_posts_factory(session_test: AsyncSession):
+    user_1: Users = await schema.UsersFactory()
+    post_1: Posts = await schema.PostsFactory(creator_id=user_1.id)
+    posts = (await session_test.execute(select(Posts))).scalars().all()
+    assert len(posts) == 1

@@ -76,7 +76,7 @@ class Users(Base):
     is_claimed = Column(Boolean)
     is_deactivated = Column(Boolean)
     is_deleted = Column(Boolean)
-    deleted_at = Column(DateTime)
+    # deleted_at = Column(DateTime)
     created_at = Column(DateTime, server_default=UTCNow())
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
@@ -186,7 +186,7 @@ class TwitterUsers(Base):
     twitter_user_id = Column(String, primary_key=True, unique=True)
     creator_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     name = Column(String)
-    username = Column(String)
+    username = Column(String, nullable=False)
     profile_img_url = Column(String)
     profile_url = Column(String)
     follower_count = Column(Integer)

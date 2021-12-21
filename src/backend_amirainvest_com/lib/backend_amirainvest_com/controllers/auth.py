@@ -3,7 +3,7 @@ from functools import wraps
 
 import jwt
 import requests
-from common_amirainvest_com.config import AUTH0_API_AUDIENCE, AUTH0_DOMAIN, AUTH0_CLIENT_ID, AUTH0_CLIENT_SECRET
+from common_amirainvest_com.utils.consts import AUTH0_API_AUDIENCE, AUTH0_DOMAIN, AUTH0_CLIENT_ID, AUTH0_CLIENT_SECRET
 from fastapi import status, HTTPException
 from fastapi.security import HTTPBearer
 

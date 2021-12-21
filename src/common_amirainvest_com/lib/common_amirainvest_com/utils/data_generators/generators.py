@@ -299,18 +299,22 @@ async def generate_data_import_test_data():
 
 
 async def generate_data():
-    await create_fake_user()
-    await create_fake_youtuber()
-    await create_fake_bookmark()
-    await create_fake_twitter_user()
-    await create_fake_substack_user()
-    await create_fake_post()
-    await create_fake_broadcast_request()
-    await create_fake_substack_article()
-    await create_fake_tweet()
-    await create_fake_user_media_error()
-    await create_fake_user_subscription()
-    await create_fake_youtube_video()
+    for i in range(0, 100):
+        try:
+            # await create_fake_user()
+            # await create_fake_youtuber()
+            # await create_fake_bookmark()
+            # await create_fake_twitter_user()
+            # await create_fake_substack_user()
+            await create_fake_post()
+            # await create_fake_broadcast_request()
+            # await create_fake_substack_article()
+            # await create_fake_tweet()
+            # await create_fake_user_media_error()
+            # await create_fake_user_subscription()
+            # await create_fake_youtube_video()
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":

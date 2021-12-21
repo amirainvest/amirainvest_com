@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
-from backend.controllers import webhooks
-from backend.models.webhooks import HoldingsUpdate, InvestmentsUpdate
+from backend_amirainvest_com.controllers import webhooks
+from backend_amirainvest_com.models.webhooks import HoldingsUpdate, InvestmentsUpdate
 
 
 router = APIRouter(prefix="/webhooks", tags=["Webhooks"])

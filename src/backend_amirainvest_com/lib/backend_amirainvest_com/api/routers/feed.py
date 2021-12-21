@@ -2,9 +2,9 @@ from common_amirainvest_com.schemas.schema import Posts
 from common_amirainvest_com.utils.pydantic_utils import sqlalchemy_to_pydantic
 from fastapi import APIRouter, Depends, Response
 
-from backend.controllers import feed
-from backend.controllers.auth import auth_required, token_auth_scheme
-from backend.models.feed import Feed
+from backend_amirainvest_com.controllers import feed
+from backend_amirainvest_com.controllers.auth import auth_required, token_auth_scheme
+from backend_amirainvest_com.models.feed import Feed
 
 
 router = APIRouter(prefix="/feed", tags=["Feed"])

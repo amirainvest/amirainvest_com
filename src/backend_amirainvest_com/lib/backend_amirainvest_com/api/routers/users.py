@@ -3,9 +3,9 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, File, Response, UploadFile
 
-from backend.controllers import uploads, users
-from backend.controllers.auth import auth_required, token_auth_scheme
-from backend.models.user import UserCreate
+from backend_amirainvest_com.controllers import uploads, users
+from backend_amirainvest_com.controllers.auth import auth_required, token_auth_scheme
+from backend_amirainvest_com.models.user import UserCreate
 
 
 router = APIRouter(prefix="/user", tags=["User"])

@@ -39,7 +39,7 @@ plugins = [
     "sqlalchemy.ext.mypy.plugin",
     # "pydantic.mypy", Waiting for 1.9.0 to be released. https://pydantic-docs.helpmanual.io/mypy_plugin/#configuring-the-plugin
     ]
-mypy_path = "$MYPY_CONFIG_FILE_DIR/src/amirainvest_com_common:$MYPY_CONFIG_FILE_DIR/tests"
+mypy_path = "$MYPY_CONFIG_FILE_DIR/src/common_amirainvest_com:$MYPY_CONFIG_FILE_DIR/tests"
 namespace_packages = false
 #explicit_package_bases = true
 
@@ -68,7 +68,8 @@ lines_after_imports = 2
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "--cov=amirainvest_com_common --cov-report term --cov-report html"
+addopts = "--cov=common_amirainvest_com --cov-report term --cov-report html" # TODO fix
 testpaths = [
-    "tests",
+    "src/common_amirainvest_com/test",
+    "src/backend_amirainvest_com/test",
 ]

@@ -2,8 +2,8 @@ from typing import List
 
 from fastapi import APIRouter, Depends, Response
 
-from backend.controllers import user_subscriptions
-from backend.controllers.auth import auth_required, token_auth_scheme
+from backend_amirainvest_com.controllers import user_subscriptions
+from backend_amirainvest_com.controllers.auth import auth_required, token_auth_scheme
 
 
 router = APIRouter(prefix="/user_subscriptions", tags=["User Subscriptions"])

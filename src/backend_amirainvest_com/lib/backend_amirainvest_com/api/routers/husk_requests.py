@@ -2,8 +2,8 @@ from typing import List
 
 from fastapi import APIRouter, Depends, Response
 
-from backend.controllers import husk_requests
-from backend.controllers.auth import auth_required, token_auth_scheme
+from backend_amirainvest_com.controllers import husk_requests
+from backend_amirainvest_com.controllers.auth import auth_required, token_auth_scheme
 
 
 router = APIRouter(prefix="/husk_requests", tags=["Husk Requests"])
@@ -14,6 +14,7 @@ router = APIRouter(prefix="/husk_requests", tags=["Husk Requests"])
 async def get_husk_requests(response: Response, token: str = Depends(token_auth_scheme)):
     husk_request = await husk_requests.get_husk_requests()
     husk_request_data = [x.__dict__ for x in husk_request]
+    print(husk_request_data)
     return husk_request_data
 
 

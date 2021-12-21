@@ -6,7 +6,7 @@ from alembic import context
 # access to the values within the .ini file in use.
 from sqlalchemy import create_engine
 
-from amirainvest_com_common.schemas.schema import Base
+from common_amirainvest_com.schemas.schema import Base
 
 
 config = context.config

@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from backend.controllers import code_challenge
+from backend_amirainvest_com.controllers import code_challenge
 
 
 router = APIRouter(prefix="/code_challenge", tags=["Code Challenge"])

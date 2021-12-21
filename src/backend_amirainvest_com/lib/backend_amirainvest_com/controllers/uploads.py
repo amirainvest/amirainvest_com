@@ -1,4 +1,4 @@
-from backend.utils.s3_utils import S3
+from backend_amirainvest_com.utils.s3_utils import S3
 
 
 def upload_profile_photo(filepath):

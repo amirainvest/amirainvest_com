@@ -5,7 +5,7 @@ from common_amirainvest_com.utils.generic_utils import get_class_attrs
 from common_amirainvest_com.utils.pydantic_utils import sqlalchemy_to_pydantic
 from sqlalchemy import select
 
-from backend.controllers.data_imports import add_data_import_data_to_sqs_queue
+from backend_amirainvest_com.controllers.data_imports import add_data_import_data_to_sqs_queue
 
 
 users_pydantic_model = sqlalchemy_to_pydantic(Users)

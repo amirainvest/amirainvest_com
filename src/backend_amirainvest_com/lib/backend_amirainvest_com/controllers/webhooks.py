@@ -1,8 +1,8 @@
 from common_amirainvest_com.sqs.models import Brokerage, BrokerageDataActions, BrokerageDataChange
 from common_amirainvest_com.sqs.sqs_utils import add_message_to_queue
 
-from backend.config import BROKERAGE_DATA_QUEUE_URL
-from backend.models.webhooks import HoldingsUpdate, InvestmentsUpdate
+from backend_amirainvest_com.config import BROKERAGE_DATA_QUEUE_URL
+from backend_amirainvest_com.models.webhooks import HoldingsUpdate, InvestmentsUpdate
 
 
 async def handle_holdings_change(holdings: HoldingsUpdate):

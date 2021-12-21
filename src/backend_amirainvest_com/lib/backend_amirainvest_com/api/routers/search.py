@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Response
 
-from backend.controllers import search
-from backend.controllers.auth import auth_required, token_auth_scheme
+from backend_amirainvest_com.controllers import search
+from backend_amirainvest_com.controllers.auth import auth_required, token_auth_scheme
 
 
 router = APIRouter(prefix="/search", tags=["Search"])

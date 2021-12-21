@@ -2,8 +2,6 @@ include local.env
 export
 env_file_name="local.env"
 UID="$(shell id -u)"
-POETRY_PASSWORD="$(shell aws codeartifact get-authorization-token --domain amira-pypi --domain-owner 903791206266 --query authorizationToken --output text)"
-POETRY_PUBLISH_URL="$(shell aws codeartifact get-repository-endpoint --domain amira-pypi --domain-owner 903791206266 --repository amira_pypi --format pypi --query 'repositoryEndpoint' --output text)"
 DOCKER_BUILDKIT=1
 BUILDKIT_PROGRESS=plain
 
@@ -25,13 +23,13 @@ check_docker:_base
 publish: _base
 	docker-compose --env-file $(env_file_name) -f docker-compose.yaml run --rm publish
 run: _base
-	docker-compose --env-file $(env_file_name) -f docker-compose.yaml run --service-ports --rm amirainvest_com_common
+	docker-compose --env-file $(env_file_name) -f docker-compose.yaml run --service-ports --rm amirainvest_com
 # Starts a shell in the Dockerfile. This is used to run migrations or other commands in the same env as the code
 interactive: _base
-	docker-compose --env-file $(env_file_name) -f docker-compose.yaml -f docker-compose.interactive.yaml run --service-ports --rm amirainvest_com_common
+	docker-compose --env-file $(env_file_name) -f docker-compose.yaml -f docker-compose.interactive.yaml run --service-ports --rm amirainvest_com
 
 test: initialize_pg _base
-	docker-compose --env-file $(env_file_name) -f docker-compose.yaml -f docker-compose.test.yaml run --service-ports --rm amirainvest_com_common
+	docker-compose --env-file $(env_file_name) -f docker-compose.yaml -f docker-compose.test.yaml run --service-ports --rm amirainvest_com
 
 # Just starts the postgres DB.
 db_only: _base
@@ -45,7 +43,7 @@ initialize_pg: _base _remove_all_pg_data run_migrations
 	$(MAKE) _down
 
 run_migrations: _down
-	docker-compose --env-file $(env_file_name) -f docker-compose.yaml run --rm amirainvest_com_common alembic upgrade head
+	docker-compose --env-file $(env_file_name) -f docker-compose.yaml run --rm amirainvest_com alembic upgrade head
 	$(MAKE) _down
 
 
@@ -66,7 +64,7 @@ remove_all_docker_data: kill_all_containers
 ### Commands starting with _ are not to be used in the CLI, but used in other make commands
 
 _build:
-	docker-compose --env-file $(env_file_name) build --build-arg USER_UID=$(UID) --build-arg POETRY_HTTP_BASIC_AMIRAPYPI_PASSWORD=$(POETRY_PASSWORD) --build-arg POETRY_REPOSITORIES_AMIRAPYPI_URL=$(POETRY_PUBLISH_URL) --build-arg AWS_ACCESS_KEY_ID=$(shell bash ./bin/aws_secrets.sh AWS_ACCESS_KEY_ID) --build-arg AWS_SECRET_ACCESS_KEY=$(shell bash ./bin/aws_secrets.sh AWS_SECRET_ACCESS_KEY) --build-arg SYS_ARCH=$(shell uname -m) --progress plain
+	docker-compose --env-file $(env_file_name) build --build-arg USER_UID=$(UID) --progress plain
 
 _down:
 	docker-compose --env-file $(env_file_name) down --remove-orphans

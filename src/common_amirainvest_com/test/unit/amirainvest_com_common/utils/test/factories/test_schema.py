@@ -1,4 +1,4 @@
-pytest_plugins = ["amirainvest_com_common.utils.test.fixtures.database"]
+pytest_plugins = ["common_amirainvest_com.utils.test.fixtures.database"]
 
 import datetime
 
@@ -6,8 +6,8 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from amirainvest_com_common.schemas.schema import Users
-from amirainvest_com_common.utils.test.factories import schema
+from common_amirainvest_com.schemas.schema import Users
+from common_amirainvest_com.utils.test.factories import schema
 
 
 @pytest.mark.asyncio

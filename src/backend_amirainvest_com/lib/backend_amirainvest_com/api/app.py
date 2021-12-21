@@ -3,7 +3,7 @@ import subprocess
 from fastapi import FastAPI
 from starlette.responses import RedirectResponse
 
-from backend.api.routers import (
+from backend_amirainvest_com.api.routers import (
     admin,
     bookmarks,
     broadcast_requests,
@@ -32,8 +32,8 @@ def root():
 
 
 def run():
-    subprocess.run("uvicorn backend.api.app:app --reload --host 0.0.0.0 --port 5000".split(" "))
+    subprocess.run("uvicorn backend_amirainvest_com.api.app:app --reload --host 0.0.0.0 --port 5000".split(" "))
 
-
+s
 if __name__ == "__main__":
     run()

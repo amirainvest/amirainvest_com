@@ -2,8 +2,8 @@ from typing import List
 
 from fastapi import APIRouter, Depends, Response
 
-from backend.controllers import broadcast_requests
-from backend.controllers.auth import auth_required, token_auth_scheme
+from backend_amirainvest_com.controllers import broadcast_requests
+from backend_amirainvest_com.controllers.auth import auth_required, token_auth_scheme
 
 
 router = APIRouter(prefix="/broadcast_requests", tags=["Broadcast Requests"])

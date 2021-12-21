@@ -9,5 +9,5 @@ if [ "$DEBUG" == "true" ]; then
   export PYTHONTRACEMALLOC=1
 fi
 
-eval "$(python -m amirainvest_com_common.utils.load_secrets)"
+eval "$(python -m common_amirainvest_com.utils.load_secrets)"
 exec "$@"

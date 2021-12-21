@@ -11,23 +11,9 @@ services:
         - AWS_ACCESS_KEY_ID
         - AWS_SECRET_ACCESS_KEY
         - POETRY_HTTP_BASIC_AMIRAPYPI_PASSWORD
-        - SYS_ARCH
 
 
-  publish:
-    env_file:
-      - local.env
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        - AWS_ACCESS_KEY_ID
-        - AWS_SECRET_ACCESS_KEY
-        - POETRY_HTTP_BASIC_AMIRAPYPI_PASSWORD
-    command: "poetry publish --build -r amirapypi"
-
-
-  amirainvest_com_common:
+  amirainvest_com:
     env_file:
       - local.env
     build:

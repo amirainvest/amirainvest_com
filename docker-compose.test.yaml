@@ -1,4 +1,4 @@
 services:
 
-  amirainvest_com_common:
+  amirainvest_com:
     command: ["pytest", "tests"]

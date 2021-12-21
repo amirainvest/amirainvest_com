@@ -1,6 +1,6 @@
 services:
 
-  amirainvest_com_common:
+  amirainvest_com:
     stdin_open: true
     tty: true
     command: "/bin/bash"

@@ -12,11 +12,6 @@ packages = [
     { include = "backend_amirainvest_com", from = "lib" }
 ]
 
-[[tool.poetry.source]]
-name = "amirapypi"
-url = "https://amira-pypi-903791206266.d.codeartifact.us-east-1.amazonaws.com/pypi/amira_pypi/simple/"
-default = true
-
 [tool.poetry.dependencies]
 common_amirainvest_com = { path = "../common_amirainvest_com", develop = true }
 

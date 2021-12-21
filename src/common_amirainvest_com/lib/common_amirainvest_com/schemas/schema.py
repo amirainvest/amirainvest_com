@@ -1,7 +1,7 @@
 import datetime
 import uuid
 
-from sqlalchemy import BigInteger, Boolean, Column, DECIMAL, Float, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import BigInteger, Boolean, Column, DECIMAL, Enum, Float, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.orm import declarative_base, relationship
@@ -37,6 +37,8 @@ __all__ = [
     "FinancialAccountCurrentHoldings",
     "Securities",
     "SecurityPrices",
+    "HistoricalJobs",
+    "HistoricalJobsStatus",
 ]
 
 Base = declarative_base()
@@ -470,3 +472,22 @@ class SecurityPrices(Base):
     price = Column(DECIMAL(19, 4), nullable=False)
     price_time = Column(DateTime, nullable=False)
     created_at = Column(DateTime, server_default=UTCNow())
+
+
+class HistoricalJobsStatus(enum.Enum):
+    pending = "PENDING"
+    running = "RUNNING"
+    succeeded = "SUCCEEDED"
+    failed = "FAILED"
+
+
+class HistoricalJobs(Base):
+    __tablename__ = "historical_jobs"
+    id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    status = Column(Enum(HistoricalJobsStatus), default=HistoricalJobsStatus.pending.value, nullable=False)
+    retries = Column(Integer, default=0, nullable=False)
+    params = Column(String)
+    started_at = Column(DateTime)
+    ended_at = Column(DateTime)
+    created_at = Column(DateTime, server_default=UTCNow(), nullable=False)

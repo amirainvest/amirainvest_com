@@ -2,9 +2,10 @@ import base64
 import functools
 import os
 import typing as t
+import warnings
 
 import boto3
-from botocore.exceptions import ClientError
+from botocore.exceptions import ClientError, CredentialRetrievalError
 from dotenv import dotenv_values
 from mypy_boto3_secretsmanager import SecretsManagerClient
 from mypy_boto3_secretsmanager.type_defs import ListSecretsResponseTypeDef
@@ -25,9 +26,12 @@ def print_env_vars():
         values_dict[key] = value
 
     environment = os.environ.get("ENVIRONMENT", "local")
-    values = _get_all_secret_values(environment)
-    for key, value in values.items():
-        values_dict[key] = value
+    try:
+        values = _get_all_secret_values(environment)
+        for key, value in values.items():
+            values_dict[key] = value
+    except CredentialRetrievalError:
+        warnings.warn("Missing AWS creds", RuntimeWarning)
 
     final_values = []
     for key, value in values_dict.items():

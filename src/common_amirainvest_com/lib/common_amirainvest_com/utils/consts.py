@@ -23,7 +23,7 @@ __all__ = [
 
 
 def _decode_env_var(env_var_name: str) -> dict:
-    _postgres_url_dict = json.loads(base64.b64decode(os.environ.get(env_var_name)).decode("utf-8"))
+    _postgres_url_dict = json.loads(base64.b64decode(os.environ.get(env_var_name, "")).decode("utf-8"))
     return _postgres_url_dict
 
 

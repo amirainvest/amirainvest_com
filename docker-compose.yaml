@@ -22,12 +22,11 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - local
-    ports:
-      - "5000:5000"
       local:
       credentials_network:
         ipv4_address: 169.254.170.3
+    ports:
+      - "5000:5000"
 
 
   backend_amirainvest_com:

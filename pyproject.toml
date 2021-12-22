@@ -40,7 +40,7 @@ include = '\.pyi?$'
 [tool.mypy]
 plugins = [
     "sqlalchemy.ext.mypy.plugin",
-    # "pydantic.mypy", Waiting for 1.9.0 to be released. https://pydantic-docs.helpmanual.io/mypy_plugin/#configuring-the-plugin
+#    "pydantic.mypy", # Waiting for 1.9.0 to be released. https://pydantic-docs.helpmanual.io/mypy_plugin/#configuring-the-plugin
     ]
 mypy_path = "$MYPY_CONFIG_FILE_DIR/src"
 namespace_packages = false

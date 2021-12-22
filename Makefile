@@ -14,10 +14,10 @@ check:
 	poetry run mypy src/
 
 check_docker:_base
-	docker-compose --env-file $(env_file_name) -f docker-compose.yaml run --rm simple isort --check tests/ src/
-	docker-compose --env-file $(env_file_name) -f docker-compose.yaml run --rm simple black --check tests/ src/
-	docker-compose --env-file $(env_file_name) -f docker-compose.yaml run --rm simple flake8 tests/ src/
-	docker-compose --env-file $(env_file_name) -f docker-compose.yaml run --rm simple mypy --namespace-packages tests/ src/
+	docker-compose --env-file $(env_file_name) -f docker-compose.yaml run --rm simple isort --check src/
+	docker-compose --env-file $(env_file_name) -f docker-compose.yaml run --rm simple black --check  src/
+	docker-compose --env-file $(env_file_name) -f docker-compose.yaml run --rm simple flake8 src/
+	docker-compose --env-file $(env_file_name) -f docker-compose.yaml run --rm simple mypy src/
 ### Commands to start docker containers and interact with them
 
 publish: _base

@@ -56,10 +56,10 @@ def test_create_bookmark():
 
 @pytest.mark.asyncio
 async def test_delete_bookmark():
-    post_bookmarker = UsersFactory()
-    post_creator = UsersFactory()
-    post = PostsFactory(creator_id=post_creator.id)
-    bookmark = BookmarksFactory(user_id=post_bookmarker.id, post_id=post.id)
+    post_bookmarker = await UsersFactory()
+    post_creator = await UsersFactory()
+    post = await PostsFactory(creator_id=post_creator.id)
+    bookmark = await BookmarksFactory(user_id=post_bookmarker.id, post_id=post.id)
     response = client.delete("/bookmarks", params={"bookmark_id": bookmark.id})
     assert response.status_code == 200
     user_bookmarks = await get_all_user_bookmarks(post_bookmarker.id)

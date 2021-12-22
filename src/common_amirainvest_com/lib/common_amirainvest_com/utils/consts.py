@@ -42,7 +42,8 @@ WEBCACHE = redis.Redis(host="localhost", port=6379)
 MAX_FEED_SIZE = 200
 AWS_REGION = "us-east-1"
 
-AUTH0_API_AUDIENCE = "api.amirainvest.com"
-AUTH0_CLIENT_ID = "A3m9zrcygCB7IyGKam4ofP38dHgPuaI7"
-AUTH0_CLIENT_SECRET = "XUaw5zCKVR_ilbugUyFTlBkmAgCVf3vY3ZbJUGxYzJtbEHTpg-Q9WXlV4nbO8Mlm"
-AUTH0_DOMAIN = "dev-0nn4c3x4.us.auth0.com"
+AUTH0_CLIENT_ID = ""
+AUTH0_CLIENT_SECRET = ""
+AUTH0_DOMAIN = os.environ.get("AUTH0_DOMAIN_ENV", "dev-0nn4c3x4.us.auth0.com")
+AUTH0_API_AUDIENCE = ""
+

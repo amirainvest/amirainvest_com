@@ -39,6 +39,6 @@ ARG ENVIRONMENT="local"
 ENV ENVIRONMENT=$ENVIRONMENT
 
 ENV SQLALCHEMY_WARN_20=1
-
+EXPOSE 5000
 ENTRYPOINT ["/bin/bash", "entrypoint.sh"]
 CMD ["python", "src/common_amirainvest_com/main.py"]

@@ -26,7 +26,7 @@ class UserCreate(BaseModel):
     is_claimed: bool
     is_deactivated: bool
     is_deleted: bool
-    # deleted_at: datetime.datetime
+    deleted_at: datetime.datetime
     created_at: datetime.datetime
     updated_at: datetime.datetime
     twitter_username: str

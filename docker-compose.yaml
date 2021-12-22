@@ -30,6 +30,8 @@ services:
         condition: service_healthy
     networks:
       - local
+    ports:
+      - "5000:5000"
 
 
   postgres:

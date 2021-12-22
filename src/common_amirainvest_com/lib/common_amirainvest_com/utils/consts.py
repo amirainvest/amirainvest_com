@@ -42,7 +42,4 @@ WEBCACHE = redis.Redis(host="localhost", port=6379)
 MAX_FEED_SIZE = 200
 AWS_REGION = "us-east-1"
 
-AUTH0_API_AUDIENCE = ""
-AUTH0_CLIENT_ID = ""
-AUTH0_CLIENT_SECRET = ""
-AUTH0_DOMAIN = ""
+

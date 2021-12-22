@@ -22,6 +22,8 @@ services:
         condition: service_healthy
     networks:
       - local
+    volumes:
+      - "$HOME/.aws/credentials:/home/default/.aws/credentials:ro"
 
 
   backend_amirainvest_com:

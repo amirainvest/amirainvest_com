@@ -6,3 +6,4 @@ services:
     command: "/bin/bash"
     volumes:
       - .:/opt
+      - "$HOME/.aws/credentials:/home/default/.aws/credentials:ro"

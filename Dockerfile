@@ -21,10 +21,20 @@ RUN pip install poetry
 COPY --chown=default:default poetry.lock pyproject.toml ./
 
 COPY --chown=default:default ./src/common_amirainvest_com/pyproject.toml ./src/common_amirainvest_com/
-COPY --chown=default:default ./src/common_amirainvest_com/lib/common_amirainvest_com/__init__.py ./src/common_amirainvest_com/lib/common_amirainvest_com/
+COPY --chown=default:default ./src/common_amirainvest_com/lib/common_amirainvest_com/__init__.py \
+./src/common_amirainvest_com/lib/common_amirainvest_com/
 
 COPY --chown=default:default ./src/backend_amirainvest_com/pyproject.toml ./src/backend_amirainvest_com/
-COPY --chown=default:default ./src/backend_amirainvest_com/lib/backend_amirainvest_com/__init__.py ./src/backend_amirainvest_com/lib/backend_amirainvest_com/
+COPY --chown=default:default ./src/backend_amirainvest_com/lib/backend_amirainvest_com/__init__.py \
+./src/backend_amirainvest_com/lib/backend_amirainvest_com/
+
+COPY --chown=default:default ./src/brokerage_amirainvest_com/pyproject.toml ./src/brokerage_amirainvest_com/
+COPY --chown=default:default ./src/brokerage_amirainvest_com/lib/brokerage_amirainvest_com/__init__.py \
+./src/brokerage_amirainvest_com/lib/brokerage_amirainvest_com/
+
+COPY --chown=default:default ./src/data_imports_amirainvest_com/pyproject.toml ./src/data_imports_amirainvest_com/
+COPY --chown=default:default ./src/data_imports_amirainvest_com/lib/data_imports_amirainvest_com/__init__.py \
+./src/data_imports_amirainvest_com/lib/data_imports_amirainvest_com/
 
 ARG NO_DEV="-v"
 
@@ -41,4 +51,3 @@ ENV ENVIRONMENT=$ENVIRONMENT
 ENV SQLALCHEMY_WARN_20=1
 EXPOSE 5000
 ENTRYPOINT ["/bin/bash", "entrypoint.sh"]
-CMD ["python", "src/common_amirainvest_com/main.py"]

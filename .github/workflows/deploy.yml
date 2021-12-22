@@ -1,0 +1,23 @@
+name: Deploy
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
+
+jobs:
+#  tests:
+#    uses: amirainvest/common/.github/workflows/tests.yml@main
+
+  db_container:
+#    needs: tests
+    uses: amirainvest/amirainvest_com/.github/workflows/push_containers.yml@main
+    with:
+      microservice_list: "[\"backend_amirainvest_com\"]"
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+

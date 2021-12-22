@@ -71,7 +71,7 @@ lines_after_imports = 2
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "--cov=common_amirainvest_com --cov-report term --cov-report html" # TODO fix
+addopts = "--cov=src/common_amirainvest_com/lib --cov=src/backend_amirainvest_com/lib --cov=src/brokerage_amirainvest_com/lib --cov=src/data_imports_amirainvest_com/lib --cov-report term --cov-report html"
 testpaths = [
     "src/common_amirainvest_com/test",
     "src/backend_amirainvest_com/test",

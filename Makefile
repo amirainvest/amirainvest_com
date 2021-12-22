@@ -1,6 +1,4 @@
-include local.env
 export
-env_file_name="local.env"
 UID="$(shell id -u)"
 DOCKER_BUILDKIT=1
 BUILDKIT_PROGRESS=plain
@@ -14,26 +12,26 @@ check:
 	poetry run mypy src/
 
 check_docker:_base
-	docker-compose --env-file $(env_file_name) -f docker-compose.yaml run --rm simple isort --check src/
-	docker-compose --env-file $(env_file_name) -f docker-compose.yaml run --rm simple black --check  src/
-	docker-compose --env-file $(env_file_name) -f docker-compose.yaml run --rm simple flake8 src/
-	docker-compose --env-file $(env_file_name) -f docker-compose.yaml run --rm simple mypy src/
+	docker-compose  -f docker-compose.yaml run --rm simple isort --check src/
+	docker-compose  -f docker-compose.yaml run --rm simple black --check  src/
+	docker-compose  -f docker-compose.yaml run --rm simple flake8 src/
+	docker-compose  -f docker-compose.yaml run --rm simple mypy src/
 ### Commands to start docker containers and interact with them
 
 publish: _base
-	docker-compose --env-file $(env_file_name) -f docker-compose.yaml run --rm publish
+	docker-compose  -f docker-compose.yaml run --rm publish
 run: _base
-	docker-compose --env-file $(env_file_name) -f docker-compose.yaml run --service-ports --rm amirainvest_com
+	docker-compose  -f docker-compose.yaml run --service-ports --rm amirainvest_com
 # Starts a shell in the Dockerfile. This is used to run migrations or other commands in the same env as the code
 interactive: _base
-	docker-compose --env-file $(env_file_name) -f docker-compose.yaml -f docker-compose.interactive.yaml run --service-ports --rm amirainvest_com
+	docker-compose  -f docker-compose.yaml -f docker-compose.interactive.yaml run --service-ports --rm amirainvest_com
 
 test: initialize_pg _base
-	docker-compose --env-file $(env_file_name) -f docker-compose.yaml -f docker-compose.test.yaml run --service-ports --rm amirainvest_com
+	docker-compose  -f docker-compose.yaml -f docker-compose.test.yaml run --service-ports --rm amirainvest_com
 
 # Just starts the postgres DB.
 db_only: _base
-	docker-compose --env-file $(env_file_name) -f docker-compose.yaml up --abort-on-container-exit --remove-orphans postgres
+	docker-compose  -f docker-compose.yaml up --abort-on-container-exit --remove-orphans postgres
 
 
 ### Commands to alter postgres data
@@ -43,7 +41,7 @@ initialize_pg: _base _remove_all_pg_data run_migrations
 	$(MAKE) _down
 
 run_migrations: _down
-	docker-compose --env-file $(env_file_name) -f docker-compose.yaml run --rm amirainvest_com alembic upgrade head
+	docker-compose  -f docker-compose.yaml run --rm amirainvest_com alembic upgrade head
 	$(MAKE) _down
 
 
@@ -64,10 +62,10 @@ remove_all_docker_data: kill_all_containers
 ### Commands starting with _ are not to be used in the CLI, but used in other make commands
 
 _build:
-	docker-compose --env-file $(env_file_name) build --build-arg USER_UID=$(UID) --progress plain
+	docker-compose  build --build-arg USER_UID=$(UID) --progress plain
 
 _down:
-	docker-compose --env-file $(env_file_name) down --remove-orphans
+	docker-compose  down --remove-orphans
 
 _base: _down _build
 
@@ -75,6 +73,6 @@ _remove_all_pg_data:
 	docker volume rm -f common_common_postgres_data
 
 _insert_pg_data: _down
-	docker-compose --env-file $(env_file_name) -f docker-compose.yaml  -f docker-compose.pg.yaml up -d postgres
+	docker-compose  -f docker-compose.yaml  -f docker-compose.pg.yaml up -d postgres
 	sleep 5
 	docker-compose exec postgres psql $(PGDATABASE) $(PGUSER) -f /docker-entrypoint-initdb.d/pg_inserts.sql

@@ -2,38 +2,35 @@ version: "3.9"
 services:
 
   simple:
-    env_file:
-      - local.env
     build:
       context: .
       dockerfile: Dockerfile
 
 
   amirainvest_com:
-    env_file:
-      - local.env
     build:
       context: .
       dockerfile: Dockerfile
     environment:
-      POSTGRES_DATABASE_URL_ENV: "postgresql://test:test@postgres:5432/test"
+      ENVIRONMENT: "local"
+      DEBUG: "true"
+      AWS_DEFAULT_REGION: "us-east-1"
+      AWS_CONTAINER_CREDENTIALS_RELATIVE_URI: "/creds"
     depends_on:
+      ecs-local-endpoints:
+        condition: service_started
       postgres:
         condition: service_healthy
     networks:
-      - local
-    volumes:
-      - "$HOME/.aws/credentials:/home/default/.aws/credentials:ro"
+      local:
+      credentials_network:
+        ipv4_address: 169.254.170.3
 
 
   backend_amirainvest_com:
-    env_file:
-      - local.env
     build:
       context: .
       dockerfile: ./Dockerfiles/backend_amirainvest_com.Dockerfile
-    environment:
-      POSTGRES_DATABASE_URL_ENV: "postgresql://test:test@postgres:5432/test"
     depends_on:
       postgres:
         condition: service_healthy
@@ -43,9 +40,20 @@ services:
     tty: true
     command: "/bin/bash"
 
+  ecs-local-endpoints:
+    # The Amazon ECS Local Container Endpoints Docker Image
+    image: amazon/amazon-ecs-local-container-endpoints
+    volumes:
+      - /var/run:/var/run
+      - $HOME/.aws/:/home/.aws/
+    environment:
+      HOME: "/home"
+      AWS_PROFILE: "default"
+    networks:
+      credentials_network:
+        ipv4_address: 169.254.170.2
+
   postgres:
-    env_file:
-      - local.env
     image: postgres:10-alpine
     volumes:
       - type: volume
@@ -71,6 +79,12 @@ networks:
   local:
     driver: bridge
     name: local
+  credentials_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 169.254.170.0/24
+          gateway: 169.254.170.1
 
 volumes:
   common_postgres_data:

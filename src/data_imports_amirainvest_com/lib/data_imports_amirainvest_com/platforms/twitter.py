@@ -234,7 +234,7 @@ class Tweet:
 async def load_user_data(twitter_username, creator_id):
     twitter_user = TwitterUser(twitter_username, creator_id)
     twitter_user.load_twitter_user_data()
-    tweets = await twitter_user.load_platform_data()
+    await twitter_user.load_platform_data()
 
 
 if __name__ == "__main__":

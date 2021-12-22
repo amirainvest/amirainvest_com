@@ -1,5 +1,5 @@
 import json
-from typing import List
+from typing import List, Tuple
 
 from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
 from common_amirainvest_com.utils.logger import log
@@ -8,7 +8,7 @@ from data_imports_amirainvest_com.controllers import substack_users, twitter_use
 from data_imports_amirainvest_com.sqs.sqs_utils import add_message_to_queue
 
 
-async def get_refresh_ready_platform_data() -> List[tuple]:
+async def get_refresh_ready_platform_data() -> List[Tuple[str, str]]:
     log.info("Getting refresh ready platform data")
     data = []
     all_twitter_users = await twitter_users.get_all_twitter_users()

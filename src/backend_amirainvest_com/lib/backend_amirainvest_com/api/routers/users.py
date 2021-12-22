@@ -28,6 +28,7 @@ async def get_is_existing_user(user_id: str, token: str = Depends(token_auth_sch
 @router.put("/", status_code=200, response_model=users.users_pydantic_model)
 @auth_required
 async def update_user(user: users.users_pydantic_model, token: str = Depends(token_auth_scheme)):
+    print(user.dict())
     user = await users.update_user(user.dict())
     return user
 

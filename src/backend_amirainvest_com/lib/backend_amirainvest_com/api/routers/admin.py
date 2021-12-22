@@ -1,11 +1,14 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+
+from backend_amirainvest_com.controllers.auth import auth_required, token_auth_scheme
 
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
 
 @router.get("/")
-def root():
+@auth_required
+async def root(token: str = Depends(token_auth_scheme)):
     return [{"message": "Welcome to the API Homepage"}]
 
 

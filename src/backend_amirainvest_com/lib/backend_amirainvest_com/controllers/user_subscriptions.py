@@ -1,4 +1,5 @@
 import datetime
+import uuid
 
 from sqlalchemy import delete, select
 
@@ -17,7 +18,7 @@ async def update_user_subscription(user_subscription_data: dict):
 
 
 @Session
-async def create_user_subscription(session, subscriber_id: str, creator_id: str):
+async def create_user_subscription(session, subscriber_id: uuid.UUID, creator_id: uuid.UUID):
     subscription = UserSubscriptions(
         creator_id=creator_id,
         subscriber_id=subscriber_id,

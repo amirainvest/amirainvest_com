@@ -27,7 +27,7 @@ def auth_required(function):
 
 def get_application_token():
     return requests.post(
-        url="https://dev-0nn4c3x4.us.auth0.com/oauth/token",
+        url=f"https://{AUTH0_DOMAIN}/oauth/token",
         data=json.dumps(
             {
                 "client_id": AUTH0_CLIENT_ID,
@@ -48,7 +48,7 @@ class VerifyToken:
     def verify(self):
         try:
             signing_key = self.jwks_client.get_signing_key_from_jwt(self.token).key
-        except (jwt.exceptions.PyJWKClientError, jwt.exceptions.DecodeError) as e:
+        except (jwt.exceptions.PyJWKClientError, jwt.exceptions.DecodeError, jwt.exceptions.PyJWKError) as e:
             return {"status": "error", "message": str(e)}
         try:
             payload = jwt.decode(
@@ -64,6 +64,4 @@ class VerifyToken:
 
 
 if __name__ == "__main__":
-    from pprint import pprint
-
-    pprint(get_application_token())
+    print(get_application_token()["access_token"])

@@ -15,8 +15,8 @@ async def get_husk_requests(session):
 
 
 @Session
-async def create_husk_request(session, husk_request: dict):
-    husk_request = HuskRequests(**husk_request)
+async def create_husk_request(session, husk_request_data: dict):
+    husk_request = HuskRequests(**husk_request_data)
     session.add(husk_request)
     return husk_request
 

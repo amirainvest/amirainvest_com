@@ -8,7 +8,7 @@ from data_imports_amirainvest_com.sqs.sqs_utils import consume_queue
 
 
 def consume_data_load_sqs_queue(expedited=False):
-    log.info(f"Consuming Data Load Queue...")
+    log.info("Consuming Data Load Queue...")
     while True:
         if expedited:
             consume_queue(EXPEDITED_MEDIA_PLATFORM_DATA_LOAD_QUEUE, load_platform_user_data)

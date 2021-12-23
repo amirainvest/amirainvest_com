@@ -20,8 +20,8 @@ async def get_all_user_bookmarks(user_id: str, token: str = Depends(token_auth_s
 @router.post("/", status_code=201, response_model=bookmarks.bookmarks_pydantic_model)
 @auth_required
 async def create_bookmark(bookmark_data: bookmarks.bookmarks_pydantic_model, token: str = Depends(token_auth_scheme)):
-    bookmark = await bookmarks.create_bookmark(bookmark_data.__dict__)
-    bookmark = bookmark.__dict__
+    bookmark = await bookmarks.create_bookmark(bookmark_data.dict())
+    bookmark = bookmark.dict()
     return bookmark
 
 

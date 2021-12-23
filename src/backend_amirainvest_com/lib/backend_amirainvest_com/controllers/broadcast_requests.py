@@ -11,7 +11,7 @@ broadcast_requests_pydantic_model = sqlalchemy_to_pydantic(BroadcastRequests)
 
 
 @Session
-async def create_broadcast_request(session, requester_id, creator_id):
+async def create_broadcast_request(session, requester_id: str, creator_id: str):
     broadcast_request = BroadcastRequests(
         **{"subscriber_id": requester_id, "creator_id": creator_id, "created_at": datetime.datetime.utcnow()}
     )

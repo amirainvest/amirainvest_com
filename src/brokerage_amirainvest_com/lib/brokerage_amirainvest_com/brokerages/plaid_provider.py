@@ -112,7 +112,7 @@ class PlaidRepository:
                 sedol=sec.sedol,
                 plaid_institution_security_id=sec.institution_security_id,
                 is_cash_equivalent=sec.is_cash_equivalent,
-                type=sec.type,
+                type=sec.type,  # type: ignore # TODO remove ignore
                 iso_currency_code=sec.iso_currency_code,
                 unofficial_currency_code=sec.unofficial_currency_code,
             )
@@ -155,7 +155,7 @@ class PlaidRepository:
                 continue
             accounts_to_insert.append(
                 FinancialAccounts(
-                    user_id=user_id,
+                    user_id=user_id,  # type: ignore # TODO fix
                     plaid_id=acc.account_id,
                     official_account_name=acc.official_name,
                     user_assigned_account_name=acc.name,

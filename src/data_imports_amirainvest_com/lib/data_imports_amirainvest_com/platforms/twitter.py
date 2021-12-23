@@ -79,7 +79,7 @@ class TwitterUser(PlatformUser):
     async def get_last_pulled_tweet_timestamp(self) -> str:
         stored_tweets = await self.get_stored_creator_tweets()
         if stored_tweets:
-            time = arrow.get(stored_tweets[0].created_at).datetime
+            time = arrow.get(stored_tweets[0].created_at)
         else:
             time = arrow.utcnow().shift(months=-1)
 

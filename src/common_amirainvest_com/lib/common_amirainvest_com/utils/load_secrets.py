@@ -105,6 +105,7 @@ def _get_aws_secret_value(secret_arn: str, aws_region: str = "us-east-1") -> t.T
             # We can't find the resource that you asked for.
             # Deal with the exception here, and/or rethrow at your discretion.
             raise e
+        raise e
     else:
         # Decrypts secret using the associated KMS key.
         # Depending on whether the secret is a string or binary, one of these fields will be populated.

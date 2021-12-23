@@ -77,7 +77,7 @@ async def session_test(db_engine: AsyncEngine, monkeypatch: pytest.MonkeyPatch) 
         bind=connection,
     )
     async_session = sessionmaker(
-        db_engine, autoflush=False, autocommit=False, class_=AsyncSession, expire_on_commit=False
+        connection, autoflush=False, autocommit=False, class_=AsyncSession, expire_on_commit=False
     )
     monkeypatch.setattr(consts, "POSTGRES_DATABASE_URL", str(db_engine.url))
     monkeypatch.setenv("POSTGRES_DATABASE_URL_ENV", str(db_engine.url))

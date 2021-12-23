@@ -64,4 +64,4 @@ class VerifyToken:
 
 
 if __name__ == "__main__":
-    print(get_application_token()["access_token"])
+    print(get_application_token())

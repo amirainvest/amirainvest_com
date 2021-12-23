@@ -22,9 +22,9 @@ def generate_pydantic_model_from_dict(data: dict, model_name: str):
                 shell=True,
                 stdout=subprocess.PIPE,
             )
-            .stdout.read()  # type: ignore
-            .decode("utf-8")
-            .split("from pydantic import BaseModel")[1]
+                .stdout.read()  # type: ignore
+                .decode("utf-8")
+                .split("from pydantic import BaseModel")[1]
         )
     os.remove(data_file)
 
@@ -59,4 +59,9 @@ def sqlalchemy_to_pydantic(
                     default = ...
                 fields[name] = (python_type, default)
     pydantic_model = create_model(db_model.__name__, __config__=config, **fields)  # type: ignore
+    return pydantic_model
+
+
+def remove_from_pydantic_model(pydantic_model, attr_to_remove):
+    delattr(pydantic_model, attr_to_remove)
     return pydantic_model

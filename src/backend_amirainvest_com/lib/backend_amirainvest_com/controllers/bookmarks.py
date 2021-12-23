@@ -6,7 +6,7 @@ from common_amirainvest_com.utils.decorators import Session
 
 @Session
 async def get_all_user_bookmarks(session, user_id):
-    data = await session.execute(select(Bookmarks).where(Bookmarks.user_id == user_id))
+    data = await session.execute(select(Bookmarks))
     return data.scalars().all()
 
 

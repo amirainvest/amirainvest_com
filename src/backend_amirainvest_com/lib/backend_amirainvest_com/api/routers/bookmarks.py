@@ -21,7 +21,7 @@ async def get_all_user_bookmarks(user_id: str, token: str = Depends(token_auth_s
 @auth_required
 async def create_bookmark(bookmark_data: bookmarks.bookmarks_pydantic_model, token: str = Depends(token_auth_scheme)):
     bookmark = await bookmarks.create_bookmark(bookmark_data.dict())
-    bookmark = bookmark.dict()
+    bookmark = bookmark.__dict__
     return bookmark
 
 

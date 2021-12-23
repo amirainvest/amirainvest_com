@@ -12,6 +12,7 @@ from alembic.config import Config
 from common_amirainvest_com.utils import consts, decorators
 from common_amirainvest_com.utils.consts import COMMON_ROOT_DIR
 from common_amirainvest_com.utils.test.fixtures.consts import TEST_DB_URL
+from sqlalchemy.orm import sessionmaker
 
 
 @pytest.fixture(scope="session")
@@ -75,13 +76,18 @@ async def session_test(db_engine: AsyncEngine, monkeypatch: pytest.MonkeyPatch) 
         expire_on_commit=False,
         bind=connection,
     )
-
+    async_session = sessionmaker(
+        db_engine, autoflush=False, autocommit=False, class_=AsyncSession, expire_on_commit=False
+    )
     monkeypatch.setattr(consts, "POSTGRES_DATABASE_URL", str(db_engine.url))
     monkeypatch.setenv("POSTGRES_DATABASE_URL_ENV", str(db_engine.url))
 
     monkeypatch.setattr(consts, "engine", db_engine)
 
     monkeypatch.setattr(decorators, "_session", session)
+    monkeypatch.setattr(decorators, "_async_session", async_session)
+
+    monkeypatch.setattr(consts, "async_session", async_session)
     await session.begin_nested()
 
     print("BEFORE SESSION")

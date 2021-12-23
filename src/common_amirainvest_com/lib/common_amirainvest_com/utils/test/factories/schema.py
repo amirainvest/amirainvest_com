@@ -32,6 +32,7 @@ class UsersFactory(FactoryBase):
     picture_url = "https://test.com"
     email = "test@test.com"
     email_verified = True
+    is_deleted = False
 
 
 class HuskRequestsFactory(FactoryBase):
@@ -77,6 +78,7 @@ class BookmarksFactory(FactoryBase):
 
     user_id = ""
     post_id = 0
+    is_deleted = False
 
 
 class SubstackArticlesFactory(FactoryBase):

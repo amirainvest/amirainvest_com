@@ -37,7 +37,7 @@ def get_application_token():
             }
         ),
         headers={"content-type": "application/json"},
-    ).json()
+    ).json()["access_token"]
 
 
 class VerifyToken:

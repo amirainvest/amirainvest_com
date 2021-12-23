@@ -68,7 +68,7 @@ def _get_all_secret_arns(environment: str = "test", aws_region: str = "us-east-1
         if next_token is not None:
             call_dict["NextToken"] = next_token
 
-        results: ListSecretsResponseTypeDef = client.list_secrets(**call_dict)
+        results: ListSecretsResponseTypeDef = client.list_secrets(**call_dict)  # type: ignore
 
         secret_arn_list.extend([secret["ARN"] for secret in results["SecretList"]])
 

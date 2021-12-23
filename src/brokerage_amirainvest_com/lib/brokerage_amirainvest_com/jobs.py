@@ -16,13 +16,15 @@ MAX_JOB_RETRIES = 3
 #   do something like lock table for each transaction
 @Session
 async def start_historical_job(session, user_id: str) -> int:
-    response = await session.execute(
-        select(HistoricalJobs).where(
-            and_(HistoricalJobs.user_id == user_id), and_(HistoricalJobs.status == HistoricalJobsStatus.running)
-        )
-    )
-
-    data = response.scalars().all()
+    # TODO model is broken. Missing status
+    # response = await session.execute(
+    #     select(HistoricalJobs).where(
+    #         and_(HistoricalJobs.user_id == user_id), and_(HistoricalJobs.status == HistoricalJobsStatus.running)
+    #     )
+    # )
+    #
+    # data = response.scalars().all()
+    data = []
     if len(data) > 0:
         return 0
 

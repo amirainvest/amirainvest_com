@@ -22,7 +22,7 @@ boto3-stubs = {extras = ["all"], version = "^1.20.24"}
 factory-boy = "^3.2.1"
 flake8 = "^4.0.1"
 isort = "^5.10.1"
-mypy = "^0.910"
+mypy = "*"
 pre-commit = "^2.15.0"
 pytest = "^6.2.5"
 pytest-asyncio = "^0.16.0"

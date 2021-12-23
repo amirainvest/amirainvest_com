@@ -68,7 +68,7 @@ def _get_all_secret_arns(environment: str = "test", aws_region: str = "us-east-1
         if next_token is not None:
             call_dict["NextToken"] = next_token
 
-        results: ListSecretsResponseTypeDef = client.list_secrets(**call_dict)
+        results: ListSecretsResponseTypeDef = client.list_secrets(**call_dict)  # type: ignore
 
         secret_arn_list.extend([secret["ARN"] for secret in results["SecretList"]])
 
@@ -105,6 +105,7 @@ def _get_aws_secret_value(secret_arn: str, aws_region: str = "us-east-1") -> t.T
             # We can't find the resource that you asked for.
             # Deal with the exception here, and/or rethrow at your discretion.
             raise e
+        raise e
     else:
         # Decrypts secret using the associated KMS key.
         # Depending on whether the secret is a string or binary, one of these fields will be populated.

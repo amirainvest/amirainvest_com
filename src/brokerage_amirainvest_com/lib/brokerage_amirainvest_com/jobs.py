@@ -15,10 +15,13 @@ MAX_JOB_RETRIES = 3
 #   rather than selecting, then inserting -- as this could be a concurrency issue, or we could
 #   do something like lock table for each transaction
 @Session
-async def start_historical_job(session, user_id: str) -> int:
+async def start_historical_job(session, user_id: str) -> int:  # type: ignore # TODO fix
+    # TODO model is broken. Missing status
+
     response = await session.execute(
         select(HistoricalJobs).where(
-            and_(HistoricalJobs.user_id == user_id), and_(HistoricalJobs.status == HistoricalJobsStatus.running)
+            and_(HistoricalJobs.user_id == user_id),  # type: ignore # TODO fix
+            and_(HistoricalJobs.status == HistoricalJobsStatus.running),  # type: ignore # TODO fix
         )
     )
 
@@ -27,8 +30,8 @@ async def start_historical_job(session, user_id: str) -> int:
         return 0
 
     historical_job = HistoricalJobs(
-        user_id=user_id,
-        status=HistoricalJobsStatus.running,
+        user_id=user_id,  # type: ignore # TODO fix
+        status=HistoricalJobsStatus.running,  # type: ignore # TODO fix
         retries=0,
         params="",
         started_at=datetime.datetime.utcnow(),
@@ -37,7 +40,7 @@ async def start_historical_job(session, user_id: str) -> int:
     session.add(historical_job)
     await session.flush()
     await session.refresh(historical_job)
-    return historical_job.id
+    return historical_job.id  # type: ignore # TODO fix
 
 
 @Session

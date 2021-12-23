@@ -30,7 +30,7 @@ async def get_is_existing_user(user_id: str, token: str = Depends(token_auth_sch
 @auth_required
 async def update_user(user: UsersModel, token: str = Depends(token_auth_scheme)):
     print(user.dict())
-    user = await users.update_user(user.dict())
+    user = await users.update_user(user.dict())  # type: ignore # TODO fix
     return user
 
 

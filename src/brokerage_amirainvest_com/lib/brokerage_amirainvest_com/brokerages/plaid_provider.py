@@ -46,15 +46,14 @@ class PlaidRepository:
 
     @Session
     async def add_institutions(self, session: AsyncSession, institutions: list[Institution]):
-        # TODO schema broken. No plaid_id
         plaid_institution_ids = set()
         for inst in institutions:
             plaid_institution_ids.add(inst.plaid_institution_id)
 
         existing_institutions = await self.get_institutions_by_plaid_ids(plaid_institution_ids)
         existing_institutions_dict = {}
-        for inst in existing_institutions:
-            existing_institutions_dict[inst.plaid_id] = inst.id  # type: ignore # TODO fix
+        for exist_inst in existing_institutions:
+            existing_institutions_dict[exist_inst.plaid_id] = exist_inst.id  # TODO fix
 
         institutions_to_insert = []
         for inst in institutions:

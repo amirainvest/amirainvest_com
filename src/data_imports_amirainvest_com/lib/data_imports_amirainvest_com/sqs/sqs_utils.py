@@ -1,17 +1,20 @@
 import json
+import typing as t
 from multiprocessing import Process
 from time import sleep
 
 import boto3
+from mypy_boto3_sqs import SQSServiceResource
+from mypy_boto3_sqs.service_resource import Queue
 
 from common_amirainvest_com.utils.logger import log
 from data_imports_amirainvest_com.constants import AWS_REGION
 
 
-sqs_resource: boto3.resource = boto3.resource("sqs", AWS_REGION)
+sqs_resource: SQSServiceResource = boto3.resource("sqs", AWS_REGION)
 
 
-def get_messages(sqs_queue: sqs_resource.Queue, timeout: int = 60) -> list:
+def get_messages(sqs_queue: Queue, timeout: int = 60) -> list:
     return sqs_queue.receive_messages(MaxNumberOfMessages=1, WaitTimeSeconds=20, VisibilityTimeout=timeout)
 
 
@@ -25,8 +28,8 @@ def keep_message_alive(message, timeout: int = 60):
         message.change_visibility(VisibilityTimeout=timeout)
 
 
-def consume_queue(queue: str, func: callable, timeout: int = 60):
-    queue = sqs_resource.Queue(queue)
+def consume_queue(queue_name: str, func: t.Callable, timeout: int = 60):
+    queue: Queue = sqs_resource.Queue(queue_name)
     while True:
         try:
             message = get_messages(queue, timeout)[0]
@@ -42,7 +45,7 @@ def consume_queue(queue: str, func: callable, timeout: int = 60):
                 except Exception:
                     import traceback
 
-                    traceback = f"{traceback.format_exc()}\n\n{str(data)}"
+                    traceback = f"{traceback.format_exc()}\n\n{str(data)}"  # type: ignore # TODO fix
                     log.exception(traceback)
             process.terminate()
             process.join()

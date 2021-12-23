@@ -17,6 +17,7 @@ common_amirainvest_com = { path = "../common_amirainvest_com", develop = true }
 
 asyncpg = "^0.25.0"
 boto3 = "^1.20.19"
+boto3-stubs = { extras = ["sqs"], version = "^1.20.24" }
 bs4 = "^0.0.1"
 feedparser = "^6.0.8"
 psycopg2-binary = "^2.9.2"

@@ -1,6 +1,6 @@
 import asyncio
 import datetime
-from typing import Callable, List
+from typing import Callable
 
 from sqlalchemy import and_, select, update
 
@@ -20,7 +20,8 @@ async def start_historical_job(session, user_id: str) -> int:  # type: ignore # 
 
     response = await session.execute(
         select(HistoricalJobs).where(
-            and_(HistoricalJobs.user_id == user_id), and_(HistoricalJobs.status == HistoricalJobsStatus.running)  # type: ignore # TODO fix
+            and_(HistoricalJobs.user_id == user_id),  # type: ignore # TODO fix
+            and_(HistoricalJobs.status == HistoricalJobsStatus.running),  # type: ignore # TODO fix
         )
     )
 

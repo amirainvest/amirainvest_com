@@ -1,4 +1,5 @@
 import json
+import typing as t
 from multiprocessing import Process
 from time import sleep
 
@@ -8,7 +9,7 @@ from mypy_boto3_sqs.service_resource import Queue
 
 from common_amirainvest_com.utils.logger import log
 from data_imports_amirainvest_com.constants import AWS_REGION
-import typing as t
+
 
 sqs_resource: SQSServiceResource = boto3.resource("sqs", AWS_REGION)
 

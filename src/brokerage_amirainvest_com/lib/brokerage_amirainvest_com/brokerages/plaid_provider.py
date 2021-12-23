@@ -13,7 +13,6 @@ from plaid.model.investments_transactions_get_request_options import (  # type: 
     InvestmentsTransactionsGetRequestOptions,
 )
 from plaid.model.security import Security as PlaidSecurity  # type: ignore
-from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 

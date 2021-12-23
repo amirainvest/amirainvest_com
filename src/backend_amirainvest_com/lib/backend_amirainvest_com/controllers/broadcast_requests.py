@@ -9,7 +9,11 @@ from common_amirainvest_com.utils.decorators import Session
 @Session
 async def create_broadcast_request(session, requester_id: str, creator_id: str):
     broadcast_request = BroadcastRequests(
-        **{"subscriber_id": requester_id, "creator_id": creator_id, "created_at": datetime.datetime.utcnow()}  # type: ignore
+        **{
+            "subscriber_id": requester_id,
+            "creator_id": creator_id,
+            "created_at": datetime.datetime.utcnow(),
+        }  # type: ignore
     )
     session.add(broadcast_request)
     return broadcast_request

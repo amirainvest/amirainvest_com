@@ -6,10 +6,6 @@ from sqlalchemy import delete, select
 from common_amirainvest_com.schemas.schema import UserSubscriptions
 from common_amirainvest_com.utils.database_utils import update
 from common_amirainvest_com.utils.decorators import Session
-from common_amirainvest_com.utils.pydantic_utils import sqlalchemy_to_pydantic
-
-
-user_subscriptions_pydantic_model = sqlalchemy_to_pydantic(UserSubscriptions)
 
 
 async def update_user_subscription(user_subscription_data: dict):

@@ -4,12 +4,13 @@ from fastapi import APIRouter, Depends
 
 from backend_amirainvest_com.controllers import bookmarks
 from backend_amirainvest_com.controllers.auth import auth_required, token_auth_scheme
+from common_amirainvest_com.schemas.schema import BookmarksModel
 
 
 router = APIRouter(prefix="/bookmarks", tags=["Bookmarks"])
 
 
-@router.get("/", status_code=200, response_model=List[bookmarks.bookmarks_pydantic_model])
+@router.get("/", status_code=200, response_model=List[BookmarksModel])
 @auth_required
 async def get_all_user_bookmarks(user_id: str, token: str = Depends(token_auth_scheme)):
     user_bookmarks = await bookmarks.get_all_user_bookmarks(user_id)
@@ -17,9 +18,9 @@ async def get_all_user_bookmarks(user_id: str, token: str = Depends(token_auth_s
     return user_bookmarks
 
 
-@router.post("/", status_code=201, response_model=bookmarks.bookmarks_pydantic_model)
+@router.post("/", status_code=201, response_model=BookmarksModel)
 @auth_required
-async def create_bookmark(bookmark_data: bookmarks.bookmarks_pydantic_model, token: str = Depends(token_auth_scheme)):
+async def create_bookmark(bookmark_data: BookmarksModel, token: str = Depends(token_auth_scheme)):
     bookmark = await bookmarks.create_bookmark(bookmark_data.dict())
     bookmark = bookmark.__dict__
     return bookmark

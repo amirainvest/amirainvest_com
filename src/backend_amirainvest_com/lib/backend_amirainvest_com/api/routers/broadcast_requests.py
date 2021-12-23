@@ -4,12 +4,13 @@ from fastapi import APIRouter, Depends
 
 from backend_amirainvest_com.controllers import broadcast_requests
 from backend_amirainvest_com.controllers.auth import auth_required, token_auth_scheme
+from common_amirainvest_com.schemas.schema import BroadcastRequestsModel
 
 
 router = APIRouter(prefix="/broadcast_requests", tags=["Broadcast Requests"])
 
 
-@router.get("/", status_code=200, response_model=List[broadcast_requests.broadcast_requests_pydantic_model])
+@router.get("/", status_code=200, response_model=List[BroadcastRequestsModel])
 @auth_required
 async def get_broadcast_requests_for_creator(creator_id: str, token: str = Depends(token_auth_scheme)):
     broadcast_request = await broadcast_requests.get_broadcast_requests_for_creator(creator_id)
@@ -17,7 +18,7 @@ async def get_broadcast_requests_for_creator(creator_id: str, token: str = Depen
     return broadcast_request_data
 
 
-@router.post("/", status_code=200, response_model=broadcast_requests.broadcast_requests_pydantic_model)
+@router.post("/", status_code=200, response_model=BroadcastRequestsModel)
 @auth_required
 async def create_broadcast_request(requester_id: str, creator_id: str, token: str = Depends(token_auth_scheme)):
     broadcast_request = await broadcast_requests.create_broadcast_request(requester_id, creator_id)

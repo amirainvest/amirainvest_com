@@ -6,12 +6,13 @@ from fastapi import APIRouter, Depends, File, UploadFile
 from backend_amirainvest_com.controllers import uploads, users
 from backend_amirainvest_com.controllers.auth import auth_required, token_auth_scheme
 from backend_amirainvest_com.models.user import UserCreate
+from common_amirainvest_com.schemas.schema import UsersModel
 
 
 router = APIRouter(prefix="/user", tags=["User"])
 
 
-@router.get("/", status_code=200, response_model=users.users_pydantic_model)
+@router.get("/", status_code=200, response_model=UsersModel)
 @auth_required
 async def get_user(user_id: str, token: str = Depends(token_auth_scheme)):
     user = await users.get_user(user_id)
@@ -25,15 +26,15 @@ async def get_is_existing_user(user_id: str, token: str = Depends(token_auth_sch
     return {"existing": True if user else False}
 
 
-@router.put("/", status_code=200, response_model=users.users_pydantic_model)
+@router.put("/", status_code=200, response_model=UsersModel)
 @auth_required
-async def update_user(user: users.users_pydantic_model, token: str = Depends(token_auth_scheme)):
+async def update_user(user: UsersModel, token: str = Depends(token_auth_scheme)):
     print(user.dict())
     user = await users.update_user(user.dict())
     return user
 
 
-@router.put("/deactivate/", status_code=200, response_model=users.users_pydantic_model)
+@router.put("/deactivate/", status_code=200, response_model=UsersModel)
 @auth_required
 async def deactivate_user(user_id: str, token: str = Depends(token_auth_scheme)):
     user = await users.get_user(user_id)
@@ -42,7 +43,7 @@ async def deactivate_user(user_id: str, token: str = Depends(token_auth_scheme))
     return user
 
 
-@router.put("/reactivate/", status_code=200, response_model=users.users_pydantic_model)
+@router.put("/reactivate/", status_code=200, response_model=UsersModel)
 @auth_required
 async def reactivate_user(user_id: str, token: str = Depends(token_auth_scheme)):
     user = await users.get_user(user_id)
@@ -51,7 +52,7 @@ async def reactivate_user(user_id: str, token: str = Depends(token_auth_scheme))
     return user
 
 
-@router.put("/delete/", status_code=200, response_model=users.users_pydantic_model)
+@router.put("/delete/", status_code=200, response_model=UsersModel)
 @auth_required
 async def delete_user(user_id: str, token: str = Depends(token_auth_scheme)):
     user = await users.get_user(user_id)
@@ -61,7 +62,7 @@ async def delete_user(user_id: str, token: str = Depends(token_auth_scheme)):
     return user
 
 
-@router.put("/undelete/", status_code=200, response_model=users.users_pydantic_model)
+@router.put("/undelete/", status_code=200, response_model=UsersModel)
 @auth_required
 async def undelete_user(user_id: str, token: str = Depends(token_auth_scheme)):
     user = await users.get_user(user_id)
@@ -72,7 +73,7 @@ async def undelete_user(user_id: str, token: str = Depends(token_auth_scheme)):
 
 
 # TODO: ALL WORKING OTHER THAN BOTO3 CRED ERROR
-@router.post("/", status_code=200, response_model=users.users_pydantic_model)
+@router.post("/", status_code=200, response_model=UsersModel)
 @auth_required
 async def create_user(user_data: UserCreate, token: str = Depends(token_auth_scheme)):
     user = await users.handle_user_create(user_data.dict())
@@ -80,7 +81,7 @@ async def create_user(user_data: UserCreate, token: str = Depends(token_auth_sch
 
 
 # TODO: ALL WORKING OTHER THAN BOTO3 CRED ERROR
-@router.post("/upload_profile_picture/", status_code=200, response_model=users.users_pydantic_model)
+@router.post("/upload_profile_picture/", status_code=200, response_model=UsersModel)
 @auth_required
 async def upload_profile_picture(user_id: str, token: str = Depends(token_auth_scheme), image: UploadFile = File(...)):
     # TODO: ADD VALIDATION & SIZING AS REQUESTED BY FRONTEND
@@ -94,7 +95,7 @@ async def upload_profile_picture(user_id: str, token: str = Depends(token_auth_s
     return user
 
 
-@router.put("/claim_user", status_code=200, response_model=users.users_pydantic_model)
+@router.put("/claim_user", status_code=200, response_model=UsersModel)
 @auth_required
 async def claim_user(user_id: str, token: str = Depends(token_auth_scheme)):
     # WHAT DO WE NEED TO DO HERE?

@@ -4,12 +4,13 @@ from fastapi import APIRouter, Depends
 
 from backend_amirainvest_com.controllers import husk_requests
 from backend_amirainvest_com.controllers.auth import auth_required, token_auth_scheme
+from common_amirainvest_com.schemas.schema import HuskRequestsModel
 
 
 router = APIRouter(prefix="/husk_requests", tags=["Husk Requests"])
 
 
-@router.get("/", status_code=200, response_model=List[husk_requests.husk_requests_pydantic_model])
+@router.get("/", status_code=200, response_model=List[HuskRequestsModel])
 @auth_required
 async def get_husk_requests(token: str = Depends(token_auth_scheme)):
     husk_request = await husk_requests.get_husk_requests()
@@ -18,10 +19,10 @@ async def get_husk_requests(token: str = Depends(token_auth_scheme)):
     return husk_request_data
 
 
-@router.post("/", status_code=201, response_model=husk_requests.husk_requests_pydantic_model)
+@router.post("/", status_code=201, response_model=HuskRequestsModel)
 @auth_required
 async def create_husk_request(
-    husk_request_data: husk_requests.husk_requests_pydantic_model,
+    husk_request_data: HuskRequestsModel,
     token: str = Depends(token_auth_scheme),
 ):
     husk_request = await husk_requests.create_husk_request(husk_request_data.dict())

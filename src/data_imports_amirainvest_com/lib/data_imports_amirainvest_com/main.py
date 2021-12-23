@@ -1,10 +1,9 @@
 import os
 
-from sqs.data_load_consumer import consume_data_load_sqs_queue
-from sqs.data_load_producer import load_refresh_ready_data
-
 from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
 from common_amirainvest_com.utils.logger import log
+from data_imports_amirainvest_com.sqs.data_load_consumer import consume_data_load_sqs_queue
+from data_imports_amirainvest_com.sqs.data_load_producer import load_refresh_ready_data
 
 
 async def run(action: str):

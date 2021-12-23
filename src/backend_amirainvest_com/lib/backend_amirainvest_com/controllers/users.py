@@ -5,10 +5,6 @@ from common_amirainvest_com.schemas.schema import Users
 from common_amirainvest_com.utils.database_utils import update
 from common_amirainvest_com.utils.decorators import Session
 from common_amirainvest_com.utils.generic_utils import get_class_attrs
-from common_amirainvest_com.utils.pydantic_utils import sqlalchemy_to_pydantic
-
-
-users_pydantic_model = sqlalchemy_to_pydantic(Users)
 
 
 @Session

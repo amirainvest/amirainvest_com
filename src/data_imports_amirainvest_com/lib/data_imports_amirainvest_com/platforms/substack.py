@@ -1,9 +1,9 @@
 import time
 from datetime import datetime
 
+import arrow
 import feedparser
 from bs4 import BeautifulSoup
-from dateutil import parser
 
 from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
 from common_amirainvest_com.utils.logger import log
@@ -35,7 +35,7 @@ class SubstackUser(PlatformUser):
         for article in feedparser.parse(self.user_url).entries:
             if article["id"] not in [x.article_id for x in existing_articles]:
                 summary = BeautifulSoup(article["summary"], features="html.parser").get_text()
-                created_at = parser.parse(time.strftime("%Y-%m-%dT%H:%M:%S", article["published_parsed"]))
+                created_at = arrow.get(time.strftime("%Y-%m-%dT%H:%M:%S", article["published_parsed"])).datetime
                 articles.append(
                     {
                         "summary": summary,

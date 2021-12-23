@@ -54,7 +54,7 @@ class PlaidRepository:
         existing_institutions = await self.get_institutions_by_plaid_ids(plaid_institution_ids)
         existing_institutions_dict = {}
         for inst in existing_institutions:
-            existing_institutions_dict[inst.plaid_id] = inst.id
+            existing_institutions_dict[inst.plaid_id] = inst.id  # type: ignore # TODO fix
 
         institutions_to_insert = []
         for inst in institutions:

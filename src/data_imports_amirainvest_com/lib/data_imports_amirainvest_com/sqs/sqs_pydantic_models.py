@@ -1,10 +1,6 @@
 from pydantic import BaseModel
 
-from common_amirainvest_com.schemas.schema import Posts
-from common_amirainvest_com.utils.pydantic_utils import sqlalchemy_to_pydantic
-
-
-post_model = sqlalchemy_to_pydantic(Posts)
+from common_amirainvest_com.schemas.schema import PostsModel
 
 
 class SQSDataLoad(BaseModel):
@@ -15,4 +11,4 @@ class SQSDataLoad(BaseModel):
 class SQSRedisPost(BaseModel):
     user_id: str
     feed_type: str
-    post: post_model
+    post: PostsModel

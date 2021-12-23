@@ -3,15 +3,15 @@
 # CONSUMER_SECRET_KEY = "jaBwzGWPkO1bcM3n45UZcF80OgAmOVjffMaUUgvOXNOrb7RTAF"
 # ACCESS_TOKEN = "1383769515813572610-xv4NopmXGqEBuVILURIiMwThA28bj9"
 # ACCESS_TOKEN_SECRET = "dAffq3DnJxPomxwhE7C6cGuZw5geyCHT2z5DNlSyZATLl"
+# TODO move these to secrets
 
 import urllib.parse
 from datetime import datetime
 from typing import Optional
 
+import arrow
 import requests
 from bs4 import BeautifulSoup
-from dateutil import parser
-from dateutil.relativedelta import relativedelta
 
 from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
 from common_amirainvest_com.utils.logger import log
@@ -76,23 +76,21 @@ class TwitterUser(PlatformUser):
     async def get_stored_creator_tweets(self):
         return await get_tweets_for_creator(self.creator_id)
 
-    async def get_last_pulled_tweet_timestamp(self):
+    async def get_last_pulled_tweet_timestamp(self) -> str:
         stored_tweets = await self.get_stored_creator_tweets()
-        time = (datetime.now() - relativedelta(months=OLDEST_TWEET_WANTED_AGE)).strftime("%Y-%m-%dT%H:%M:%SZ")
         if stored_tweets:
-            time = parser.parse(stored_tweets[0].created_at)
-        return time
+            time = arrow.get(stored_tweets[0].created_at).datetime
+        else:
+            time = arrow.utcnow().shift(months=-1)
+
+        return time.format("YYYY-MM-DD[T]HH:mm:ss[Z]")
 
     async def get_tweets_from_url(self, start_date=None):
         raw_tweets = []
         if not self.twitter_user_id:
             self.load_twitter_user_data()
         params = {
-            "start_time": (
-                await self.get_last_pulled_tweet_timestamp()
-                if start_date is None
-                else datetime.strptime(start_date, "%Y-%m-%d").strftime("%Y-%m-%dT%H:%M:%SZ")
-            ),
+            "start_time": await self.get_last_pulled_tweet_timestamp(),
             "exclude": "retweets,replies",
             "tweet.fields": "attachments,created_at,lang,text,public_metrics,possibly_sensitive,entities",
             "max_results": 100,  # 100 MAX

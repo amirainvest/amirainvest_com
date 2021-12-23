@@ -28,7 +28,7 @@ from brokerage_amirainvest_com.models import (
     Security,
     SecurityType,
 )
-from common_amirainvest_com.schemas.schema import (  # type: ignore
+from common_amirainvest_com.schemas.schema import (
     FinancialAccounts,
     FinancialAccountTransactions,
     FinancialInstitutions,

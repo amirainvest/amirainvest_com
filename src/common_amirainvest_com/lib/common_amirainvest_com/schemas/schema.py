@@ -1,6 +1,8 @@
 import datetime
 import uuid
+from typing import Optional
 
+from pydantic import BaseModel
 from sqlalchemy import BigInteger, Boolean, Column, DECIMAL, Enum, Float, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.compiler import compiles
@@ -8,38 +10,6 @@ from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.sql import expression
 from sqlalchemy.types import DateTime
 
-
-__all__ = [
-    "Users",
-    "BroadcastRequests",
-    "Posts",
-    "PostLikes",
-    "PostComments",
-    "PostReads",
-    "UserSubscriptions",
-    "UserMediaErrors",
-    "Bookmarks",
-    "SubstackArticles",
-    "SubstackUsers",
-    "YouTubers",
-    "YouTubeVideos",
-    "TwitterUsers",
-    "Tweets",
-    "TweetAnnotations",
-    "TweetCashtags",
-    "TweetHashtags",
-    "TweetMentions",
-    "TweetURLs",
-    "HuskRequests",
-    "FinancialAccounts",
-    "FinancialInstitutions",
-    "FinancialAccountTransactions",
-    "FinancialAccountCurrentHoldings",
-    "Securities",
-    "SecurityPrices",
-    "HistoricalJobs",
-    "HistoricalJobsStatus",
-]
 
 Base = declarative_base()
 
@@ -83,6 +53,35 @@ class Users(Base):
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
 
+class UsersModel(BaseModel):
+    id: uuid.UUID
+    sub: str
+    name: str
+    bio: Optional[str]
+    username: str
+    picture_url: str
+    email: str
+    personal_site_url: Optional[str]
+    linkedin_profile: Optional[str]
+    email_verified: bool
+    interests_value: Optional[bool]
+    interests_growth: Optional[bool]
+    interests_long_term: Optional[bool]
+    interests_short_term: Optional[bool]
+    interests_diversification_rating: Optional[int]
+    benchmark: Optional[str]
+    public_profile: Optional[bool]
+    public_performance: Optional[bool]
+    public_holdings: Optional[bool]
+    public_trades: Optional[bool]
+    is_claimed: Optional[bool]
+    is_deactivated: Optional[bool]
+    is_deleted: Optional[bool]
+    # deleted_at: Optional[datetime.datetime] = Column(DateTime)
+    created_at: Optional[datetime.datetime]
+    updated_at: Optional[datetime.datetime]
+
+
 class BroadcastRequests(Base):
     __tablename__ = "broadcast_requests"
     id = Column(Integer, primary_key=True, unique=True)
@@ -96,6 +95,13 @@ class BroadcastRequests(Base):
     creator: Users = relationship(
         "Users", backref="creator_requested", passive_deletes=True, cascade="all,delete", foreign_keys=[creator_id]
     )
+
+
+class BroadcastRequestsModel(BaseModel):
+    id: int
+    subscriber_id: uuid.UUID
+    creator_id: uuid.UUID
+    created_at: Optional[datetime.datetime]
 
 
 class UserSubscriptions(Base):
@@ -113,6 +119,15 @@ class UserSubscriptions(Base):
     creator: Users = relationship(
         "Users", backref="creator", passive_deletes=True, cascade="all,delete", foreign_keys=[creator_id]
     )
+
+
+class UserSubscriptionsModel(BaseModel):
+    id: int
+    subscriber_id: uuid.UUID
+    creator_id: uuid.UUID
+    created_at: Optional[datetime.datetime]
+    updated_at: Optional[datetime.datetime]
+    is_deleted: bool
 
 
 class UserMediaErrors(Base):
@@ -304,6 +319,21 @@ class Posts(Base):
     )
 
 
+class PostsModel(BaseModel):
+    id: int
+    creator_id: uuid.UUID
+    platform: str
+    platform_user_id: Optional[str]
+    platform_post_id: Optional[str]
+    profile_img_url: Optional[str]
+    text: Optional[str]
+    html: Optional[str]
+    title: Optional[str]
+    profile_url: Optional[str]
+    created_at: Optional[datetime.datetime]
+    updated_at: Optional[datetime.datetime]
+
+
 class PostLikes(Base):
     __tablename__ = "post_likes"
     user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
@@ -368,6 +398,15 @@ class Bookmarks(Base):
     )
 
 
+class BookmarksModel(BaseModel):
+    id: int
+    user_id: uuid.UUID
+    post_id: int
+    created_at: Optional[datetime.datetime]
+    updated_at: Optional[datetime.datetime]
+    is_deleted: bool
+
+
 class HuskRequests(Base):
     __tablename__ = "husk_requests"
     id = Column(Integer, primary_key=True, unique=True)
@@ -376,6 +415,15 @@ class HuskRequests(Base):
     substack_username = Column(String)
     created_at = Column(DateTime, server_default=UTCNow())
     fulfilled = Column(Boolean)
+
+
+class HuskRequestsModel(BaseModel):
+    id: int
+    twitter_user_id: Optional[str]
+    youtube_channel_id: Optional[str]
+    substack_username: Optional[str]
+    created_at: Optional[datetime.datetime]
+    fulfilled: Optional[bool]
 
 
 class FinancialInstitutions(Base):

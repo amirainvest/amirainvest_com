@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends
 
 from backend_amirainvest_com.controllers import user_subscriptions
 from backend_amirainvest_com.controllers.auth import auth_required, token_auth_scheme
+from common_amirainvest_com.schemas.schema import UserSubscriptionsModel
 
 
 router = APIRouter(prefix="/user_subscriptions", tags=["User Subscriptions"])
@@ -12,7 +13,7 @@ router = APIRouter(prefix="/user_subscriptions", tags=["User Subscriptions"])
 @router.get(
     "/subscriptions/subscriber/",
     status_code=200,
-    response_model=List[user_subscriptions.user_subscriptions_pydantic_model],
+    response_model=List[UserSubscriptionsModel],
 )
 @auth_required
 async def get_subscriptions_for_subscriber(subscriber_id, token: str = Depends(token_auth_scheme)):
@@ -24,7 +25,7 @@ async def get_subscriptions_for_subscriber(subscriber_id, token: str = Depends(t
 @router.get(
     "/subscriptions/creator/",
     status_code=200,
-    response_model=List[user_subscriptions.user_subscriptions_pydantic_model],
+    response_model=List[UserSubscriptionsModel],
 )
 @auth_required
 async def get_subscriptions_for_creator(creator_id, token: str = Depends(token_auth_scheme)):
@@ -33,7 +34,7 @@ async def get_subscriptions_for_creator(creator_id, token: str = Depends(token_a
     return subscriptions
 
 
-@router.post("/subscribe", status_code=200, response_model=user_subscriptions.user_subscriptions_pydantic_model)
+@router.post("/subscribe", status_code=200, response_model=UserSubscriptionsModel)
 @auth_required
 async def create_subscription(subscriber_id: str, creator_id: str, token: str = Depends(token_auth_scheme)):
     user_subscription = await user_subscriptions.get_user_subscription(subscriber_id, creator_id)
@@ -45,7 +46,7 @@ async def create_subscription(subscriber_id: str, creator_id: str, token: str = 
     return user_subscription
 
 
-@router.put("/unsubscribe", status_code=200, response_model=user_subscriptions.user_subscriptions_pydantic_model)
+@router.put("/unsubscribe", status_code=200, response_model=UserSubscriptionsModel)
 @auth_required
 async def unsubscribe(subscriber_id: str, creator_id: str, token: str = Depends(token_auth_scheme)):
     subscription = await user_subscriptions.get_user_subscription(subscriber_id, creator_id)

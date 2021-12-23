@@ -2,8 +2,8 @@ import json
 
 from sqlalchemy import select
 
-from common_amirainvest_com.consts import MAX_FEED_SIZE, REDIS_DATABASE
 from common_amirainvest_com.schemas.schema import Posts, UserSubscriptions
+from common_amirainvest_com.utils.consts import MAX_FEED_SIZE, WEBCACHE
 from common_amirainvest_com.utils.decorators import Session
 
 
@@ -46,5 +46,5 @@ def put_post_on_creators_redis_feeds(post_data: dict):
 
 def add_post_to_redis_feed(user_id: str, post: dict, feed_type: str, max_feed_size: int = MAX_FEED_SIZE):
     key = f"{user_id}-{feed_type}"
-    REDIS_DATABASE.lpush(key, json.dumps(post))
-    REDIS_DATABASE.ltrim(key, 0, max_feed_size)
+    WEBCACHE.lpush(key, json.dumps(post))
+    WEBCACHE.ltrim(key, 0, max_feed_size)

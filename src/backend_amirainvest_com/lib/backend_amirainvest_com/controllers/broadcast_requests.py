@@ -4,10 +4,6 @@ from sqlalchemy import select
 
 from common_amirainvest_com.schemas.schema import BroadcastRequests
 from common_amirainvest_com.utils.decorators import Session
-from common_amirainvest_com.utils.pydantic_utils import sqlalchemy_to_pydantic
-
-
-broadcast_requests_pydantic_model = sqlalchemy_to_pydantic(BroadcastRequests)
 
 
 @Session

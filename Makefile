@@ -26,6 +26,10 @@ run: _base
 interactive: _base
 	docker-compose  -f docker-compose.yaml -f docker-compose.interactive.yaml run --service-ports --rm amirainvest_com
 
+pycharm: _down
+	poetry run python ./bin/fix_pycharm_dirs.py
+	docker-compose build --build-arg USER_UID=$(UID) --progress plain amirainvest_com_pycharm
+
 test: initialize_pg _base
 	docker-compose  -f docker-compose.yaml -f docker-compose.test.yaml run --service-ports --rm amirainvest_com
 

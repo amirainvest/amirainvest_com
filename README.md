@@ -6,4 +6,3 @@ After the docker container is up and running (this will take a while the first t
 
 # Further reading
 Please read through all the docs in `/docs`. See the [index](./docs/INDEX.md).
-

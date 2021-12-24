@@ -4,6 +4,7 @@ import pytest
 from httpx import AsyncClient
 
 from backend_amirainvest_com.api.app import app
+
 from .config import AUTH_HEADERS
 
 
@@ -41,5 +42,3 @@ async def test_get_like_creators():
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.get("/search/creators/", headers=AUTH_HEADERS, params={"search_term": "TEST"})
     assert response.status_code == 200
-
-

@@ -49,9 +49,11 @@ async def test_create_subscription():
     creator = await UsersFactory()
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(
-            "/user_subscriptions/subscribe/", headers=AUTH_HEADERS, params={
+            "/user_subscriptions/subscribe/",
+            headers=AUTH_HEADERS,
+            params={
                 "subscriber_id": str(subscriber.id),
                 "creator_id": str(creator.id),
-            }
+            },
         )
     assert response.status_code == 200

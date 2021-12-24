@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends
 
 from backend_amirainvest_com.controllers import posts
 from backend_amirainvest_com.controllers.auth import auth_required, token_auth_scheme
-from common_amirainvest_com.schemas.schema import PostsModel
 from backend_amirainvest_com.models.post import PostCreate
+from common_amirainvest_com.schemas.schema import PostsModel
 
 
 router = APIRouter(prefix="/amira_posts", tags=["Amira Posts"])

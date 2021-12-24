@@ -11,9 +11,9 @@ from backend_amirainvest_com.api.routers import (
     feed,
     husk_requests,
     posts,
+    search,
     user_subscriptions,
     users,
-    search
 )
 
 

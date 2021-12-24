@@ -5,6 +5,7 @@ from httpx import AsyncClient
 
 from backend_amirainvest_com.api.app import app
 from common_amirainvest_com.utils.test.factories.schema import UsersFactory, UserSubscriptionsFactory
+
 from .config import AUTH_HEADERS
 
 
@@ -22,7 +23,9 @@ async def test_get_subscriptions_for_subscriber():
     creator = await UsersFactory()
     await UserSubscriptionsFactory(creator_id=creator.id, subscriber_id=subscriber.id)
     async with AsyncClient(app=app, base_url="http://test") as async_client:
-        response = await async_client.get("/user_subscriptions/subscriber/", params={"subscriber_id": subscriber.id}, headers=AUTH_HEADERS)
+        response = await async_client.get(
+            "/user_subscriptions/subscriber/", params={"subscriber_id": subscriber.id}, headers=AUTH_HEADERS
+        )
     assert response.status_code == 200
     assert str(creator.id) in [x["creator_id"] for x in response.json()]
 
@@ -33,7 +36,9 @@ async def test_get_subscriptions_for_creator():
     creator = await UsersFactory()
     await UserSubscriptionsFactory(creator_id=creator.id, subscriber_id=subscriber.id)
     async with AsyncClient(app=app, base_url="http://test") as async_client:
-        response = await async_client.get("/user_subscriptions/creator/", params={"creator_id": creator.id}, headers=AUTH_HEADERS)
+        response = await async_client.get(
+            "/user_subscriptions/creator/", params={"creator_id": creator.id}, headers=AUTH_HEADERS
+        )
     assert response.status_code == 200
     assert str(subscriber.id) in [x["subscriber_id"] for x in response.json()]
 

@@ -13,11 +13,7 @@ async def get_all_users(session):
 
 @Session
 async def get_all_recent_content(session, max_post_hours: int = 48):
-    data = await session.execute(
-        select(Posts.text).filter(
-            Posts.created_at > get_past_datetime(hours=max_post_hours)
-        )
-    )
+    data = await session.execute(select(Posts.text).filter(Posts.created_at > get_past_datetime(hours=max_post_hours)))
     return data.scalars().all()
 
 

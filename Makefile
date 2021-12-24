@@ -30,8 +30,9 @@ pycharm: _down
 	poetry run python ./bin/fix_pycharm_dirs.py
 	docker-compose build --build-arg USER_UID=$(UID) --progress plain amirainvest_com_pycharm
 
-test: initialize_pg _base
-	docker-compose  -f docker-compose.yaml -f docker-compose.test.yaml run --service-ports --rm amirainvest_com
+test: initialize_pg _down
+	docker-compose build --build-arg USER_UID=$(UID) --progress plain amirainvest_com_test
+	docker-compose  -f docker-compose.yaml run -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY --service-ports --rm amirainvest_com_test
 
 # Just starts the postgres DB.
 db_only: _base

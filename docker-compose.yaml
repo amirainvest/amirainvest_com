@@ -6,27 +6,6 @@ services:
       context: .
       dockerfile: Dockerfile
 
-  # DO NOT CHANGE amirainvest_com_pycharm!! Not even the ENVIRONMENT.
-  amirainvest_com_pycharm:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    environment:
-      ENVIRONMENT: "local"
-      DEBUG: "true"
-      AWS_DEFAULT_REGION: "us-east-1"
-      AWS_CONTAINER_CREDENTIALS_RELATIVE_URI: "/creds"
-    depends_on:
-      ecs-local-endpoints:
-        condition: service_started
-      postgres:
-        condition: service_healthy
-    networks:
-      local:
-      credentials_network:
-        ipv4_address: 169.254.170.4
-  # ^^^^^^^^ DO NOT CHANGE amirainvest_com_pycharm!! Not even the ENVIRONMENT.
-
   amirainvest_com:
     build:
       context: .
@@ -48,6 +27,42 @@ services:
     ports:
       - "5000:5000"
 
+
+  # DO NOT CHANGE amirainvest_com_pycharm!! Not even the ENVIRONMENT.
+  amirainvest_com_pycharm:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      ENVIRONMENT: "local"
+      DEBUG: "true"
+      AWS_DEFAULT_REGION: "us-east-1"
+      AWS_CONTAINER_CREDENTIALS_RELATIVE_URI: "/creds"
+    depends_on:
+      ecs-local-endpoints:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    networks:
+      local:
+      credentials_network:
+        ipv4_address: 169.254.170.4
+  # ^^^^^^^^ DO NOT CHANGE amirainvest_com_pycharm!! Not even the ENVIRONMENT.
+
+  amirainvest_com_test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["pytest"]
+    environment:
+      ENVIRONMENT: "local"
+      DEBUG: "true"
+      AWS_DEFAULT_REGION: "us-east-1"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      local:
 
   backend_amirainvest_com:
     build:

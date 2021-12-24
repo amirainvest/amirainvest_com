@@ -32,7 +32,7 @@ pycharm: _down
 
 test: initialize_pg _down
 	docker-compose build --build-arg USER_UID=$(UID) --progress plain amirainvest_com_test
-	docker-compose  -f docker-compose.yaml run -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY --service-ports --rm amirainvest_com_test
+	docker-compose  -f docker-compose.yaml run -e AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID) -e AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY) --service-ports --rm amirainvest_com_test
 
 # Just starts the postgres DB.
 db_only: _base
@@ -48,11 +48,6 @@ initialize_pg: _base _remove_all_pg_data run_migrations
 run_migrations: _down
 	docker-compose  -f docker-compose.yaml run --rm amirainvest_com alembic upgrade head
 	$(MAKE) _down
-
-
-build_postgres_docker: initialize_pg
-	sudo chown -R "$(shell whoami)" ./data
-	export DOCKER_BUILDKIT=1 && docker build -f database.Dockerfile -t amirainvest/common/postgres:"$(shell poetry version -s)" .
 
 ### Commands to work with docker
 

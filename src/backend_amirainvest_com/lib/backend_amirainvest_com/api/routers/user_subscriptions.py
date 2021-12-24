@@ -34,7 +34,7 @@ async def get_subscriptions_for_creator(creator_id, token: str = Depends(token_a
     return subscriptions
 
 
-@router.post("/subscribe", status_code=200, response_model=UserSubscriptionsModel)
+@router.post("/subscribe/", status_code=200, response_model=UserSubscriptionsModel)
 @auth_required
 async def create_subscription(subscriber_id: str, creator_id: str, token: str = Depends(token_auth_scheme)):
     user_subscription = await user_subscriptions.get_user_subscription(subscriber_id, creator_id)
@@ -42,11 +42,12 @@ async def create_subscription(subscriber_id: str, creator_id: str, token: str = 
         user_subscription = await user_subscriptions.create_user_subscription(subscriber_id, creator_id)
     else:
         user_subscription.is_deleted = False
-        await user_subscriptions.update_user_subscription(user_subscription.__dict__)
+        user_subscription = await user_subscriptions.update_user_subscription(user_subscription.__dict__)
+    user_subscription = user_subscription.__dict__
     return user_subscription
 
 
-@router.put("/unsubscribe", status_code=200, response_model=UserSubscriptionsModel)
+@router.put("/unsubscribe/", status_code=200, response_model=UserSubscriptionsModel)
 @auth_required
 async def unsubscribe(subscriber_id: str, creator_id: str, token: str = Depends(token_auth_scheme)):
     subscription = await user_subscriptions.get_user_subscription(subscriber_id, creator_id)

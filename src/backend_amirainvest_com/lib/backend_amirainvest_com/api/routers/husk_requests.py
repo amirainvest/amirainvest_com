@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends
 
 from backend_amirainvest_com.controllers import husk_requests
 from backend_amirainvest_com.controllers.auth import auth_required, token_auth_scheme
-from common_amirainvest_com.schemas.schema import HuskRequestsModel
 from backend_amirainvest_com.models.husk_request import CreateHuskRequestModel
+from common_amirainvest_com.schemas.schema import HuskRequestsModel
 
 
 router = APIRouter(prefix="/husk_requests", tags=["Husk Requests"])

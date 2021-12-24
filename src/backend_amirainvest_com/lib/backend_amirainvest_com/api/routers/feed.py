@@ -11,11 +11,11 @@ router = APIRouter(prefix="/feed", tags=["Feed"])
 @router.get("/subscriber/", status_code=200, response_model=Feed)
 @auth_required
 async def get_subscriber_feed(
-    creator_id,
+    subscriber_id,
     token: str = Depends(token_auth_scheme),
     page: int = 0,
 ):
-    posts, feed_type = await feed.get_subscriber_feed(creator_id, page)
+    posts, feed_type = await feed.get_subscriber_feed(subscriber_id, page)
     return {"posts": posts, "feed_type": feed_type}
 
 

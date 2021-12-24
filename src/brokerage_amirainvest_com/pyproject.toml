@@ -17,8 +17,8 @@ common_amirainvest_com = { path = "../common_amirainvest_com", develop = true }
 
 alembic = "^1.7.5"
 arrow = "^1.2.1"
-asyncpg = "^0.25.0"
-fastapi = "^0.70.0"
+asyncpg = ">= 0.25.0 < 1"
+fastapi = ">= 0.70.0 < 1"
 plaid-python = "^8.6.0"
 pydantic = "^1.8.2"
 sentry-sdk = "^1.5.0"

@@ -56,4 +56,7 @@ engine = create_async_engine(
 )
 
 async_session = sessionmaker(engine, autoflush=False, autocommit=False, class_=AsyncSession, expire_on_commit=False)
-WEBCACHE = redis.Redis(host="localhost", port=6379)
+WEBCACHE = redis.Redis(
+    host="localhost",
+    port=6379,
+)

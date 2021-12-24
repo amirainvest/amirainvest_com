@@ -63,6 +63,7 @@ class UserSubscriptionsFactory(FactoryBase):
 
     subscriber_id = ""
     creator_id = ""
+    is_deleted = False
 
 
 class UserMediaErrorsFactory(FactoryBase):

@@ -52,7 +52,8 @@ async def test_create_bookmark():
                     "updated_at": str(datetime.utcnow()),
                     "is_deleted": False,
                 }
-            ), headers=AUTH_HEADERS
+            ),
+            headers=AUTH_HEADERS,
         )
     assert response.status_code == 201
     response_data = response.json()

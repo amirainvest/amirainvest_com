@@ -47,7 +47,7 @@ async def get_discovery_feed(user_id: str, page: int = 0, page_size: int = PAGE_
         feed = await posts.get_discovery_posts(hours_ago=MAX_HOURS_AGO, limit=MAX_FEED_SIZE * 5)
         if feed:
             update_redis_feed("discovery", configure_feed(feed), feed_type)
-    return [x for x in feed if x["id"] not in [x["id"] for x in get_redis_feed(user_id, "subscriber")]]
+    return [x for x in feed if x.id not in [x.id for x in get_redis_feed(user_id, "subscriber")]]
 
 
 def get_redis_feed(user_id: str, feed_type: str, page: int = 0, page_size: int = 30) -> List:

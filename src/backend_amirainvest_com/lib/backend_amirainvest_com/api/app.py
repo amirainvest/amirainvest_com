@@ -4,8 +4,15 @@ from fastapi import FastAPI
 from starlette.responses import RedirectResponse
 
 from backend_amirainvest_com.api.routers import (
-    admin, bookmarks, broadcast_requests, code_challenge, feed,
-    husk_requests, posts, user_subscriptions, users,
+    admin,
+    bookmarks,
+    broadcast_requests,
+    code_challenge,
+    feed,
+    husk_requests,
+    posts,
+    user_subscriptions,
+    users,
 )
 
 

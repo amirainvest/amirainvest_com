@@ -22,9 +22,9 @@ def generate_pydantic_model_from_dict(data: dict, model_name: str):
                 shell=True,
                 stdout=subprocess.PIPE,
             )
-                .stdout.read()  # type: ignore
-                .decode("utf-8")
-                .split("from pydantic import BaseModel")[1]
+            .stdout.read()  # type: ignore
+            .decode("utf-8")
+            .split("from pydantic import BaseModel")[1]
         )
     os.remove(data_file)
 

@@ -10,7 +10,7 @@ router = APIRouter(prefix="/search", tags=["Search"])
 
 @router.get("/recent_content", status_code=200, response_model=ContentSearch)
 @auth_required
-async def search_content(token: str = Depends(token_auth_scheme)):
+async def search_recent_content(token: str = Depends(token_auth_scheme)):
     data = await search.get_all_recent_content()
     return data.__dict__
 

@@ -11,7 +11,7 @@ router = APIRouter(prefix="/user_subscriptions", tags=["User Subscriptions"])
 
 
 @router.get(
-    "/subscriptions/subscriber/",
+    "/subscriber/",
     status_code=200,
     response_model=List[UserSubscriptionsModel],
 )
@@ -23,7 +23,7 @@ async def get_subscriptions_for_subscriber(subscriber_id, token: str = Depends(t
 
 
 @router.get(
-    "/subscriptions/creator/",
+    "/creator/",
     status_code=200,
     response_model=List[UserSubscriptionsModel],
 )

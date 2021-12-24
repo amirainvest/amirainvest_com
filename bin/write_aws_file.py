@@ -13,8 +13,8 @@ aws_access_key_id = {os.environ["AWS_ACCESS_KEY_ID"]}
 aws_secret_access_key = {os.environ["AWS_SECRET_ACCESS_KEY"]}
 """
 
-with open("~/.aws/credentials") as f:
+with open(os.path.expanduser("~/.aws/credentials")) as f:
     f.write(creds)
 
-with open("~/.aws/config") as f:
+with open(os.path.expanduser("~/.aws/config")) as f:
     f.write(config)

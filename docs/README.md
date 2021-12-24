@@ -13,22 +13,6 @@ Install Poetry
 `poetry run pre-commit install `
 
 `make interactive` 
-## Local Poetry
-
-## Local Docker Compose
-
-### Pycharm
-* Go to settings
-* Go to `Project: <project_name>`
-* Click on `Python Interpreter`
-* Click on the gear in the top right
-* Click `Add`
-* Click `Docker Compose`
-* In `Service` select `<project_name>`
-* In `Python Interpreter Path` put `home/default/venv/bin/python`
-* Press `ok`
-
-
 
 # whiteboards
 Each microservice should architect their infrastructure on a shareable whiteboard (like whiteboard.microsoft.com or miro.com)

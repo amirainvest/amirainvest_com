@@ -16,7 +16,7 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        run: mkdir $HOME/.aws && sudo mount -t tmpfs -o size=20M,mode=0755 tmpfs $HOME/.aws/ && touch $HOME/.aws/config && touch $HOME/.aws/credentials && python3 ./bin/write_aws_file.py
+        run: mkdir $HOME/.aws && sudo mount -t tmpfs -o size=20M,mode=0777 tmpfs $HOME/.aws/ && touch $HOME/.aws/config && touch $HOME/.aws/credentials && python3 ./bin/write_aws_file.py
 
       - name: Run tests in docker files
         run: make test

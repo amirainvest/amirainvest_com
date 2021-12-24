@@ -48,4 +48,5 @@ async def test_get_subscriptions_for_creator():
 #     subscriber = await UsersFactory()
 #     await UsersFactory()
 #     async with AsyncClient(app=app, base_url="http://test") as async_client:
-#         response = await async_client.get("/user_subscriptions/subscribe/", params={"subscriber_id": subscriber.id}, headers=AUTH_HEADERS)
+#         response = await async_client.get("/user_subscriptions/subscribe/",
+#         params={"subscriber_id": subscriber.id}, headers=AUTH_HEADERS)

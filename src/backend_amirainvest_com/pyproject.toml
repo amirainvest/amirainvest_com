@@ -1,6 +1,6 @@
 [build-system]
 # https://github.com/python-poetry/poetry/issues/34#issuecomment-997519115
-requires = ["setuptools", "poetry-core @ git+https://github.com/python-poetry/poetry-core.git@master"]
+requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]

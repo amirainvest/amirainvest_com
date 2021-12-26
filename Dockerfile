@@ -1,4 +1,4 @@
-FROM python@sha256:f44726de10d15558e465238b02966a8f83971fd85a4c4b95c263704e6a6012e9 as base
+FROM python@sha256:dbbfcbf95f6b596d2be1d8f3b368016619f78f829facf6f2e361bea1151794e5 as base
 
 WORKDIR /opt
 
@@ -36,9 +36,13 @@ COPY --chown=default:default ./src/data_imports_amirainvest_com/pyproject.toml .
 COPY --chown=default:default ./src/data_imports_amirainvest_com/lib/data_imports_amirainvest_com/__init__.py \
 ./src/data_imports_amirainvest_com/lib/data_imports_amirainvest_com/
 
-ARG NO_DEV="-v"
 
-RUN . $VIRTUALENV_PATH/bin/activate && poetry install --remove-untracked "$NO_DEV"
+RUN . $VIRTUALENV_PATH/bin/activate && poetry install --remove-untracked --no-dev
+
+ARG INSTALL_DEV_DEPS="true"
+RUN if [ "$INSTALL_DEV_DEPS" = "true" ] ; then . $VIRTUALENV_PATH/bin/activate && poetry install --remove-untracked; fi
+
+
 
 COPY --chown=default:default . .
 

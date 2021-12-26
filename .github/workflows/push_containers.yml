@@ -43,7 +43,7 @@ jobs:
         run: aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 903791206266.dkr.ecr.us-east-1.amazonaws.com
 
       - name: Build DB container
-        run: docker-compose build --build-arg NO_DEV="--no-dev" ${{ matrix.microservice }}
+        run: docker-compose build --build-arg INSTALL_DEV_DEPS="false" ${{ matrix.microservice }}
 
       - name: Kill containers
         run: make _down

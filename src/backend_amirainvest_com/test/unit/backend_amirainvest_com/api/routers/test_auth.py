@@ -6,7 +6,7 @@ from httpx import AsyncClient
 
 from backend_amirainvest_com.api.app import app
 
-from .config import AUTH_HEADERS
+from .config import AUTH_HEADERS, FAKE_AUTH_HEADER
 
 
 routes_with_no_auth_required_path = [
@@ -20,7 +20,7 @@ routes_with_no_auth_required_path = [
 ]
 
 
-# TODO figure out why removing the auth decorator will pass the tests, be removing the token will fail them
+# TODO Why is a 422 being returned instead of a 403 for a fake header? At what point is the auth decorator being run?
 
 
 @pytest.mark.asyncio
@@ -43,6 +43,10 @@ async def test_not_authenticated_get_user(route):
                         no_auth_response = await client_attr(route.path)
                         assert no_auth_response.status_code == 403
                         assert no_auth_response.json() == {"detail": "Not authenticated"}
+
+                        fake_auth_header_response = await client_attr(route.path, headers=FAKE_AUTH_HEADER)
+                        assert fake_auth_header_response.status_code == 403
+                        assert fake_auth_header_response.json() == {"detail": "Not authenticated"}
 
                         auth_response = await client_attr(route.path, headers=AUTH_HEADERS)
                         assert auth_response.status_code in {200, 422}

@@ -5,7 +5,7 @@ import typing as t
 import warnings
 
 import boto3
-from botocore.exceptions import ClientError, CredentialRetrievalError
+from botocore.exceptions import ClientError, CredentialRetrievalError, NoCredentialsError
 from dotenv import dotenv_values
 from mypy_boto3_secretsmanager import SecretsManagerClient
 from mypy_boto3_secretsmanager.type_defs import ListSecretsResponseTypeDef
@@ -30,7 +30,7 @@ def print_env_vars():
         values = _get_all_secret_values(environment)
         for key, value in values.items():
             values_dict[key] = value
-    except CredentialRetrievalError:
+    except (CredentialRetrievalError, NoCredentialsError):
         warnings.warn("Missing AWS creds", RuntimeWarning)
 
     final_values = []

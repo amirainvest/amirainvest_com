@@ -8,7 +8,9 @@ from common_amirainvest_com.schemas.schema import UserSubscriptionsModel
 
 
 router = APIRouter(
-    prefix="/user_subscriptions", tags=["User Subscriptions"], dependencies=[Security(auth_dep, scopes=[])],
+    prefix="/user_subscriptions",
+    tags=["User Subscriptions"],
+    dependencies=[Security(auth_dep, scopes=[])],
 )
 
 

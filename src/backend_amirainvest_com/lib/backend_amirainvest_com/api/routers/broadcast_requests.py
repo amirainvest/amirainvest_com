@@ -8,7 +8,9 @@ from common_amirainvest_com.schemas.schema import BroadcastRequestsModel
 
 
 router = APIRouter(
-    prefix="/broadcast_requests", tags=["Broadcast Requests"], dependencies=[Security(auth_dep, scopes=[])],
+    prefix="/broadcast_requests",
+    tags=["Broadcast Requests"],
+    dependencies=[Security(auth_dep, scopes=[])],
 )
 
 

@@ -5,6 +5,7 @@ from fastapi.security import HTTPBearer
 from httpx import AsyncClient
 
 from backend_amirainvest_com.api.app import app
+
 from .config import AUTH_HEADERS, FAKE_AUTH_HEADER
 
 

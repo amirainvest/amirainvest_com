@@ -7,9 +7,11 @@ from backend_amirainvest_com.api.routers import (
     admin,
     bookmarks,
     broadcast_requests,
+    code_challenge,
     feed,
     husk_requests,
     posts,
+    search,
     user_subscriptions,
     users,
 )
@@ -24,6 +26,8 @@ app.include_router(posts.router)
 app.include_router(bookmarks.router)
 app.include_router(husk_requests.router)
 app.include_router(broadcast_requests.router)
+app.include_router(code_challenge.router)
+app.include_router(search.router)
 
 
 @app.get("/", include_in_schema=False)

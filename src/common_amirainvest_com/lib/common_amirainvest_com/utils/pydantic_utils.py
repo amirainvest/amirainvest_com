@@ -60,3 +60,8 @@ def sqlalchemy_to_pydantic(
                 fields[name] = (python_type, default)
     pydantic_model = create_model(db_model.__name__, __config__=config, **fields)  # type: ignore
     return pydantic_model
+
+
+def remove_from_pydantic_model(pydantic_model, attr_to_remove):
+    delattr(pydantic_model, attr_to_remove)
+    return pydantic_model

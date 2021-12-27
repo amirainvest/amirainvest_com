@@ -10,6 +10,7 @@ from common_amirainvest_com.utils.logger import log
 
 __all__ = ["Session", "get_session"]
 _session: Optional[AsyncSession] = None  # NOTE: This is monkeypatched by a test fixture!
+_async_session = async_session  # NOTE: This is monkeypatched by a test fixture!
 
 
 def get_session() -> Optional[AsyncSession]:
@@ -71,12 +72,9 @@ def Session(func):
             if session_passed is True:
                 func_return = await func(*args, **kwargs)
             else:
-                if _session is not None:
-                    func_return = await _session_work(_session, args, kwargs)
-                else:
-                    session: AsyncSession
-                    async with async_session() as session:
-                        func_return = await _session_work(session, args, kwargs)
+                session: AsyncSession
+                async with _async_session() as session:
+                    func_return = await _session_work(session, args, kwargs)
             log.info(f"Finished {func_mod_and_name}")
             return func_return
         except Exception as e:

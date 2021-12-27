@@ -13,14 +13,20 @@ jwks_client = jwt.PyJWKClient(f"https://{AUTH0_DOMAIN}/.well-known/jwks.json")
 
 
 # TODO add validating security scopes
-async def auth_dep(security_scopes: SecurityScopes, bearer: HTTPAuthorizationCredentials = Depends(http_bearer_scheme)):
-    token = bearer.credentials
+# TODO make all 403s return the same error
+async def auth_dep(
+    security_scopes: SecurityScopes,
+    bearer_auth_creds: HTTPAuthorizationCredentials = Depends(http_bearer_scheme),
+):
+    token = bearer_auth_creds.credentials
     try:
         signing_key = jwks_client.get_signing_key_from_jwt(token).key
         payload = jwt.decode(
             token,
             signing_key,
-            algorithms="RS256",
+            algorithms=[
+                "RS256",
+            ],
             audience=AUTH0_API_AUDIENCE,
             issuer=f"https://{AUTH0_DOMAIN}/",
         )

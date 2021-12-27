@@ -35,23 +35,27 @@ async def test_not_authenticated_get_user(route):
             assert route.path in routes_with_no_auth_required_path
         for method in route.methods:
             for dep in dependencies:
-                if dep.name == "token":
-                    assert type(dep.call) == HTTPBearer
-                    async with AsyncClient(app=app, base_url="http://test") as async_client:
-                        client_attr = getattr(async_client, method.lower())
+                try:
+                    sub_dep = dep.dependencies[0]
+                    if sub_dep.name == "bearer_auth_creds":
+                        assert type(sub_dep.call) == HTTPBearer
+                        async with AsyncClient(app=app, base_url="http://test") as async_client:
+                            client_attr = getattr(async_client, method.lower())
 
-                        no_auth_response = await client_attr(route.path)
-                        assert no_auth_response.status_code == 403
-                        assert no_auth_response.json() == {"detail": "Not authenticated"}
+                            no_auth_response = await client_attr(route.path)
+                            assert no_auth_response.status_code == 403
+                            assert no_auth_response.json() == {"detail": "Not authenticated"}
 
-                        fake_auth_header_response = await client_attr(route.path, headers=FAKE_AUTH_HEADER)
-                        assert fake_auth_header_response.status_code == 403
-                        assert fake_auth_header_response.json() == {"detail": "Not authenticated"}
+                            fake_auth_header_response = await client_attr(route.path, headers=FAKE_AUTH_HEADER)
+                            assert fake_auth_header_response.status_code == 403
+                            assert fake_auth_header_response.json() == {"detail": "Not authenticated"}
 
-                        auth_response = await client_attr(route.path, headers=AUTH_HEADERS)
-                        assert auth_response.status_code in {200, 422}
-                    break
+                            auth_response = await client_attr(route.path, headers=AUTH_HEADERS)
+                            assert auth_response.status_code in {200, 422}
+                        break
+                except IndexError:
+                    pass
             else:
                 assert route.path in routes_with_no_auth_required_path
-    except AttributeError:
+    except (AttributeError, IndexError):
         assert route.path in routes_with_no_auth_required_path

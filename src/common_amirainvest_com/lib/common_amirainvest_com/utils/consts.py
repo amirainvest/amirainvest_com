@@ -1,7 +1,6 @@
 import base64
 import json
 import os
-from time import sleep
 
 import redis
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine

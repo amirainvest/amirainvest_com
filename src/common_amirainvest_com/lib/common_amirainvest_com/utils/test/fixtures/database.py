@@ -3,13 +3,13 @@ import os
 import typing
 
 import pytest
-from alembic import command
-from alembic.config import Config
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
+from alembic import command
+from alembic.config import Config
 from common_amirainvest_com.utils import consts, decorators
 from common_amirainvest_com.utils.consts import COMMON_ROOT_DIR, WEBCACHE
 from common_amirainvest_com.utils.test.fixtures.consts import TEST_DB_URL

@@ -6,6 +6,8 @@ from httpx import AsyncClient
 from backend_amirainvest_com.api.app import app
 from backend_amirainvest_com.controllers import broadcast_requests
 from common_amirainvest_com.utils.test.factories.schema import BroadcastRequestsFactory, UsersFactory
+from common_amirainvest_com.schemas.schema import BroadcastRequests, Users
+from sqlalchemy import select
 
 from .config import AUTH_HEADERS
 
@@ -37,7 +39,7 @@ async def test_get_broadcast_requests_for_creator():
 
 
 @pytest.mark.asyncio
-async def test_create_broadcast_request():
+async def test_create_broadcast_request(session_test):
     creator = await UsersFactory()
     subscriber = await UsersFactory()
     async with AsyncClient(app=app, base_url="http://test") as async_client:
@@ -54,6 +56,9 @@ async def test_create_broadcast_request():
     assert type(response_data) == dict
     assert str(response_data["creator_id"]) == str(creator.id)
     assert str(response_data["subscriber_id"]) == str(subscriber.id)
-    broadcast_request_data = await broadcast_requests.get_broadcast_requests_for_creator(response_data["creator_id"])
+    broadcast_request_data = await session_test.execute(
+        select(BroadcastRequests).where(BroadcastRequests.creator_id == response_data["creator_id"])
+    )
+    broadcast_request_data = broadcast_request_data.scalars().all()
     assert str(broadcast_request_data[0].creator_id) == str(creator.id)
     assert str(broadcast_request_data[0].subscriber_id) == str(subscriber.id)

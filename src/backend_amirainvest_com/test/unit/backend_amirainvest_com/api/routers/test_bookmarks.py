@@ -5,9 +5,10 @@ from random import randint
 
 import pytest
 from httpx import AsyncClient
+from sqlalchemy import select
 
 from backend_amirainvest_com.api.app import app
-from backend_amirainvest_com.controllers.bookmarks import get_all_user_bookmarks
+from common_amirainvest_com.schemas.schema import Bookmarks, Users
 from common_amirainvest_com.utils.test.factories.schema import BookmarksFactory, PostsFactory, UsersFactory
 
 from .config import AUTH_HEADERS
@@ -22,7 +23,7 @@ async def test_not_authenticated_get_bookmarks():
 
 
 @pytest.mark.asyncio
-async def test_get_all_user_bookmarks(session_test):
+async def test_get_all_user_bookmarks():
     post_bookmarker = await UsersFactory()
     post_creator = await UsersFactory()
     post = await PostsFactory(creator_id=post_creator.id)
@@ -38,7 +39,7 @@ async def test_get_all_user_bookmarks(session_test):
 
 
 @pytest.mark.asyncio
-async def test_create_bookmark():
+async def test_create_bookmark(session_test):
     post_bookmarker = await UsersFactory()
     post_creator = await UsersFactory()
     post = await PostsFactory(creator_id=post_creator.id, id=randint(0, 10000))
@@ -61,10 +62,12 @@ async def test_create_bookmark():
     assert response_data["user_id"] == str(post_bookmarker.id)
     assert response_data["post_id"] == post.id
     assert response_data["is_deleted"] is False
+    users = await session_test.execute(select(Users).where(Users.id == post_bookmarker.id))
+    assert post_bookmarker.id in [x.id for x in users]
 
 
 @pytest.mark.asyncio
-async def test_delete_bookmark():
+async def test_delete_bookmark(session_test):
     post_bookmarker = await UsersFactory()
     post_creator = await UsersFactory()
     post = await PostsFactory(creator_id=post_creator.id)
@@ -72,6 +75,6 @@ async def test_delete_bookmark():
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.delete("/bookmarks/", params={"bookmark_id": bookmark.id}, headers=AUTH_HEADERS)
     assert response.status_code == 200
-    user_bookmarks = await get_all_user_bookmarks(post_bookmarker.id)
+    user_bookmarks = await session_test.execute(select(Bookmarks).where(Bookmarks.user_id == post_bookmarker.id))
     assert bookmark.id not in [x.id for x in user_bookmarks]
-    assert len(user_bookmarks) == 0
+    assert len(list(user_bookmarks)) == 0

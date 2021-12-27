@@ -1,4 +1,5 @@
 import time
+import uuid
 from decimal import Decimal
 
 import arrow
@@ -47,13 +48,13 @@ class PlaidRepository:
     @Session
     async def add_institutions(self, session: AsyncSession, institutions: list[Institution]):
         plaid_institution_ids = set()
-        for inst in institutions:
-            plaid_institution_ids.add(inst.plaid_institution_id)
+        for inst_id in institutions:
+            plaid_institution_ids.add(inst_id.plaid_institution_id)
 
         existing_institutions = await self.get_institutions_by_plaid_ids(plaid_institution_ids)
         existing_institutions_dict = {}
         for exist_inst in existing_institutions:
-            existing_institutions_dict[exist_inst.plaid_id] = exist_inst.id  # TODO fix
+            existing_institutions_dict[exist_inst.plaid_id] = exist_inst.id
 
         institutions_to_insert = []
         for inst in institutions:
@@ -82,9 +83,9 @@ class PlaidRepository:
         plaid_security_ids = set()
         plaid_institution_ids = set()
 
-        for sec in securities:
-            plaid_institution_ids.add(sec.institution_id)
-            plaid_security_ids.add(sec.security_id)
+        for security in securities:
+            plaid_institution_ids.add(security.institution_id)
+            plaid_security_ids.add(security.security_id)
 
         existing_securities = await self.get_securities_by_plaid_ids(plaid_security_ids)
         existing_securities_dict: dict[str, None] = {}
@@ -110,7 +111,7 @@ class PlaidRepository:
                 sedol=sec.sedol,
                 plaid_institution_security_id=sec.institution_security_id,
                 is_cash_equivalent=sec.is_cash_equivalent,
-                type=sec.type,  # type: ignore # TODO remove ignore
+                type=sec.type.value if sec.type is not None else None,
                 iso_currency_code=sec.iso_currency_code,
                 unofficial_currency_code=sec.unofficial_currency_code,
             )
@@ -137,7 +138,7 @@ class PlaidRepository:
         return result.scalars().all()
 
     @Session
-    async def add_accounts(self, session: AsyncSession, user_id: str, accounts: list[Account]):
+    async def add_accounts(self, session: AsyncSession, user_id: uuid.UUID, accounts: list[Account]):
         plaid_account_ids = set()
         for account in accounts:
             plaid_account_ids.add(account.account_id)
@@ -153,7 +154,7 @@ class PlaidRepository:
                 continue
             accounts_to_insert.append(
                 FinancialAccounts(
-                    user_id=user_id,  # type: ignore # TODO fix
+                    user_id=user_id,
                     plaid_id=acc.account_id,
                     official_account_name=acc.official_name,
                     user_assigned_account_name=acc.name,

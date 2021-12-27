@@ -32,7 +32,7 @@ ENVIRONMENT = os.environ.get("ENVIRONMENT", "local").strip().lower()
 
 POSTGRES_DATABASE_URL = "postgresql://{username}:{password}@{host}/{database}".format(**_decode_env_var("postgres"))
 
-WEBCACHE_URL = _decode_env_var("webcache")
+WEBCACHE_DICT = _decode_env_var("webcache")
 
 MAX_FEED_SIZE = 200
 AWS_REGION = "us-east-1"
@@ -56,7 +56,7 @@ engine = create_async_engine(
 )
 
 async_session = sessionmaker(engine, autoflush=False, autocommit=False, class_=AsyncSession, expire_on_commit=False)
-WEBCACHE = redis.Redis(
-    host="localhost",
-    port=6379,
-)
+
+# https://github.com/redis/redis-py
+_redis_connection_pool = redis.ConnectionPool(**WEBCACHE_DICT)
+WEBCACHE = redis.Redis(connection_pool=_redis_connection_pool, health_check_interval=30)

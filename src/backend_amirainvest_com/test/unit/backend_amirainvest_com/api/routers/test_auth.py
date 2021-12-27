@@ -5,7 +5,6 @@ from fastapi.security import HTTPBearer
 from httpx import AsyncClient
 
 from backend_amirainvest_com.api.app import app
-
 from .config import AUTH_HEADERS, FAKE_AUTH_HEADER
 
 
@@ -18,9 +17,6 @@ routes_with_no_auth_required_path = [
     "/code_challenge/",
     "/",
 ]
-
-
-# TODO Why is a 422 being returned instead of a 403 for a fake header? At what point is the auth decorator being run?
 
 
 @pytest.mark.asyncio

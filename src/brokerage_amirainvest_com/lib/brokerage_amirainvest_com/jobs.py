@@ -1,6 +1,6 @@
-import asyncio
 import datetime
-from typing import Callable
+import uuid
+from typing import Optional
 
 from sqlalchemy import and_, select, update
 
@@ -15,13 +15,11 @@ MAX_JOB_RETRIES = 3
 #   rather than selecting, then inserting -- as this could be a concurrency issue, or we could
 #   do something like lock table for each transaction
 @Session
-async def start_historical_job(session, user_id: str) -> int:  # type: ignore # TODO fix
-    # TODO model is broken. Missing status
-
+async def start_historical_job(session, user_id: uuid.UUID) -> Optional[int]:
     response = await session.execute(
         select(HistoricalJobs).where(
-            and_(HistoricalJobs.user_id == user_id),  # type: ignore # TODO fix
-            and_(HistoricalJobs.status == HistoricalJobsStatus.running),  # type: ignore # TODO fix
+            and_(HistoricalJobs.user_id == user_id),
+            and_(HistoricalJobs.status == HistoricalJobsStatus.running),
         )
     )
 
@@ -30,8 +28,8 @@ async def start_historical_job(session, user_id: str) -> int:  # type: ignore # 
         return 0
 
     historical_job = HistoricalJobs(
-        user_id=user_id,  # type: ignore # TODO fix
-        status=HistoricalJobsStatus.running,  # type: ignore # TODO fix
+        user_id=user_id,
+        status=HistoricalJobsStatus.running,
         retries=0,
         params="",
         started_at=datetime.datetime.utcnow(),
@@ -40,7 +38,7 @@ async def start_historical_job(session, user_id: str) -> int:  # type: ignore # 
     session.add(historical_job)
     await session.flush()
     await session.refresh(historical_job)
-    return historical_job.id  # type: ignore # TODO fix
+    return historical_job.id
 
 
 @Session
@@ -69,21 +67,3 @@ async def retry_historical_job(session, job_id: int):
         .where(HistoricalJobs.id == job_id)
         .values(retries=cur_retires, status=HistoricalJobsStatus.pending)
     )
-
-
-def run_async(func: Callable, **kwargs):
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    task = loop.create_task(func(**kwargs))
-    loop.run_until_complete(task)
-
-
-async def combine():
-    job_id = await start_historical_job(user_id="f6b8bdfc-5a9d-11ec-bc23-0242ac1a0002")  # TODO what is this id?
-    if job_id == 0:
-        return
-    await end_historical_job(job_id=job_id, status=HistoricalJobsStatus.failed)
-
-
-if __name__ == "__main__":
-    run_async(combine)

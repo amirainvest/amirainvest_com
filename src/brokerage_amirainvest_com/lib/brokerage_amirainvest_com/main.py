@@ -1,17 +1,8 @@
-import asyncio
-from typing import Callable
-
 from brokerage_amirainvest_com.brokerages import plaid_provider
 from brokerage_amirainvest_com.config import PLAID_CLIENT_ID, PLAID_SECRET
 from brokerage_amirainvest_com.mocks import MockWithAccessToken
 from brokerage_amirainvest_com.providers import Providers
-
-
-def run_async(func: Callable, **kwargs):  # TODO get this from common
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    task = loop.create_task(func(**kwargs))
-    loop.run_until_complete(task)
+from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
 
 
 action = "HISTORICAL_COLLECTION"
@@ -31,15 +22,15 @@ if __name__ == "__main__":
     provider_service = Providers({"plaid": plaid_service})
 
     if action == "INSTITUTIONS_COLLECTION":
-        run_async(plaid_service.collect_institutions)
+        run_async_function_synchronously(plaid_service.collect_institutions)
     elif action == "HISTORICAL_COLLECTION":
-        run_async(
+        run_async_function_synchronously(
             provider_service.collect_investment_history,
             provider_key="plaid",
             user_id="f6b8bdfc-5a9d-11ec-bc23-0242ac1a0002",
         )
     elif action == "HOLDINGS_COLLECTION":
-        run_async(
+        run_async_function_synchronously(
             provider_service.collect_current_holdings,
             provider_key="plaid",
             user_id="f6b8bdfc-5a9d-11ec-bc23-0242ac1a0002",

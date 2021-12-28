@@ -14,6 +14,7 @@ from backend_amirainvest_com.api.routers import (
     search,
     user_subscriptions,
     users,
+    webhooks,
 )
 
 
@@ -28,6 +29,7 @@ app.include_router(husk_requests.router)
 app.include_router(broadcast_requests.router)
 app.include_router(code_challenge.router)
 app.include_router(search.router)
+app.include_router(webhooks.router)
 
 
 @app.get("/", include_in_schema=False)

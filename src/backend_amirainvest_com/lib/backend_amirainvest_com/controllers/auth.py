@@ -1,28 +1,38 @@
 import json
-from functools import wraps
 
 import jwt
 import requests
-from fastapi import HTTPException
-from fastapi.security import HTTPBearer
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, SecurityScopes
 
 from common_amirainvest_com.utils.consts import AUTH0_API_AUDIENCE, AUTH0_CLIENT_ID, AUTH0_CLIENT_SECRET, AUTH0_DOMAIN
 
 
-token_auth_scheme = HTTPBearer()
+http_bearer_scheme = HTTPBearer()
+jwks_client = jwt.PyJWKClient(f"https://{AUTH0_DOMAIN}/.well-known/jwks.json")
 
 
-def auth_required(function):
-    @wraps(function)
-    async def wrapper(*args, **kwargs):
-        token = kwargs["token"]
-        verification_data = VerifyToken(token.credentials).verify()
-        if "status" in verification_data:
-            raise HTTPException(status_code=403, detail=verification_data["message"])
-        data = await function(*args, **kwargs)
-        return data
-
-    return wrapper
+# TODO add validating security scopes
+# TODO make all 403s return the same error
+async def auth_dep(
+    security_scopes: SecurityScopes,
+    bearer_auth_creds: HTTPAuthorizationCredentials = Depends(http_bearer_scheme),
+):
+    token = bearer_auth_creds.credentials
+    try:
+        signing_key = jwks_client.get_signing_key_from_jwt(token).key
+        payload = jwt.decode(
+            token,
+            signing_key,
+            algorithms=[
+                "RS256",
+            ],
+            audience=AUTH0_API_AUDIENCE,
+            issuer=f"https://{AUTH0_DOMAIN}/",
+        )
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authenticated")
+    return payload
 
 
 def get_application_token():
@@ -38,29 +48,6 @@ def get_application_token():
         ),
         headers={"content-type": "application/json"},
     ).json()["access_token"]
-
-
-class VerifyToken:
-    def __init__(self, token):
-        self.token = token
-        self.jwks_client = jwt.PyJWKClient(f"https://{AUTH0_DOMAIN}/.well-known/jwks.json")
-
-    def verify(self):
-        try:
-            signing_key = self.jwks_client.get_signing_key_from_jwt(self.token).key
-        except (jwt.exceptions.PyJWKClientError, jwt.exceptions.DecodeError, jwt.exceptions.PyJWKError) as e:
-            return {"status": "error", "message": str(e)}
-        try:
-            payload = jwt.decode(
-                self.token,
-                signing_key,
-                algorithms="RS256",
-                audience=AUTH0_API_AUDIENCE,
-                issuer=f"https://{AUTH0_DOMAIN}/",
-            )
-        except Exception as e:
-            return {"status": "error", "message": str(e)}
-        return payload
 
 
 if __name__ == "__main__":

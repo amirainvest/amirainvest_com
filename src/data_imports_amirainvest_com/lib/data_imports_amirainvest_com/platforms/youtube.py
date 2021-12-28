@@ -5,7 +5,7 @@ import requests
 
 from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
 from common_amirainvest_com.utils.logger import log
-from data_imports_amirainvest_com.constants import YOUTUBE_API_KEY_ENV, YOUTUBE_API_URL
+from data_imports_amirainvest_com.consts import YOUTUBE_API_KEY_ENV, YOUTUBE_API_URL
 from data_imports_amirainvest_com.controllers import posts
 from data_imports_amirainvest_com.controllers.youtube_videos import create_youtube_video, get_videos_for_channel
 from data_imports_amirainvest_com.controllers.youtubers import create_youtuber, get_youtuber

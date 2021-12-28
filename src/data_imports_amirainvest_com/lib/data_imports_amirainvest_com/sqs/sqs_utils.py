@@ -8,7 +8,7 @@ from mypy_boto3_sqs import SQSServiceResource
 from mypy_boto3_sqs.service_resource import Queue
 
 from common_amirainvest_com.utils.logger import log
-from data_imports_amirainvest_com.constants import AWS_REGION
+from data_imports_amirainvest_com.consts import AWS_REGION
 
 
 sqs_resource: SQSServiceResource = boto3.resource("sqs", AWS_REGION)

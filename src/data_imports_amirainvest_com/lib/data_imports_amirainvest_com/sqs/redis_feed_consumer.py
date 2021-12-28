@@ -1,7 +1,7 @@
 import json
 
 from common_amirainvest_com.utils.consts import WEBCACHE
-from data_imports_amirainvest_com.constants import REDIS_FEED_FANOUT_SQS_QUEUE
+from data_imports_amirainvest_com.consts import REDIS_FEED_FANOUT_SQS_QUEUE
 from data_imports_amirainvest_com.sqs.sqs_utils import consume_queue
 
 

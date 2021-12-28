@@ -1,9 +1,9 @@
 import json
 from typing import List, Tuple
 
+from common_amirainvest_com.sqs.consts import MEDIA_PLATFORM_DATA_LOAD_QUEUE
 from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
 from common_amirainvest_com.utils.logger import log
-from data_imports_amirainvest_com.consts import MEDIA_PLATFORM_DATA_LOAD_QUEUE
 from data_imports_amirainvest_com.controllers import substack_users, twitter_users, youtubers
 from data_imports_amirainvest_com.sqs.sqs_utils import add_message_to_queue
 

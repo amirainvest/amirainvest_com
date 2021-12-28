@@ -11,7 +11,7 @@ from mypy_boto3_secretsmanager import SecretsManagerClient
 from mypy_boto3_secretsmanager.type_defs import ListSecretsResponseTypeDef
 
 
-BASE64_BYPASS = {"ENVIRONMENT", "DEBUG"}
+BASE64_BYPASS = {"ENVIRONMENT", "DEBUG", "SENTRY_URL_ENV"}
 
 
 def print_env_vars():

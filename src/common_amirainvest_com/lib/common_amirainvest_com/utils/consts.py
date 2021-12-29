@@ -38,7 +38,6 @@ try:
     from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
     from sentry_sdk.utils import BadDsn
 
-
     SENTRY_URL = "https://{public_key}@{domain}/{project_id}".format(**decode_env_var("sentry"))
 
     sentry_sdk.init(

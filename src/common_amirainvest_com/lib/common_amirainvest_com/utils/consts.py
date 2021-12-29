@@ -1,6 +1,7 @@
 import base64
 import json
 import os
+from json import JSONDecodeError
 
 import redis
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
@@ -31,13 +32,14 @@ def decode_env_var(env_var_name: str) -> dict:
 DEBUG = os.environ.get("DEBUG", "true").strip().lower()
 ENVIRONMENT = os.environ.get("ENVIRONMENT", "local").strip().lower()
 
-SENTRY_URL = "https://{public_key}@{domain}/{project_id}".format(**decode_env_var("sentry_url"))
-
 try:
     import sentry_sdk
     from sentry_sdk.integrations.redis import RedisIntegration
     from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
     from sentry_sdk.utils import BadDsn
+
+
+    SENTRY_URL = "https://{public_key}@{domain}/{project_id}".format(**decode_env_var("sentry"))
 
     sentry_sdk.init(
         SENTRY_URL,
@@ -48,7 +50,7 @@ try:
         integrations=[SqlalchemyIntegration(), RedisIntegration()],
         debug=True if DEBUG == "true" else False,
     )
-except BadDsn:
+except (BadDsn, JSONDecodeError):
     if ENVIRONMENT != "local":
         raise EnvironmentError("Sentry URL not set for non local env")
 

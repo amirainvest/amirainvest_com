@@ -12,14 +12,9 @@ async def get_husk_requests(session):
 
 @Session
 async def create_husk_request(session, husk_request_data: dict):
-    try:
-        husk_request = HuskRequests(**husk_request_data)
-        session.add(husk_request)
-        return husk_request
-    except Exception as e:
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        print(e)
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+    husk_request = HuskRequests(**husk_request_data)
+    session.add(husk_request)
+    return husk_request
 
 
 @Session

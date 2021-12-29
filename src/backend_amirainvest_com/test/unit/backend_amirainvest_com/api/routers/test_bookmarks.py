@@ -15,14 +15,6 @@ from .config import AUTH_HEADERS
 
 
 @pytest.mark.asyncio
-async def test_not_authenticated_get_bookmarks():
-    async with AsyncClient(app=app, base_url="http://test") as async_client:
-        response = await async_client.get("/bookmarks/")
-    assert response.status_code == 403
-    assert response.json() == {"detail": "Not authenticated"}
-
-
-@pytest.mark.asyncio
 async def test_get_all_user_bookmarks():
     post_bookmarker = await UsersFactory()
     post_creator = await UsersFactory()
@@ -63,6 +55,7 @@ async def test_create_bookmark(session_test):
     assert response_data["post_id"] == post.id
     assert response_data["is_deleted"] is False
     users = await session_test.execute(select(Users).where(Users.id == post_bookmarker.id))
+    users = users.scalars().all()
     assert post_bookmarker.id in [x.id for x in users]
 
 

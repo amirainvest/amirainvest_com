@@ -84,7 +84,7 @@ services:
       redis:
         condition: service_started
     environment:
-      ENVIRONMENT: "prod"
+      ENVIRONMENT: "local"
       AWS_CONTAINER_CREDENTIALS_RELATIVE_URI: "/creds"
     networks:
       local:

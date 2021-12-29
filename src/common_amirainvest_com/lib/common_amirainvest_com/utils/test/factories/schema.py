@@ -39,8 +39,6 @@ class HuskRequestsFactory(FactoryBase):
     class Meta:
         model = HuskRequests
 
-    fulfilled = False
-
 
 class PostsFactory(FactoryBase):
     class Meta:

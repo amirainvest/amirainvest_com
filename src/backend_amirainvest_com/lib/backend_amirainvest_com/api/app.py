@@ -1,7 +1,8 @@
 import subprocess
 
 from fastapi import FastAPI
-from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
+
+# from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 from starlette.responses import RedirectResponse
 
 from backend_amirainvest_com.api.routers import (
@@ -31,12 +32,13 @@ app.include_router(broadcast_requests.router)
 app.include_router(code_challenge.router)
 app.include_router(search.router)
 
-SentryAsgiMiddleware(app)
-
 
 @app.get("/", include_in_schema=False)
 def root():
     return RedirectResponse(url="/docs")
+
+
+# app = SentryAsgiMiddleware(app)
 
 
 def run():

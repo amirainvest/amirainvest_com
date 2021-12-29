@@ -77,7 +77,14 @@ engine = create_async_engine(
     echo=True,
 )
 
-async_session = sessionmaker(engine, autoflush=False, autocommit=False, class_=AsyncSession, expire_on_commit=False)
+async_session = sessionmaker(
+    engine,
+    autoflush=False,
+    autocommit=False,
+    class_=AsyncSession,
+    expire_on_commit=False,
+    future=True,
+)
 
 # https://github.com/redis/redis-py
 _redis_connection_pool = redis.ConnectionPool(**WEBCACHE_DICT)

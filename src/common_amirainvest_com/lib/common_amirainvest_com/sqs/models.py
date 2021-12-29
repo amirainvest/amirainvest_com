@@ -1,9 +1,8 @@
 from enum import Enum
-
-from pydantic import BaseModel, validator
+from typing import Optional
 
 from arrow import Arrow
-from typing import Optional
+from pydantic import BaseModel, validator
 
 
 class MediaPlatformDataLoadQueueModel(BaseModel):

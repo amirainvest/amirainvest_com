@@ -16,6 +16,8 @@ routes_with_no_auth_required_path = [
     "/redoc",
     "/admin/health_check",
     "/code_challenge/",
+    "/webhooks/plaid/investments",
+    "/webhooks/plaid/holdings",
     "/",
 ]
 

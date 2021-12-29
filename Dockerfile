@@ -43,7 +43,6 @@ ARG INSTALL_DEV_DEPS="true"
 RUN if [ "$INSTALL_DEV_DEPS" = "true" ] ; then . $VIRTUALENV_PATH/bin/activate && poetry install --remove-untracked; fi
 
 
-
 COPY --chown=default:default . .
 
 ARG DEBUG="true"
@@ -52,7 +51,11 @@ ENV DEBUG=$DEBUG
 ARG ENVIRONMENT="local"
 ENV ENVIRONMENT=$ENVIRONMENT
 
+ARG PROJECT="mono"
+ENV PROJECT=$PROJECT
+
 ENV SQLALCHEMY_WARN_20=1
-USER root
+
 EXPOSE 5000
+
 ENTRYPOINT ["/bin/bash", "entrypoint.sh"]

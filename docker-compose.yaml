@@ -71,6 +71,8 @@ services:
         condition: service_started
     networks:
       local:
+    volumes:
+      - $HOME/.aws/:/home/default/.aws/
 
   backend_amirainvest_com:
     build:

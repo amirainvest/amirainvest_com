@@ -15,7 +15,7 @@ from bs4 import BeautifulSoup
 
 from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
 from common_amirainvest_com.utils.logger import log
-from data_imports_amirainvest_com.constants import TWITTER_API_TOKEN_ENV, TWITTER_API_URL
+from data_imports_amirainvest_com.consts import TWITTER_API_TOKEN_ENV, TWITTER_API_URL
 from data_imports_amirainvest_com.controllers import posts
 from data_imports_amirainvest_com.controllers.tweets import create_tweet, get_tweets_for_creator
 from data_imports_amirainvest_com.controllers.twitter_users import create_twitter_user

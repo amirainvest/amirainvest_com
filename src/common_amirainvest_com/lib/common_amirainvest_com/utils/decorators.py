@@ -72,9 +72,18 @@ def Session(func):
             if session_passed is True:
                 func_return = await func(*args, **kwargs)
             else:
-                session: AsyncSession
-                async with _async_session() as session:
+
+                session: AsyncSession = _async_session()
+                try:
                     func_return = await _session_work(session, args, kwargs)
+                except:  # noqa: E722
+                    await session.rollback()
+                    raise
+                else:
+                    await session.commit()
+                finally:
+                    await session.close()
+
             log.info(f"Finished {func_mod_and_name}")
             return func_return
         except Exception as e:

@@ -12,7 +12,7 @@ USER default
 ENV VIRTUALENV_PATH="/home/default/venv"
 ENV PATH "/home/default/.local/bin:$PATH"
 ENV PROJECT_NAME="backend_amirainvest_com"
-EXPOSE 5000:5000
+EXPOSE 80:80
 
 FROM base as builder
 
@@ -46,4 +46,4 @@ COPY --chown=default:default --from=builder "$VIRTUALENV_PATH" "$VIRTUALENV_PATH
 
 
 ENTRYPOINT ["/bin/bash", "./src/backend_amirainvest_com/entrypoint.sh"]
-CMD ["python", "src/backend/main.py"]
+CMD ["uvicorn", "backend_amirainvest_com.api.app:app", "--host 0.0.0.0", "--port", "80"]

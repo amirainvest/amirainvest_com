@@ -26,8 +26,9 @@ def print_env_vars():
         values_dict[key] = value
 
     environment = os.environ.get("ENVIRONMENT", "local")
+    project = os.environ.get("PROJECT", "mono")
     try:
-        values = _get_all_secret_values(environment)
+        values = _get_all_secret_values(environment, project)
         for key, value in values.items():
             values_dict[key] = value
     except (CredentialRetrievalError, NoCredentialsError):
@@ -61,7 +62,7 @@ def _get_all_secret_arns(environment: str = "test", aws_region: str = "us-east-1
                 },
                 {
                     "Key": "tag-value",
-                    "Values": [environment],
+                    "Values": [environment, "all"],
                 },
             ],
         }
@@ -117,12 +118,22 @@ def _get_aws_secret_value(secret_arn: str, aws_region: str = "us-east-1") -> t.T
         return get_secret_value_response["Name"], secret
 
 
-def _get_all_secret_values(environment: str = "test") -> t.Dict[str, str]:
+def _get_all_secret_values(environment: str = "test", project: str = "all") -> t.Dict[str, str]:
     secret_arn_list = _get_all_secret_arns(environment)
     secrets_dict = {}
     for secret_arn in secret_arn_list:
         secret_tuple = _get_aws_secret_value(secret_arn)
-        secrets_dict[secret_tuple[0].split(f"{environment}-", 1)[1]] = secret_tuple[1]
+        secret_name, secret_value = secret_tuple
+
+        cleaned_name = None
+        if secret_name.startswith(f"{project}-"):
+            cleaned_name = secret_name.split(f"{project}-", 1)[1]
+        elif secret_name.startswith(f"{environment}-"):
+            cleaned_name = secret_name.split(f"{environment}-", 1)[1]
+
+        if cleaned_name is not None:
+            secrets_dict[cleaned_name] = secret_value
+
     return secrets_dict
 
 

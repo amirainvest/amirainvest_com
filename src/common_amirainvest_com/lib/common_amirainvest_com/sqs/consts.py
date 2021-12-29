@@ -1,14 +1,8 @@
-import os
+from common_amirainvest_com.utils.consts import decode_env_var, ENVIRONMENT
 
 
-MEDIA_PLATFORM_DATA_LOAD_QUEUE = os.environ.get(
-    "MEDIA_PLATFORM_DATA_LOAD_QUEUE_ENV", "https://sqs.us-east-1.amazonaws.com/903791206266/data-imports"
-)
-EXPEDITED_MEDIA_PLATFORM_DATA_LOAD_QUEUE = os.environ.get(
-    "EXPEDITED_MEDIA_PLATFORM_DATA_LOAD_QUEUE_ENV",
-    "https://sqs.us-east-1.amazonaws.com/903791206266/expedited-data-imports",
-)
+_sqs_dict = decode_env_var("sqs")
+MEDIA_PLATFORM_DATA_LOAD_QUEUE = f"{_sqs_dict['url']}/{ENVIRONMENT}-data-imports"
+EXPEDITED_MEDIA_PLATFORM_DATA_LOAD_QUEUE = f"{_sqs_dict['url']}/{ENVIRONMENT}-expedited-data-imports"
 
-REDIS_FEED_FANOUT_SQS_QUEUE = os.environ.get(
-    "REDIS_FEED_FANOUT_SQS_QUEUE_ENV",
-)
+REDIS_FEED_FANOUT_SQS_QUEUE = f"{_sqs_dict['url']}/{ENVIRONMENT}-redis-feed"

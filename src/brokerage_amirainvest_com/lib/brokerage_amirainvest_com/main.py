@@ -1,5 +1,5 @@
 from brokerage_amirainvest_com.brokerages import plaid_provider
-from brokerage_amirainvest_com.config import PLAID_CLIENT_ID, PLAID_SECRET
+from brokerage_amirainvest_com.consts import PLAID_CLIENT_ID, PLAID_SECRET
 from brokerage_amirainvest_com.mocks import MockWithAccessToken
 from brokerage_amirainvest_com.providers import Providers
 from common_amirainvest_com.utils.async_utils import run_async_function_synchronously

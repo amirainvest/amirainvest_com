@@ -8,6 +8,7 @@ from sqlalchemy.orm import sessionmaker
 
 
 __all__ = [
+    "decode_env_var",
     "DEBUG",
     "ENVIRONMENT",
     "async_session",
@@ -22,22 +23,43 @@ __all__ = [
 ]
 
 
-def _decode_env_var(env_var_name: str) -> dict:
-    _postgres_url_dict = json.loads(base64.b64decode(os.environ.get(env_var_name, "")).decode("utf-8"))
-    return _postgres_url_dict
+def decode_env_var(env_var_name: str) -> dict:
+    env_var_dict = json.loads(base64.b64decode(os.environ.get(env_var_name, "")).decode("utf-8"))
+    return env_var_dict
 
 
 DEBUG = os.environ.get("DEBUG", "true").strip().lower()
 ENVIRONMENT = os.environ.get("ENVIRONMENT", "local").strip().lower()
 
-POSTGRES_DATABASE_URL = "postgresql://{username}:{password}@{host}/{database}".format(**_decode_env_var("postgres"))
+SENTRY_URL = "https://{public_key}@{domain}/{project_id}".format(**decode_env_var("sentry_url"))
 
-WEBCACHE_DICT = _decode_env_var("webcache")
+try:
+    import sentry_sdk
+    from sentry_sdk.integrations.redis import RedisIntegration
+    from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+    from sentry_sdk.utils import BadDsn
+
+    sentry_sdk.init(
+        SENTRY_URL,
+        environment=ENVIRONMENT,
+        sample_rate=1.0,
+        traces_sample_rate=1.0,
+        request_bodies="always",
+        integrations=[SqlalchemyIntegration(), RedisIntegration()],
+        debug=True if DEBUG == "true" else False,
+    )
+except BadDsn:
+    if ENVIRONMENT != "local":
+        raise EnvironmentError("Sentry URL not set for non local env")
+
+POSTGRES_DATABASE_URL = "postgresql://{username}:{password}@{host}/{database}".format(**decode_env_var("postgres"))
+
+WEBCACHE_DICT = decode_env_var("webcache")
 
 MAX_FEED_SIZE = 200
 AWS_REGION = "us-east-1"
 
-_auth0_dict = _decode_env_var("auth0")
+_auth0_dict = decode_env_var("auth0")
 
 AUTH0_API_AUDIENCE = _auth0_dict["api_audience"]
 AUTH0_CLIENT_ID = _auth0_dict["client_id"]
@@ -55,7 +77,14 @@ engine = create_async_engine(
     echo=True,
 )
 
-async_session = sessionmaker(engine, autoflush=False, autocommit=False, class_=AsyncSession, expire_on_commit=False)
+async_session = sessionmaker(
+    engine,
+    autoflush=False,
+    autocommit=False,
+    class_=AsyncSession,
+    expire_on_commit=False,
+    future=True,
+)
 
 # https://github.com/redis/redis-py
 _redis_connection_pool = redis.ConnectionPool(**WEBCACHE_DICT)

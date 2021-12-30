@@ -63,7 +63,7 @@ _down:
 	docker-compose  down --remove-orphans
 
 _remove_all_pg_data:
-	docker volume rm -f common_common_postgres_data
+	docker volume rm -f amirainvest_com_common_postgres_data
 
 _insert_pg_data: _down
 	docker-compose  -f docker-compose.yaml  -f docker-compose.pg.yaml up -d postgres

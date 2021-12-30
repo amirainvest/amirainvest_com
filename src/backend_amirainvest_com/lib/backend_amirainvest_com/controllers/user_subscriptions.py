@@ -1,16 +1,24 @@
 import datetime
 import uuid
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, select, update
 
 from common_amirainvest_com.schemas.schema import UserSubscriptions
-from common_amirainvest_com.utils.database_utils import update
 from common_amirainvest_com.utils.decorators import Session
 
 
-async def update_user_subscription(user_subscription_data: dict):
-    subscription = await update(UserSubscriptions, user_subscription_data)
-    return subscription
+@Session
+async def update_user_subscription(session, user_subscription_data: dict):
+    await session.execute(
+        update(UserSubscriptions)
+        .where(UserSubscriptions.id == user_subscription_data["id"])
+        .values(**{k: v for k, v in user_subscription_data.items() if k in UserSubscriptions.__dict__})
+    )
+    return (
+        (await session.execute(select(UserSubscriptions).where(UserSubscriptions.id == user_subscription_data["id"])))
+        .scalars()
+        .first()
+    )
 
 
 @Session

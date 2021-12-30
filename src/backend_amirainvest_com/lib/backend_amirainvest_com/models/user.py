@@ -1,6 +1,7 @@
 import datetime
 import uuid
 from typing import Optional
+
 from pydantic import BaseModel
 
 
@@ -27,7 +28,7 @@ class UserCreate(BaseModel):
     is_claimed: Optional[bool]
     is_deactivated: Optional[bool] = False
     is_deleted: Optional[bool] = False
-    deleted_at: Optional[datetime.datetime]
+    # deleted_at: Optional[datetime.datetime]
     created_at: Optional[datetime.datetime]
     updated_at: Optional[datetime.datetime]
     twitter_username: Optional[str] = ""

@@ -91,7 +91,7 @@ services:
       credentials_network:
         ipv4_address: 169.254.170.5
     ports:
-      - "5000:80"
+      - "5000:5000"
 
   ecs-local-endpoints:
     # The Amazon ECS Local Container Endpoints Docker Image

@@ -14,7 +14,6 @@ common_amirainvest_com = {path = "./src/common_amirainvest_com", develop = true}
 backend_amirainvest_com = {path = "./src/backend_amirainvest_com", develop = true}
 brokerage_amirainvest_com = {path = "./src/brokerage_amirainvest_com", develop = true}
 data_imports_amirainvest_com = {path = "./src/data_imports_amirainvest_com", develop = true}
-fastapi = "^0.70.1"
 
 [tool.poetry.dev-dependencies]
 alembic = "^1.7.5"

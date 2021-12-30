@@ -21,8 +21,7 @@ async def create_user(session, user_data: dict) -> Users:
 
 
 async def update_user(user_data: dict) -> Users:
-    user = await update(Users, user_data)
-    return user
+    return await update(Users, user_data)
 
 
 def handle_data_imports(creator_id: str, substack_username: str, youtube_channel_id: str, twitter_username: str):

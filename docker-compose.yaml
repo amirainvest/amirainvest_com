@@ -55,7 +55,7 @@ services:
         ipv4_address: 169.254.170.4
   # ^^^^^^^^ DO NOT CHANGE amirainvest_com_pycharm!! Not even the ENVIRONMENT.
 
-  amirainvest_com_test:
+  test_amirainvest_com:
     build:
       context: .
       dockerfile: Dockerfile

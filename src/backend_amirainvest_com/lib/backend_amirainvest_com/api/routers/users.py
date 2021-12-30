@@ -18,8 +18,12 @@ async def get_user(user_id: str):
 
 
 @router.put("/", status_code=200, response_model=UsersModel)
-async def update_user(user: UserUpdate):
-    return (await users.update_user({k: v for k, v in user.dict().items() if v is not None})).__dict__  # type: ignore # TODO fix
+async def update_user(user_data: UserUpdate):
+    user = await users.update_user(
+        {k: v for k, v in user_data.dict().items() if v is not None}
+    )  # type: ignore # TODO fix
+    user = user.__dict__
+    return user
 
 
 # TODO: ALL WORKING OTHER THAN BOTO3 CRED ERROR
@@ -30,21 +34,21 @@ async def create_user(user_data: UserCreate):
 
 @router.get("/is_existing/", status_code=200)
 async def get_is_existing_user(user_id: str):
-    return {"existing": True if (await users.get_user(user_id)) else False}
+    return True if (await users.get_user(user_id)) else False
 
 
 @router.put("/deactivate/", status_code=200, response_model=UsersModel)
 async def deactivate_user(user_id: str):
     user = await users.get_user(user_id)
     user.is_deactivated = True
-    return (await users.update_user(user.__dict__)).__dict__
+    return (await users.update_user({k: v for k, v in user.__dict__.items() if v is not None})).__dict__
 
 
 @router.put("/reactivate/", status_code=200, response_model=UsersModel)
 async def reactivate_user(user_id: str):
     user = await users.get_user(user_id)
     user.is_deactivated = False
-    return (await users.update_user(user.__dict__)).__dict__
+    return (await users.update_user({k: v for k, v in user.__dict__.items() if v is not None})).__dict__
 
 
 @router.put("/delete/", status_code=200, response_model=UsersModel)
@@ -52,7 +56,7 @@ async def delete_user(user_id: str):
     user = await users.get_user(user_id)
     user.is_deleted = True
     user.deleted_at = datetime.utcnow()
-    return (await users.update_user(user.__dict__)).__dict__
+    return (await users.update_user({k: v for k, v in user.__dict__.items() if v is not None})).__dict__
 
 
 @router.put("/undelete/", status_code=200, response_model=UsersModel)
@@ -60,7 +64,7 @@ async def undelete_user(user_id: str):
     user = await users.get_user(user_id)
     user.is_deleted = False
     user.deleted_at = None
-    return (await users.update_user(user.__dict__)).__dict__
+    return (await users.update_user({k: v for k, v in user.__dict__.items() if v is not None})).__dict__
 
 
 # TODO: ALL WORKING OTHER THAN BOTO3 CRED ERROR
@@ -76,11 +80,11 @@ async def upload_profile_picture(user_id: str, image: UploadFile = File(...)):
     return (await users.update_user(user.__dict__)).__dict__
 
 
-@router.put("/claim_user", status_code=200, response_model=UsersModel)
+@router.put("/claim_user/", status_code=200, response_model=UsersModel)
 async def claim_user(user_id: str):
     # WHAT DO WE NEED TO DO HERE?
     # SHOULD WE JUST DELETE THE OLD USER & HAVE THEM SIGN UP?
     # MAYBE REMAP THEIR SUBSCRIBERS TO THEIR NEW USER_ID?
     user = await users.get_user(user_id)
     user.is_claimed = True
-    return (await users.update_user(user)).__dict__
+    return (await users.update_user(user.__dict__)).__dict__

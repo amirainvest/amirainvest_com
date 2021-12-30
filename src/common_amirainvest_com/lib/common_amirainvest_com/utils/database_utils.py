@@ -21,10 +21,9 @@ def get_primary_key(sql_model):
 
 @Session
 async def update(session, sql_model, update_data: dict):
-    _object = await session.execute(
+    _object = (await session.execute(
         select(sql_model).filter_by(**{get_primary_key(sql_model): update_data[get_primary_key(sql_model)]})
-    )
-    _object = _object.scalars().first()
+    )).scalars().first()
     for field in jsonable_encoder(_object):
         if field in update_data:
             setattr(_object, field, update_data[field])

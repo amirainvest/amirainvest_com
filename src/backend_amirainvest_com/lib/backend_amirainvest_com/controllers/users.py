@@ -9,8 +9,7 @@ from common_amirainvest_com.utils.generic_utils import get_class_attrs
 
 @Session
 async def get_user(session, user_id: str) -> Users:
-    user = await session.execute(select(Users).where(Users.id == user_id))
-    return user.scalars().first()
+    return (await session.execute(select(Users).where(Users.id == user_id))).scalars().first()
 
 
 @Session
@@ -21,7 +20,8 @@ async def create_user(session, user_data: dict) -> Users:
 
 
 async def update_user(user_data: dict) -> Users:
-    return await update(Users, user_data)
+    user = await update(Users, user_data)
+    return user
 
 
 def handle_data_imports(creator_id: str, substack_username: str, youtube_channel_id: str, twitter_username: str):

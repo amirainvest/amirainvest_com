@@ -34,7 +34,6 @@ async def test_not_authenticated_get_post():
                 }
             ),
         )
-    print(response.text)
     assert response.status_code == 403
     assert response.json() == {"detail": "Not authenticated"}
 
@@ -62,7 +61,6 @@ async def test_create_amira_post():
                 }
             ),
         )
-    print(response.text)
     assert response.status_code == 200
 
 
@@ -91,5 +89,4 @@ async def test_update_post():
                 }
             ),
         )
-    print(response.text)
     assert response.status_code == 200

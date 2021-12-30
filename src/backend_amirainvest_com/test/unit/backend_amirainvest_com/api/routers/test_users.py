@@ -108,10 +108,8 @@ async def test_deactivate_user(session_test):
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.put("/user/deactivate/", params={"user_id": user.id}, headers=AUTH_HEADERS)
         response_data = response.json()
-        print(response_data)
         assert response_data["is_deactivated"] is True
         data = (await session_test.execute(select(Users))).scalars().first()
-        print("123134", data.__dict__)
         assert data
         assert data.is_deactivated is True
 

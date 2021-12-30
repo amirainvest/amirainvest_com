@@ -24,7 +24,7 @@ async def update_user(session, user_data: dict) -> Users:
         session.execute(
             update(Users)
             .where(Users.id == user_data["id"])
-            .values(**{k: v for k, v in user_data.items() if k in Users.__dict__})
+            .values(**{k: v for k, v in user_data.items() if k in Users.__dict__ and v is not None})
         )
     )
     return (await session.execute(select(Users).where(Users.id == user_data["id"]))).scalars().first()

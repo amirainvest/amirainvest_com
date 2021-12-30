@@ -57,7 +57,6 @@ def Session(func):
             else:
                 raise RuntimeError("session not an args")
             func_return = await func(*args, **kwargs)
-            print("AAA", func_return)
             return func_return
 
     @functools.wraps(func)

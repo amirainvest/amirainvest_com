@@ -12,6 +12,9 @@ USER default
 ENV VIRTUALENV_PATH="/home/default/venv"
 ENV PATH "/home/default/.local/bin:$PATH"
 ENV PROJECT_NAME="backend_amirainvest_com"
+ENV PROJECT="backend"
+ENV AWS_DEFAULT_REGION="us-east-1"
+
 EXPOSE 5000:5000
 
 FROM base as builder
@@ -31,10 +34,12 @@ COPY --chown=default:default ./src/common_amirainvest_com/lib/common_amirainvest
 
 ARG NO_DEV="-v"
 WORKDIR ./src/$PROJECT_NAME/
+
 RUN . $VIRTUALENV_PATH/bin/activate && poetry install --remove-untracked --no-dev
 
 ARG INSTALL_DEV_DEPS="true"
 RUN if [ "$INSTALL_DEV_DEPS" = "true" ] ; then . $VIRTUALENV_PATH/bin/activate && poetry install --remove-untracked; fi
+
 WORKDIR /opt
 
 FROM base as final
@@ -46,4 +51,4 @@ COPY --chown=default:default --from=builder "$VIRTUALENV_PATH" "$VIRTUALENV_PATH
 
 
 ENTRYPOINT ["/bin/bash", "./src/backend_amirainvest_com/entrypoint.sh"]
-CMD ["python", "src/backend/main.py"]
+CMD ["uvicorn", "backend_amirainvest_com.api.app:app", "--host", "0.0.0.0", "--port", "5000"]

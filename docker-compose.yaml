@@ -55,7 +55,7 @@ services:
         ipv4_address: 169.254.170.4
   # ^^^^^^^^ DO NOT CHANGE amirainvest_com_pycharm!! Not even the ENVIRONMENT.
 
-  amirainvest_com_test:
+  test_amirainvest_com:
     build:
       context: .
       dockerfile: Dockerfile
@@ -83,11 +83,15 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+    environment:
+      ENVIRONMENT: "local"
+      AWS_CONTAINER_CREDENTIALS_RELATIVE_URI: "/creds"
     networks:
-      - local
-    stdin_open: true
-    tty: true
-    command: "/bin/bash"
+      local:
+      credentials_network:
+        ipv4_address: 169.254.170.5
+    ports:
+      - "5000:5000"
 
   ecs-local-endpoints:
     # The Amazon ECS Local Container Endpoints Docker Image

@@ -20,7 +20,6 @@ asyncpg = "^0.25.0"
 boto3 = "^1.20.20"
 boto3-stubs = { extras = ["sqs"], version = "^1.20.24" }
 pycryptodome = "^3.12.0"
-PyJWT = "^2.3.0"
 python-jose = "^3.3.0"
 python-multipart = "^0.0.5"
 redis = "^4.0.2"
@@ -30,6 +29,8 @@ SQLAlchemy = "^1.4.27"
 uvicorn = ">= 0.15 < 1"
 cryptography = "^36.0.1"
 fastapi = "^0.70.1"
+plaid-python = "^8.8.0"
+PyJWT = "^2.3.0"
 
 [tool.poetry.dev-dependencies]
 

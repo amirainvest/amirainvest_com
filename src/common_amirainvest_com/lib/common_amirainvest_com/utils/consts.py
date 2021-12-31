@@ -21,6 +21,8 @@ __all__ = [
     "AUTH0_DOMAIN",
     "AUTH0_API_AUDIENCE",
     "WEBCACHE",
+    "PLAID_CLIENT_ID",
+    "PLAID_SECRET",
 ]
 
 
@@ -66,6 +68,10 @@ AUTH0_API_AUDIENCE = _auth0_dict["api_audience"]
 AUTH0_CLIENT_ID = _auth0_dict["client_id"]
 AUTH0_CLIENT_SECRET = _auth0_dict["client_secret"]
 AUTH0_DOMAIN = _auth0_dict["domain"]
+
+brokerage_dict = decode_env_var("brokerages")
+PLAID_CLIENT_ID = brokerage_dict["plaid"]["client_id"]
+PLAID_SECRET = brokerage_dict["plaid"]["secret"]
 
 COMMON_ROOT_DIR = os.path.dirname(os.path.abspath(__file__)).split("src/common_amirainvest_com")[0]
 

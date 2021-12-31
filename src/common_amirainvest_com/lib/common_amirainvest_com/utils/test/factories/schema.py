@@ -45,6 +45,7 @@ class PostsFactory(FactoryBase):
         model = Posts
 
     creator_id = ""
+    platform = "twitter"
 
 
 class BroadcastRequestsFactory(FactoryBase):

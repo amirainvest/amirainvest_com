@@ -14,7 +14,7 @@ async def get_subscriber_feed(
     page: int = 0,
 ):
     posts, feed_type = await feed.get_subscriber_feed(subscriber_id, page)
-    return {"posts": posts, "feed_type": feed_type}
+    return {"posts": [x.__dict__ for x in posts], "feed_type": feed_type}
 
 
 @router.get("/creator/", status_code=200, response_model=Feed)
@@ -23,7 +23,7 @@ async def get_creator_feed(
     page: int = 0,
 ):
     posts, feed_type = await feed.get_creator_feed(creator_id, page)
-    return {"posts": posts, "feed_type": feed_type}
+    return {"posts": [x for x in posts], "feed_type": feed_type}
 
 
 @router.get("/discovery/", status_code=200, response_model=Feed)
@@ -32,4 +32,4 @@ async def get_discovery_feed(
     page: int = 0,
 ):
     posts = await feed.get_discovery_feed(user_id, page)
-    return {"posts": posts, "feed_type": "discovery"}
+    return {"posts": [x.__dict__ for x in posts], "feed_type": "discovery"}

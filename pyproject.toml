@@ -14,10 +14,6 @@ common_amirainvest_com = {path = "./src/common_amirainvest_com", develop = true}
 backend_amirainvest_com = {path = "./src/backend_amirainvest_com", develop = true}
 brokerage_amirainvest_com = {path = "./src/brokerage_amirainvest_com", develop = true}
 data_imports_amirainvest_com = {path = "./src/data_imports_amirainvest_com", develop = true}
-fastapi = "^0.70.1"
-python-jose = "^3.3.0"
-plaid-python = "^8.8.0"
-PyJWT = "^2.3.0"
 
 [tool.poetry.dev-dependencies]
 alembic = "^1.7.5"

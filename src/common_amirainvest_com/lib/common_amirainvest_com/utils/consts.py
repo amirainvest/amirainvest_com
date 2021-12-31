@@ -69,9 +69,9 @@ AUTH0_CLIENT_ID = _auth0_dict["client_id"]
 AUTH0_CLIENT_SECRET = _auth0_dict["client_secret"]
 AUTH0_DOMAIN = _auth0_dict["domain"]
 
-brokerage_dict = decode_env_var("brokerages")
-PLAID_CLIENT_ID = brokerage_dict["plaid"]["client_id"]
-PLAID_SECRET = brokerage_dict["plaid"]["secret"]
+_brokerage_dict = decode_env_var("brokerages")
+PLAID_CLIENT_ID = _brokerage_dict["plaid_client_id"]
+PLAID_SECRET = _brokerage_dict["plaid_secret"]
 
 COMMON_ROOT_DIR = os.path.dirname(os.path.abspath(__file__)).split("src/common_amirainvest_com")[0]
 
@@ -96,3 +96,6 @@ async_session = sessionmaker(
 # https://github.com/redis/redis-py
 _redis_connection_pool = redis.ConnectionPool(**WEBCACHE_DICT)
 WEBCACHE = redis.Redis(connection_pool=_redis_connection_pool, health_check_interval=30)
+
+if __name__ == "__main__":
+    print(decode_env_var("brokerages"))

@@ -1,7 +1,5 @@
 pytest_plugins = ["common_amirainvest_com.utils.test.fixtures.database"]
 
-from random import randint
-
 import pytest
 from httpx import AsyncClient
 
@@ -19,8 +17,8 @@ async def test_get_subscriber_feed():
     subscriber = await UsersFactory()
     await UserSubscriptionsFactory(subscriber_id=subscriber.id, creator_id=creator.id, is_deleted=False)
     for _ in range(0, 3):
-        post = await PostsFactory(creator_id=creator.id, id=randint(0, 10000))
-        posts_redis_factory(creator.id, "subscriber", PostsModel(**{k: v for k, v in post.__dict__.items()}))
+        post = await PostsFactory(creator_id=creator.id)
+        posts_redis_factory(creator.id, "subscriber", PostsModel(**post.__dict__))
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.get(
             "/feed/subscriber/", headers=AUTH_HEADERS, params={"subscriber_id": subscriber.id}
@@ -33,7 +31,8 @@ async def test_get_subscriber_feed():
     assert "posts" in response_data
     assert type(response_data["posts"]) == list
     assert len(response_data["posts"]) == 3
-    assert response_data["posts"][0]["creator_id"] == str(creator.id)
+    for post in response_data["posts"]:
+        assert post["creator_id"] == str(creator.id)
 
 
 @pytest.mark.asyncio
@@ -42,9 +41,8 @@ async def test_get_creator_feed():
     subscriber = await UsersFactory()
     await UserSubscriptionsFactory(creator_id=creator.id, subscriber_id=subscriber.id)
     for _ in range(0, 3):
-        post = await PostsFactory(creator_id=creator.id, id=randint(0, 10000))
-        post_model = PostsModel(**{k: v for k, v in post.__dict__.items()})
-        posts_redis_factory(creator.id, "creator", post_model)
+        post = await PostsFactory(creator_id=creator.id)
+        posts_redis_factory(creator.id, "creator", PostsModel(**post.__dict__))
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.get("/feed/creator/", headers=AUTH_HEADERS, params={"creator_id": creator.id})
     assert response.status_code == 200
@@ -55,7 +53,8 @@ async def test_get_creator_feed():
     assert "posts" in response_data
     assert type(response_data["posts"]) == list
     assert len(response_data["posts"]) == 3
-    assert response_data["posts"][0]["creator_id"] == str(creator.id)
+    for post in response_data["posts"]:
+        assert post["creator_id"] == str(creator.id)
 
 
 @pytest.mark.asyncio
@@ -64,9 +63,8 @@ async def test_get_discovery_feed():
     subscriber = await UsersFactory()
     await UserSubscriptionsFactory(creator_id=creator.id, subscriber_id=subscriber.id)
     for _ in range(0, 3):
-        post = await PostsFactory(creator_id=creator.id, id=randint(0, 10000))
-        post_model = PostsModel(**{k: v for k, v in post.__dict__.items()})
-        posts_redis_factory(creator.id, "discovery", post_model)
+        post = await PostsFactory(creator_id=creator.id)
+        posts_redis_factory(creator.id, "discovery", PostsModel(**post.__dict__))
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.get("/feed/discovery/", headers=AUTH_HEADERS, params={"user_id": subscriber.id})
     assert response.status_code == 200
@@ -77,4 +75,5 @@ async def test_get_discovery_feed():
     assert "posts" in response_data
     assert type(response_data["posts"]) == list
     assert len(response_data["posts"]) == 3
-    assert response_data["posts"][0]["creator_id"] == str(creator.id)
+    for post in response_data["posts"]:
+        assert post["creator_id"] == str(creator.id)

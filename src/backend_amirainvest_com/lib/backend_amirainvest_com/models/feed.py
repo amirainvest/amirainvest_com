@@ -1,7 +1,8 @@
 from enum import Enum
+from typing import List
 
 from pydantic import BaseModel
-from typing import List
+
 from common_amirainvest_com.schemas.schema import PostsModel
 
 

@@ -24,7 +24,7 @@ async def get_subscriber_feed(subscriber_id: str, page: int = 0, page_size: int 
     if not feed:
         feed_type = "discovery"
         feed = await get_discovery_feed(subscriber_id, page, page_size)
-    return feed[page * page_size: (page * page_size) + page_size], feed_type
+    return feed[page * page_size : (page * page_size) + page_size], feed_type
 
 
 async def get_creator_feed(creator_id: str, page: int = 0, page_size: int = PAGE_SIZE) -> tuple[list[dict], str]:
@@ -37,7 +37,7 @@ async def get_creator_feed(creator_id: str, page: int = 0, page_size: int = PAGE
     if not feed:
         feed_type = "discovery"
         feed = await get_discovery_feed(creator_id, page, page_size)
-    return feed[page * page_size: (page * page_size) + page_size], feed_type
+    return feed[page * page_size : (page * page_size) + page_size], feed_type
 
 
 async def get_discovery_feed(user_id: str, page: int = 0, page_size: int = PAGE_SIZE):

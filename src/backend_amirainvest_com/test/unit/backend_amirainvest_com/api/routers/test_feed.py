@@ -9,6 +9,7 @@ from backend_amirainvest_com.api.app import app
 from common_amirainvest_com.schemas.schema import PostsModel
 from common_amirainvest_com.utils.test.factories.redis_factories import posts_redis_factory
 from common_amirainvest_com.utils.test.factories.schema import PostsFactory, UsersFactory, UserSubscriptionsFactory
+
 from .config import AUTH_HEADERS
 
 
@@ -16,11 +17,7 @@ from .config import AUTH_HEADERS
 async def test_get_subscriber_feed():
     creator = await UsersFactory()
     subscriber = await UsersFactory()
-    await UserSubscriptionsFactory(
-        subscriber_id=subscriber.id,
-        creator_id=creator.id,
-        is_deleted=False
-    )
+    await UserSubscriptionsFactory(subscriber_id=subscriber.id, creator_id=creator.id, is_deleted=False)
     for _ in range(0, 3):
         post = await PostsFactory(creator_id=creator.id, id=randint(0, 10000))
         posts_redis_factory(creator.id, "subscriber", PostsModel(**{k: v for k, v in post.__dict__.items()}))
@@ -43,10 +40,7 @@ async def test_get_subscriber_feed():
 async def test_get_creator_feed():
     creator = await UsersFactory()
     subscriber = await UsersFactory()
-    await UserSubscriptionsFactory(
-        creator_id=creator.id,
-        subscriber_id=subscriber.id
-    )
+    await UserSubscriptionsFactory(creator_id=creator.id, subscriber_id=subscriber.id)
     for _ in range(0, 3):
         post = await PostsFactory(creator_id=creator.id, id=randint(0, 10000))
         post_model = PostsModel(**{k: v for k, v in post.__dict__.items()})
@@ -68,10 +62,7 @@ async def test_get_creator_feed():
 async def test_get_discovery_feed():
     creator = await UsersFactory()
     subscriber = await UsersFactory()
-    await UserSubscriptionsFactory(
-        creator_id=creator.id,
-        subscriber_id=subscriber.id
-    )
+    await UserSubscriptionsFactory(creator_id=creator.id, subscriber_id=subscriber.id)
     for _ in range(0, 3):
         post = await PostsFactory(creator_id=creator.id, id=randint(0, 10000))
         post_model = PostsModel(**{k: v for k, v in post.__dict__.items()})

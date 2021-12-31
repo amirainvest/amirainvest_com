@@ -13,5 +13,5 @@ def posts_redis_factory(user_id: str, feed_type: str, posts_model: PostsModel):
     WEBCACHE.lpush(key, post_json)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     posts_redis_factory("fake_user_id", FeedType.subscriber)

@@ -24,14 +24,14 @@ async def get_subscriber_feed(subscriber_id: str, page: int = 0, page_size: int 
     if not feed:
         feed_type = "discovery"
         feed = await get_discovery_feed(subscriber_id, page, page_size)
-    return feed, feed_type
+    return feed[page * page_size : (page * page_size) + page_size], feed_type
 
 
 async def get_creator_feed(creator_id: str, page: int = 0, page_size: int = PAGE_SIZE) -> tuple[list[dict], str]:
     feed_type = "creator"
     feed = get_redis_feed(creator_id, feed_type, page, page_size)
     if not feed:
-        feed = await posts.get_creator_posts(creator_id, hours_ago=MAX_HOURS_AGO, limit=MAX_FEED_SIZE)
+        feed = await posts.get_creator_posts(creator_id, hours_ago=MAX_HOURS_AGO)
         if feed:
             update_redis_feed(creator_id, configure_feed(feed), feed_type)
     if not feed:

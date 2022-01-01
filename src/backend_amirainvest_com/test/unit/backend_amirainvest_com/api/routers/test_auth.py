@@ -18,6 +18,7 @@ routes_with_no_auth_required_path = [
     "/code_challenge/",
     "/webhooks/plaid/investments",
     "/webhooks/plaid/holdings",
+    "/webhooks/plaid/transactions",
     "/",
 ]
 

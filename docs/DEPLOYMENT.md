@@ -14,6 +14,7 @@ We are using Terraform for deployment.
 * Run `terraform plan -out="./tf_plan"`
 * Read the output and make sure nothing crazy is going to happen
 * Run `terraform apply "./tf_plan"`
+* Push ANY `*.tfstate` changes to `main` ASAP!
 * Apply any Alembic migrations
 
 # Adding existing infrastructure to TF

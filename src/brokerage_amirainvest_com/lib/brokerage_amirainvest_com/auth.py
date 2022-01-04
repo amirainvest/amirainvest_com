@@ -165,6 +165,7 @@ async def link_post(public_token: str = Form(...), amira_user_id: Optional[str] 
         exchange_request = ItemPublicTokenExchangeRequest(
             public_token=public_token
         )
+
         exchange_response = client.item_public_token_exchange(exchange_request)
         access_token = exchange_response['access_token']
         item_id = exchange_response['item_id']

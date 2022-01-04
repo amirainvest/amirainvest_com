@@ -886,5 +886,4 @@ Temporary Items
 !/bin/
 !/terraform/.terraform/
 !/terraform/terraform.tfstate.backup
-!/terraform/terraform.tfstate.backup
 !/terraform/tf_plan

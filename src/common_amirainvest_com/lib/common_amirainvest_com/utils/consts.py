@@ -12,6 +12,7 @@ from sqlalchemy.orm import sessionmaker
 __all__ = [
     "decode_env_var",
     "DEBUG",
+    "Environments",
     "ENVIRONMENT",
     "async_session",
     "COMMON_ROOT_DIR",
@@ -60,7 +61,7 @@ try:
         debug=True if DEBUG == "true" else False,
     )
 except (BadDsn, JSONDecodeError):
-    if ENVIRONMENT != "local":
+    if ENVIRONMENT != Environments.local.value:
         raise EnvironmentError("Sentry URL not set for non local env")
 
 POSTGRES_DATABASE_URL = "postgresql://{username}:{password}@{host}/{database}".format(**decode_env_var("postgres"))

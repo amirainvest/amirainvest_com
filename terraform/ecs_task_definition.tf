@@ -13,7 +13,7 @@ resource "aws_ecs_task_definition" "tfer--task-definition-002F-prod-api-public-e
         { "name" : "PROJECT", "value" : "backend" }
       ],
       essential : true,
-      image : "903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/backend_amirainvest_com:latest",
+      image : data.aws_ecr_image.backend_amirainvest_com.id,
       links : [],
       logConfiguration : {
         "logDriver" : "awslogs",

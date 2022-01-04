@@ -1,6 +1,7 @@
 import base64
 import json
 import os
+from enum import Enum
 from json import JSONDecodeError
 
 import redis
@@ -26,13 +27,20 @@ __all__ = [
 ]
 
 
+class Environments(Enum):
+    prod = "prod"
+    staging = "staging"
+    dev = "dev"
+    local = "local"
+
+
 def decode_env_var(env_var_name: str) -> dict:
     env_var_dict = json.loads(base64.b64decode(os.environ.get(env_var_name, "")).decode("utf-8"))
     return env_var_dict
 
 
 DEBUG = os.environ.get("DEBUG", "true").strip().lower()
-ENVIRONMENT = os.environ.get("ENVIRONMENT", "local").strip().lower()
+ENVIRONMENT = Environments[os.environ.get("ENVIRONMENT", "local").strip().lower()].value
 
 try:
     import sentry_sdk

@@ -441,6 +441,7 @@ class FinancialAccounts(Base):
     __tablename__ = "financial_accounts"
     id = Column(Integer, primary_key=True, unique=True, nullable=False)
     user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    plaid_item_id = Column(String)
     plaid_id = Column(String, unique=True)
     official_account_name = Column(String)
     user_assigned_account_name = Column(String)

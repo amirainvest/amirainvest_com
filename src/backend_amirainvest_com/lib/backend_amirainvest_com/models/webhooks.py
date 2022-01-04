@@ -30,3 +30,11 @@ class InvestmentsUpdate(BaseModel):
     error: Optional[ErrorType]
     new_investments_transactions: int
     canceled_investments_transactions: int
+
+
+class TransactionsUpdate(BaseModel):
+    error: Optional[dict]
+    item_id: str
+    new_transactions: int
+    webhook_code: str
+    webhook_type: str

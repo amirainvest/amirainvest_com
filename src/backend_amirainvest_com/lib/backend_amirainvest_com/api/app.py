@@ -17,6 +17,7 @@ from backend_amirainvest_com.api.routers import (
     user_subscriptions,
     users,
 )
+from backend_amirainvest_com.api.webhooks.app import app as webhooks_app
 
 
 app = FastAPI(title="Backend", version="0.1")
@@ -31,6 +32,8 @@ app.include_router(husk_requests.router)
 app.include_router(broadcast_requests.router)
 app.include_router(code_challenge.router)
 app.include_router(search.router)
+
+app.mount("/webhooks", webhooks_app)
 
 
 @app.get("/", include_in_schema=False)

@@ -18,7 +18,6 @@ arrow = "^1.2.1"
 asyncpg = ">= 0.25.0 < 1"
 boto3 = "^1.20.24"
 boto3-stubs = { extras = ["sqs", "secretsmanager"], version = "^1.20.24" }
-fastapi = ">= 0.70.0 < 1"
 psycopg2-binary = "^2.9.2"
 pydantic = "^1.8.2"
 pydantic-sqlalchemy = ">= 0.0.9 < 1"

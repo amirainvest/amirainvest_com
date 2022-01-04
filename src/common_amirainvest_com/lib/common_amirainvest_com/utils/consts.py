@@ -1,6 +1,7 @@
 import base64
 import json
 import os
+from enum import Enum
 from json import JSONDecodeError
 
 import redis
@@ -11,6 +12,7 @@ from sqlalchemy.orm import sessionmaker
 __all__ = [
     "decode_env_var",
     "DEBUG",
+    "Environments",
     "ENVIRONMENT",
     "async_session",
     "COMMON_ROOT_DIR",
@@ -21,7 +23,15 @@ __all__ = [
     "AUTH0_DOMAIN",
     "AUTH0_API_AUDIENCE",
     "WEBCACHE",
+    "PLAID_CLIENT_ID",
+    "PLAID_SECRET",
 ]
+
+
+class Environments(Enum):
+    prod = "prod"
+    staging = "staging"
+    local = "local"
 
 
 def decode_env_var(env_var_name: str) -> dict:
@@ -30,7 +40,7 @@ def decode_env_var(env_var_name: str) -> dict:
 
 
 DEBUG = os.environ.get("DEBUG", "true").strip().lower()
-ENVIRONMENT = os.environ.get("ENVIRONMENT", "local").strip().lower()
+ENVIRONMENT = Environments[os.environ.get("ENVIRONMENT", "local").strip().lower()].value
 
 try:
     import sentry_sdk
@@ -50,7 +60,7 @@ try:
         debug=True if DEBUG == "true" else False,
     )
 except (BadDsn, JSONDecodeError):
-    if ENVIRONMENT != "local":
+    if ENVIRONMENT != Environments.local.value:
         raise EnvironmentError("Sentry URL not set for non local env")
 
 POSTGRES_DATABASE_URL = "postgresql://{username}:{password}@{host}/{database}".format(**decode_env_var("postgres"))
@@ -66,6 +76,10 @@ AUTH0_API_AUDIENCE = _auth0_dict["api_audience"]
 AUTH0_CLIENT_ID = _auth0_dict["client_id"]
 AUTH0_CLIENT_SECRET = _auth0_dict["client_secret"]
 AUTH0_DOMAIN = _auth0_dict["domain"]
+
+_plaid_dict = decode_env_var("plaid")
+PLAID_CLIENT_ID = _plaid_dict["client_id"]
+PLAID_SECRET = _plaid_dict["secret"]
 
 COMMON_ROOT_DIR = os.path.dirname(os.path.abspath(__file__)).split("src/common_amirainvest_com")[0]
 
@@ -90,3 +104,6 @@ async_session = sessionmaker(
 # https://github.com/redis/redis-py
 _redis_connection_pool = redis.ConnectionPool(**WEBCACHE_DICT)
 WEBCACHE = redis.Redis(connection_pool=_redis_connection_pool, health_check_interval=30)
+
+if __name__ == "__main__":
+    print(decode_env_var("brokerages"))

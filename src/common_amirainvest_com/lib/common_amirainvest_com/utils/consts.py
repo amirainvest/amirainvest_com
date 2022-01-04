@@ -31,7 +31,6 @@ __all__ = [
 class Environments(Enum):
     prod = "prod"
     staging = "staging"
-    dev = "dev"
     local = "local"
 
 

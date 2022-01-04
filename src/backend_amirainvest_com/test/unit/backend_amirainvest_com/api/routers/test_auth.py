@@ -1,3 +1,6 @@
+import starlette.routing
+
+
 pytest_plugins = ["common_amirainvest_com.utils.test.fixtures.database"]
 
 import pytest
@@ -16,10 +19,11 @@ routes_with_no_auth_required_path = [
     "/redoc",
     "/admin/health_check",
     "/code_challenge/",
-    "/webhooks/plaid/investments",
-    "/webhooks/plaid/holdings",
-    "/webhooks/plaid/transactions",
     "/",
+]
+
+mounts_auth_bypass = [
+    "/webhooks",
 ]
 
 
@@ -28,6 +32,10 @@ routes_with_no_auth_required_path = [
 async def test_not_authenticated_get_user(route):
     print(route.name)
     try:
+        if type(route) == starlette.routing.Mount:
+            assert route.path in mounts_auth_bypass
+            return
+
         dependant = route.dependant
         dependencies = dependant.dependencies
 
@@ -59,3 +67,32 @@ async def test_not_authenticated_get_user(route):
                 assert route.path in routes_with_no_auth_required_path
     except (AttributeError, IndexError):
         assert route.path in routes_with_no_auth_required_path
+
+
+@pytest.mark.asyncio
+async def test_webhooks_auth():
+    for route in app.routes:
+        if type(route) == starlette.routing.Mount and route.path == "/webhooks":
+            webhooks_mount = route
+            break
+    else:
+        raise ValueError
+
+    for route in webhooks_mount.routes:
+        if route.path in routes_with_no_auth_required_path:
+            continue
+        for method in route.methods:
+            assert method.lower() == "post"
+            # dependant = route.dependant
+            # async with AsyncClient(app=app, base_url="http://test") as async_client:
+            #
+            #     no_auth_response = await async_client.post(f"/webhooks{route.path}", data=json.dumps({}), headers="")
+            #     assert no_auth_response.status_code == 403
+            #     assert no_auth_response.json() == {"detail": "Not authenticated"}
+            #
+            #     fake_auth_header_response = await async_client.post(route.path, headers=FAKE_AUTH_HEADER)
+            #     assert fake_auth_header_response.status_code == 403
+            #     assert fake_auth_header_response.json() == {"detail": "Not authenticated"}
+            #
+            #     auth_response = await async_client.post(route.path, headers=AUTH_HEADERS)
+            #     assert auth_response.status_code in {200, 422}

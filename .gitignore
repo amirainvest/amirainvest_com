@@ -885,5 +885,4 @@ Temporary Items
 /docs/apidoc_output/
 !/bin/
 /terraform/.terraform
-/terraform/terraform.tfstate.backup
 /terraform/tf_plan

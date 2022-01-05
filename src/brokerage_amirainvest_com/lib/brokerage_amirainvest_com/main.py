@@ -1,10 +1,11 @@
 import uuid
 
 from brokerage_amirainvest_com.brokerages import plaid_provider
-from common_amirainvest_com.utils.consts import PLAID_CLIENT_ID, PLAID_SECRET
 from brokerage_amirainvest_com.mocks import MockWithAccessToken
 from brokerage_amirainvest_com.providers import Providers
 from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
+from common_amirainvest_com.utils.consts import PLAID_CLIENT_ID, PLAID_SECRET
+
 
 action = "HOLDINGS_COLLECTION"
 if __name__ == "__main__":
@@ -12,7 +13,10 @@ if __name__ == "__main__":
     # this way the provider doesn't need to know how to fetch a user token appropriately,
     # it just needs to fetch user token to make request against a service
     # TODO: Maybe we wire this up in the providers class itself for registered providers?
+    # NOTE the hardcoded UUID is a user I created on the fly to populate DB & the hardcoded KEY is a key I created in
+    # Sandbox...these are just placeholders
     token_repository = MockWithAccessToken()
+
     plaid_service = plaid_provider.PlaidProvider(
         http_client=plaid_provider.PlaidHttp(
             token_repository=token_repository, client_id=PLAID_CLIENT_ID, secret=PLAID_SECRET

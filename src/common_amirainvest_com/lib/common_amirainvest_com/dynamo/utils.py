@@ -1,7 +1,7 @@
 from typing import Optional
 
-from common_amirainvest_com.dynamo.consts import dynamo_resource  # type: ignore
-from common_amirainvest_com.dynamo.models import BrokerageUser  # type: ignore
+from common_amirainvest_com.dynamo.consts import dynamo_resource
+from common_amirainvest_com.dynamo.models import BrokerageUser
 
 
 # Using this as a catch-all for the time being, but thinking we come up with a service package or something
@@ -40,8 +40,10 @@ async def add_brokerage_user(brokerage_user: BrokerageUser):
         "user_id": brokerage_user.user_id,
         "plaid_access_tokens": brokerage_user.plaid_access_tokens,
     }
+
     table = dynamo_resource.Table("brokerage_users")
-    table.put_item(Item=item)
+    # TODO @peterHoburg -- Why am I unable to use a dictionary here via mypy?
+    table.put_item(Item=item)  # type: ignore
 
 
 async def get_brokerage_user(user_id: str) -> Optional[BrokerageUser]:

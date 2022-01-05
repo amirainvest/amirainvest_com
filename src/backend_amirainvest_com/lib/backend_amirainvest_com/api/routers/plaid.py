@@ -4,12 +4,8 @@ from fastapi.templating import Jinja2Templates
 
 from backend_amirainvest_com.controllers.auth import auth_dep
 from backend_amirainvest_com.controllers.plaid import exchange_public_for_access_token, generate_link_token
-from common_amirainvest_com.dynamo.models import BrokerageUser  # type: ignore
-from common_amirainvest_com.dynamo.utils import (  # type: ignore
-    add_brokerage_user,
-    get_brokerage_user,
-    update_brokerage_user,
-)
+from common_amirainvest_com.dynamo.models import BrokerageUser
+from common_amirainvest_com.dynamo.utils import add_brokerage_user, get_brokerage_user, update_brokerage_user
 from common_amirainvest_com.sqs.consts import BROKERAGE_DATA_QUEUE_URL
 from common_amirainvest_com.sqs.models import Brokerage, BrokerageDataActions, BrokerageDataChange
 from common_amirainvest_com.sqs.utils import add_message_to_queue

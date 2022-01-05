@@ -1,7 +1,8 @@
 import abc
 import uuid
+from typing import Optional
 
-from common_amirainvest_com.dynamo.models import BrokerageUser  # type: ignore
+from common_amirainvest_com.dynamo.models import BrokerageUser
 
 
 class BrokerageInterface(abc.ABC):
@@ -22,7 +23,7 @@ class BrokerageInterface(abc.ABC):
 
 class TokenRepositoryInterface(abc.ABC):
     @abc.abstractmethod
-    def get_key(self, user_id: str) -> BrokerageUser:
+    async def get_key(self, user_id: str) -> Optional[BrokerageUser]:
         """
         Fetches the string associated with the account id
         """

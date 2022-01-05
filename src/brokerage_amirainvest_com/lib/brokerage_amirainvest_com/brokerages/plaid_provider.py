@@ -303,7 +303,7 @@ class PlaidHttp:
         )
         self.client = plaid_api.PlaidApi(plaid.ApiClient(plaid_cfg))
 
-    def get_investment_history(
+    async def get_investment_history(
         self,
         user_id: uuid.UUID,
         item_id: str,
@@ -311,11 +311,12 @@ class PlaidHttp:
         end_date: arrow.Arrow = arrow.utcnow(),
         offset: int = 0,
     ) -> InvestmentInformation:
-        brokerage_user = self.token_repository.get_key(str(user_id))
-        if item_id not in brokerage_user.plaid_access_tokens:
+        brokerage_user = await self.token_repository.get_key(str(user_id))
+        print("BROKERAGE: ", brokerage_user)
+        if brokerage_user is None or item_id not in brokerage_user.plaid_access_tokens:
             raise Exception("TODO LATER")
         access_token = brokerage_user.plaid_access_tokens[item_id]
-
+        print("ACCESS TOKEN: ", access_token)
         request = InvestmentsTransactionsGetRequest(
             access_token=access_token,
             start_date=start_date.date(),
@@ -343,9 +344,9 @@ class PlaidHttp:
             total_investment_transactions=response["total_investment_transactions"],
         )
 
-    def get_current_holdings(self, user_id: uuid.UUID, item_id: str):
-        brokerage_user = self.token_repository.get_key(str(user_id))
-        if item_id not in brokerage_user.plaid_access_tokens:
+    async def get_current_holdings(self, user_id: uuid.UUID, item_id: str):
+        brokerage_user = await self.token_repository.get_key(str(user_id))
+        if brokerage_user is None or item_id not in brokerage_user.plaid_access_tokens:
             raise Exception("TODO LATER")
         access_token = brokerage_user.plaid_access_tokens[item_id]
         response = self.client.investments_holdings_get(
@@ -397,7 +398,7 @@ class PlaidProvider(BrokerageInterface):
         self.http_client = http_client
 
     async def collect_investment_history(self, user_id: uuid.UUID, item_id: str):
-        investment_history = self.http_client.get_investment_history(user_id=user_id, item_id=item_id)
+        investment_history = await self.http_client.get_investment_history(user_id=user_id, item_id=item_id)
 
         await self.repository.add_securities(securities=list(investment_history.securities.values()))
         await self.repository.add_accounts(user_id=user_id, accounts=investment_history.accounts)
@@ -407,7 +408,9 @@ class PlaidProvider(BrokerageInterface):
 
         count = len(investment_history.investment_transactions)
         while count < investment_history.total_investment_transactions:
-            investment_history = self.http_client.get_investment_history(user_id=user_id, item_id=item_id, offset=count)
+            investment_history = await self.http_client.get_investment_history(
+                user_id=user_id, item_id=item_id, offset=count
+            )
             await self.repository.add_securities(securities=list(investment_history.securities.values()))
             await self.repository.add_accounts(user_id=user_id, accounts=investment_history.accounts)
             await self.repository.add_investment_transactions(
@@ -416,7 +419,7 @@ class PlaidProvider(BrokerageInterface):
             count = count + len(investment_history.investment_transactions)
 
     async def collect_current_holdings(self, user_id: uuid.UUID, item_id: str):
-        holdings_information = self.http_client.get_current_holdings(user_id=user_id, item_id=item_id)
+        holdings_information = await self.http_client.get_current_holdings(user_id=user_id, item_id=item_id)
 
         await self.repository.add_securities(securities=list(holdings_information.securities.values()))
         await self.repository.add_accounts(user_id=user_id, accounts=holdings_information.accounts)

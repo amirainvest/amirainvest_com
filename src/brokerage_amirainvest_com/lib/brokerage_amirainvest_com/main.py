@@ -12,7 +12,9 @@ from common_amirainvest_com.utils.consts import PLAID_CLIENT_ID, PLAID_SECRET
 # TODO Collect Holdings based on an item id
 # TODO Collect Holdings based on a amira user(use all item ids available
 
-action = "HOLDINGS_COLLECTION"
+user_id = "f6b8bdfc-5a9d-11ec-bc23-0242ac1a0002"
+brokerage_item_id = "87mB66x5N6iDGgRnLPnDiRVjabX3QetwEAyoZ"
+action = "COLLECT_HOLDINGS"
 if __name__ == "__main__":
     token_repository = TokenProvider()
 
@@ -27,17 +29,17 @@ if __name__ == "__main__":
 
     if action == "INSTITUTIONS_COLLECTION":
         run_async_function_synchronously(plaid_service.collect_institutions)
-    elif action == "HISTORICAL_COLLECTION":
+    elif action == "COLLECT_INVESTMENT_HISTORY":
         run_async_function_synchronously(
             provider_service.collect_investment_history,
             provider_key="plaid",
-            user_id=uuid.UUID("f6b8bdfc-5a9d-11ec-bc23-0242ac1a0002"),
-            item_id="",
+            user_id=uuid.UUID(user_id),
+            item_id=brokerage_item_id,
         )
-    elif action == "HOLDINGS_COLLECTION":
+    elif action == "COLLECT_HOLDINGS":
         run_async_function_synchronously(
             provider_service.collect_current_holdings,
             provider_key="plaid",
-            user_id=uuid.UUID("f6b8bdfc-5a9d-11ec-bc23-0242ac1a0002"),
-            item_id="",
+            user_id=uuid.UUID(user_id),
+            item_id=brokerage_item_id,
         )

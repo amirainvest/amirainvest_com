@@ -1,10 +1,11 @@
+from typing import Optional
+
 from brokerage_amirainvest_com.brokerages.interfaces import TokenRepositoryInterface
-from common_amirainvest_com.dynamo.models import BrokerageUser  # type: ignore
+from common_amirainvest_com.dynamo.models import BrokerageUser
+from common_amirainvest_com.dynamo.utils import get_brokerage_user
 
 
 class TokenProvider(TokenRepositoryInterface):
-    def __init__(self):
-        pass
-
-    def get_key(self, user_id: str) -> BrokerageUser:
-        pass
+    async def get_key(self, user_id: str) -> Optional[BrokerageUser]:
+        response = await get_brokerage_user(user_id)
+        return response

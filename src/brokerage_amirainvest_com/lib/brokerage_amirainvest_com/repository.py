@@ -3,7 +3,7 @@ from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from common_amirainvest_com.dynamo.utils import create_table  # type: ignore
+from common_amirainvest_com.dynamo.utils import create_table
 from common_amirainvest_com.schemas.schema import FinancialAccounts
 from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
 from common_amirainvest_com.utils.decorators import Session

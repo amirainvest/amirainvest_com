@@ -29,4 +29,13 @@ class Providers:
 
     async def collect_current_holdings(self, provider_key: str, user_id: uuid.UUID, item_id: str):
         provider = self.providers_dict[provider_key]
-        await provider.collect_current_holdings(user_id=user_id, item_id=item_id)
+        job_id = await start_historical_job(user_id)
+
+        # Job has already started
+        if job_id == 0:
+            return
+        try:
+            await provider.collect_current_holdings(user_id=user_id, item_id=item_id)
+            await end_historical_job_successfully(job_id)
+        except Exception:
+            await retry_historical_job(job_id)

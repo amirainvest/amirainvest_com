@@ -312,7 +312,7 @@ class PlaidHttp:
 
         accounts = []
         for account in response["accounts"]:
-            accounts.append(plaid_account_to_account(account, response['item']['item_id']))
+            accounts.append(plaid_account_to_account(account, response["item"]["item_id"]))
 
         return InvestmentInformation(
             accounts=accounts,
@@ -342,7 +342,7 @@ class PlaidHttp:
 
         accounts = []
         for account in response["accounts"]:
-            accounts.append(plaid_account_to_account(account, response['item']['item_id']))
+            accounts.append(plaid_account_to_account(account, response["item"]["item_id"]))
 
         return HoldingInformation(accounts=accounts, securities=securities, holdings=holdings)
 

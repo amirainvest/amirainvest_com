@@ -7,4 +7,4 @@ class MockWithAccessToken(TokenRepositoryInterface):
 
     def get_key(self, user_id: str) -> str:
         # Access token hard-coded from sandbox api
-        return "access-sandbox-51d24c95-5ec4-4970-be74-0173419f246c"
+        return "access-sandbox-1001d961-0408-480f-822a-f836a62332ac"

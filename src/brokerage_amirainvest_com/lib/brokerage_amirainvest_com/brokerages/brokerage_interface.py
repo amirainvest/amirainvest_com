@@ -1,16 +1,17 @@
 import abc
+import uuid
 
 
 class BrokerageInterface(abc.ABC):
     @abc.abstractmethod
-    def collect_investment_history(self, user_id: str):
+    async def collect_investment_history(self, user_id: uuid.UUID):
         """
         Gets the history of a transaction...?
         """
         ...
 
     @abc.abstractmethod
-    def collect_current_holdings(self, user_id: str):
+    async def collect_current_holdings(self, user_id: uuid.UUID):
         """
         Gets a list of institutions
         """

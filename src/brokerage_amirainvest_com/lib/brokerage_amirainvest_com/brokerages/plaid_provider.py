@@ -7,13 +7,16 @@ import plaid  # type: ignore
 from plaid.api import plaid_api  # type: ignore
 from plaid.model.account_base import AccountBase as PlaidAccount  # type: ignore
 from plaid.model.country_code import CountryCode  # type: ignore
+from plaid.model.holding import Holding as PlaidHolding  # type: ignore
 from plaid.model.institutions_get_request import InstitutionsGetRequest  # type: ignore
 from plaid.model.investment_transaction import InvestmentTransaction as PlaidInvestmentTransaction  # type: ignore
+from plaid.model.investments_holdings_get_request import InvestmentsHoldingsGetRequest  # type: ignore
 from plaid.model.investments_transactions_get_request import InvestmentsTransactionsGetRequest  # type: ignore
 from plaid.model.investments_transactions_get_request_options import (  # type: ignore
     InvestmentsTransactionsGetRequestOptions,
 )
 from plaid.model.security import Security as PlaidSecurity  # type: ignore
+from sqlalchemy import delete
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -22,6 +25,8 @@ from brokerage_amirainvest_com.brokerages.brokerage_interface import BrokerageIn
 from brokerage_amirainvest_com.models import (
     Account,
     AccountType,
+    Holding,
+    HoldingInformation,
     Institution,
     InvestmentInformation,
     InvestmentTransaction,
@@ -30,6 +35,7 @@ from brokerage_amirainvest_com.models import (
     SecurityType,
 )
 from common_amirainvest_com.schemas.schema import (
+    FinancialAccountCurrentHoldings,
     FinancialAccounts,
     FinancialAccountTransactions,
     FinancialInstitutions,
@@ -238,6 +244,56 @@ class PlaidRepository:
             )
             session.add_all(insertable_investment_transactions)
 
+    @Session
+    async def add_holdings(self, session: AsyncSession, holdings: list[Holding], user_id: uuid.UUID):
+        plaid_account_ids = set()
+        plaid_security_ids = set()
+
+        for t in holdings:
+            plaid_account_ids.add(t.account_id)
+            plaid_security_ids.add(t.security_id)
+
+        current_accounts = await self.get_accounts_by_plaid_ids(plaid_account_ids)
+        current_accounts_dict = {}
+        for ca in current_accounts:
+            current_accounts_dict[ca.plaid_id] = ca.id
+
+        current_securities = await self.get_securities_by_plaid_ids(plaid_security_ids)
+        current_securities_dict = {}
+        for ci in current_securities:
+            current_securities_dict[ci.plaid_security_id] = ci.id
+
+        insertable_holdings = []
+        for h in holdings:
+            security_id = current_securities_dict[h.security_id]
+            account_id = current_accounts_dict[h.account_id]
+
+            latest_price_date = None
+            if h.institution_price_as_of is not None:
+                latest_price_date = arrow.get(h.institution_price_as_of, "YYYY-MM-DD").datetime
+                latest_price_date = latest_price_date.replace(tzinfo=None)
+
+            insertable_holdings.append(
+                FinancialAccountCurrentHoldings(
+                    user_id=user_id,
+                    account_id=account_id,
+                    security_id=security_id,
+                    latest_price=h.institution_price,
+                    latest_price_date=latest_price_date,
+                    institution_value=h.institution_value,
+                    cost_basis=h.cost_basis,
+                    quantity=h.quantity,
+                    iso_currency_code=h.iso_currency_code,
+                    unofficial_currency_code=h.unofficial_currency_code,
+                )
+            )
+        await session.execute(
+            delete(FinancialAccountCurrentHoldings).where(FinancialAccountCurrentHoldings.user_id == user_id)
+        )
+        session.add_all(insertable_holdings)
+        await session.commit()
+        return
+
 
 class PlaidHttp:
     token_repository: TokenRepositoryInterface
@@ -252,12 +308,12 @@ class PlaidHttp:
 
     def get_investment_history(
         self,
-        user_id: str,
+        user_id: uuid.UUID,
         start_date: arrow.Arrow = arrow.get("1995-01-01"),
         end_date: arrow.Arrow = arrow.utcnow(),
         offset: int = 0,
     ) -> InvestmentInformation:
-        access_token = self.token_repository.get_key(user_id=user_id)
+        access_token = self.token_repository.get_key(user_id=str(user_id))
         request = InvestmentsTransactionsGetRequest(
             access_token=access_token,
             start_date=start_date.date(),
@@ -285,10 +341,27 @@ class PlaidHttp:
             total_investment_transactions=response["total_investment_transactions"],
         )
 
-    def get_current_holdings(self, account_id: str):
-        # access_token = self.token_repository.get_key(account_id)
-        # holdings: list[Holdings]
-        pass
+    def get_current_holdings(self, user_id: uuid.UUID):
+        access_token = self.token_repository.get_key(str(user_id))
+        response = self.client.investments_holdings_get(
+            InvestmentsHoldingsGetRequest(
+                access_token=access_token,
+            )
+        )
+
+        holdings: list[Holding] = []
+        for holding in response["holdings"]:
+            holdings.append(plaid_holding_to_holding(holding))
+
+        securities = {}
+        for sec in response["securities"]:
+            securities[sec.security_id] = plaid_security_to_security(sec)
+
+        accounts = []
+        for account in response["accounts"]:
+            accounts.append(plaid_account_to_account(account))
+
+        return HoldingInformation(accounts=accounts, securities=securities, holdings=holdings)
 
     def get_institutions(self, offset: int, count=500):
         request = InstitutionsGetRequest(country_codes=[CountryCode("US")], count=count, offset=offset)
@@ -318,31 +391,34 @@ class PlaidProvider(BrokerageInterface):
         self.repository = repository
         self.http_client = http_client
 
-    async def collect_investment_history(self, user_id: str):
-        try:
-            investment_history = self.http_client.get_investment_history(user_id=user_id)
+    async def collect_investment_history(self, user_id: uuid.UUID):
+        investment_history = self.http_client.get_investment_history(user_id=user_id)
 
+        await self.repository.add_securities(securities=list(investment_history.securities.values()))
+        await self.repository.add_accounts(user_id=user_id, accounts=investment_history.accounts)
+        await self.repository.add_investment_transactions(
+            investment_transactions=investment_history.investment_transactions
+        )
+
+        count = len(investment_history.investment_transactions)
+        while count < investment_history.total_investment_transactions:
+            investment_history = self.http_client.get_investment_history(user_id=user_id, offset=count)
             await self.repository.add_securities(securities=list(investment_history.securities.values()))
             await self.repository.add_accounts(user_id=user_id, accounts=investment_history.accounts)
             await self.repository.add_investment_transactions(
                 investment_transactions=investment_history.investment_transactions
             )
+            count = count + len(investment_history.investment_transactions)
 
-            count = len(investment_history.investment_transactions)
-            while count < investment_history.total_investment_transactions:
-                investment_history = self.http_client.get_investment_history(user_id=user_id, offset=count)
-                await self.repository.add_securities(securities=list(investment_history.securities.values()))
-                await self.repository.add_accounts(user_id=user_id, accounts=investment_history.accounts)
-                await self.repository.add_investment_transactions(
-                    investment_transactions=investment_history.investment_transactions
-                )
-                count = count + len(investment_history.investment_transactions)
-        except KeyError:
-            # Raise our own exception here
-            raise Exception()
+    async def collect_current_holdings(self, user_id: uuid.UUID):
+        holdings_information = self.http_client.get_current_holdings(user_id=user_id)
 
-    async def collect_current_holdings(self, user_id: str):
-        raise NotImplementedError
+        await self.repository.add_securities(securities=list(holdings_information.securities.values()))
+        await self.repository.add_accounts(user_id=user_id, accounts=holdings_information.accounts)
+        await self.repository.add_holdings(
+            holdings=holdings_information.holdings,
+            user_id=user_id,
+        )
 
     async def collect_institutions(self):
         institution_response = self.http_client.get_institutions(offset=0)
@@ -370,6 +446,7 @@ def plaid_account_to_account(pa: PlaidAccount) -> Account:
         available=None if pa.balances.available is None else Decimal(pa.balances.available),
         current=None if pa.balances.current is None else Decimal(pa.balances.current),
         iso_currency_code=pa.balances.iso_currency_code,
+        unofficial_currency_code=pa.balances.unofficial_currency_code,
         limit=None if pa.balances.limit is None else Decimal(pa.balances.limit),
     )
 
@@ -409,4 +486,20 @@ def plaid_investment_transaction_to_investment_transaction(it: PlaidInvestmentTr
         subtype=it.subtype,
         iso_currency_code=it.iso_currency_code,
         unofficial_currency_code=it.unofficial_currency_code,
+    )
+
+
+def plaid_holding_to_holding(h: PlaidHolding) -> Holding:
+    return Holding(
+        account_id=h.account_id,
+        security_id=h.security_id,
+        institution_price=None if h.institution_price is None else Decimal(h.institution_price),
+        institution_price_as_of=None
+        if h.institution_price_as_of is None
+        else arrow.get(h.institution_price_as_of).format("YYYY-MM-DD"),
+        institution_value=None if h.institution_value is None else Decimal(h.institution_value),
+        cost_basis=None if h.cost_basis is None else Decimal(h.cost_basis),
+        quantity=None if h.quantity is None else Decimal(h.quantity),
+        iso_currency_code=h.iso_currency_code,
+        unofficial_currency_code=h.unofficial_currency_code,
     )

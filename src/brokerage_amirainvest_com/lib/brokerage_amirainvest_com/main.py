@@ -1,3 +1,5 @@
+import uuid
+
 from brokerage_amirainvest_com.brokerages import plaid_provider
 from brokerage_amirainvest_com.consts import PLAID_CLIENT_ID, PLAID_SECRET
 from brokerage_amirainvest_com.mocks import MockWithAccessToken
@@ -5,7 +7,7 @@ from brokerage_amirainvest_com.providers import Providers
 from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
 
 
-action = "HISTORICAL_COLLECTION"
+action = "HOLDINGS_COLLECTION"
 if __name__ == "__main__":
     # User authentication token fetcher for each service -> replaced by Dynamo implementation
     # this way the provider doesn't need to know how to fetch a user token appropriately,
@@ -27,11 +29,11 @@ if __name__ == "__main__":
         run_async_function_synchronously(
             provider_service.collect_investment_history,
             provider_key="plaid",
-            user_id="f6b8bdfc-5a9d-11ec-bc23-0242ac1a0002",
+            user_id=uuid.UUID("f6b8bdfc-5a9d-11ec-bc23-0242ac1a0002"),
         )
     elif action == "HOLDINGS_COLLECTION":
         run_async_function_synchronously(
             provider_service.collect_current_holdings,
             provider_key="plaid",
-            user_id="f6b8bdfc-5a9d-11ec-bc23-0242ac1a0002",
+            user_id=uuid.UUID("f6b8bdfc-5a9d-11ec-bc23-0242ac1a0002"),
         )

@@ -144,6 +144,23 @@ services:
       - local
     command: [ "-jar", "DynamoDBLocal.jar", "-sharedDb", "-inMemory" ]
 
+  brokerage-lambda:
+    build:
+      context: .
+      dockerfile: ./Dockerfiles/brokerage_amirainvest_com.lambdas.Dockerfile
+    environment:
+      ENVIRONMENT: "prod"
+      AWS_CONTAINER_CREDENTIALS_RELATIVE_URI: "/creds"
+    depends_on:
+      ecs-local-endpoints:
+        condition: service_started
+    networks:
+      local:
+      credentials_network:
+        ipv4_address: 169.254.170.6
+
+
+
 networks:
   local:
     driver: bridge

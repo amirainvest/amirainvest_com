@@ -3,7 +3,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 
 from backend_amirainvest_com.controllers.auth import auth_dep
-from backend_amirainvest_com.controllers.plaid import exchange_public_for_access_token, generate_link_token
+from backend_amirainvest_com.controllers.plaid_controller import exchange_public_for_access_token, generate_link_token
 from common_amirainvest_com.dynamo.models import BrokerageUser
 from common_amirainvest_com.dynamo.utils import add_brokerage_user, get_brokerage_user, update_brokerage_user
 from common_amirainvest_com.sqs.consts import BROKERAGE_DATA_QUEUE_URL

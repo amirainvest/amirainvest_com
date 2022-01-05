@@ -49,7 +49,7 @@ def handler(event, context):
 
     provider_service = Providers({"plaid": plaid_service})
     for record in event["Records"]:
-        brokerage_data_change = BrokerageDataChange(**record["Body"])
+        brokerage_data_change = BrokerageDataChange(**record["body"])
         try:
             func = options[brokerage_data_change.action](
                 provider_service,

@@ -826,6 +826,7 @@ develop = true
 alembic = "^1.7.5"
 arrow = "^1.2.1"
 asyncpg = ">= 0.25.0 < 1"
+boto3-stubs = {version = "^1.20.24", extras = ["dynamo", "sqs"]}
 common_amirainvest_com = {path = "../common_amirainvest_com", develop = true}
 fastapi = ">= 0.70.0 < 1"
 Jinja2 = "^3.0.3"
@@ -1044,7 +1045,7 @@ doc = ["sphinx", "sphinx-rtd-theme", "sphinxcontrib-spelling"]
 
 [[package]]
 name = "faker"
-version = "11.1.0"
+version = "11.3.0"
 description = "Faker is a Python package that generates fake data for you."
 category = "dev"
 optional = false
@@ -1129,7 +1130,7 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "httpcore"
-version = "0.14.3"
+version = "0.14.4"
 description = "A minimal low-level HTTP client."
 category = "dev"
 optional = false
@@ -1146,7 +1147,7 @@ http2 = ["h2 (>=3,<5)"]
 
 [[package]]
 name = "httpx"
-version = "0.21.1"
+version = "0.21.2"
 description = "The next generation HTTP client."
 category = "dev"
 optional = false
@@ -4001,7 +4002,7 @@ hiredis = ["hiredis (>=1.0.0)"]
 
 [[package]]
 name = "requests"
-version = "2.27.0"
+version = "2.27.1"
 description = "Python HTTP for Humans."
 category = "main"
 optional = false
@@ -4202,7 +4203,7 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "types-redis"
-version = "4.1.2"
+version = "4.1.3"
 description = "Typing stubs for redis"
 category = "dev"
 optional = false
@@ -4536,8 +4537,8 @@ factory-boy = [
     {file = "factory_boy-3.2.1.tar.gz", hash = "sha256:a98d277b0c047c75eb6e4ab8508a7f81fb03d2cb21986f627913546ef7a2a55e"},
 ]
 faker = [
-    {file = "Faker-11.1.0-py3-none-any.whl", hash = "sha256:ee29deb5174a8bd2e3a1be2f43d9505201d267d383a97ebc67715d12bb386e47"},
-    {file = "Faker-11.1.0.tar.gz", hash = "sha256:89c359e153f6a27820ff1d491e851018064dd65731f7894e226f93e2aa980655"},
+    {file = "Faker-11.3.0-py3-none-any.whl", hash = "sha256:61f97034cea252b8426d81810afab2f3c27b584f2b4313400a0cc83a9b013ded"},
+    {file = "Faker-11.3.0.tar.gz", hash = "sha256:adbe567e64da6a1097feacab699000e1ad16e17a6592a8f0ae1ee0b7fbf19887"},
 ]
 fastapi = [
     {file = "fastapi-0.70.1-py3-none-any.whl", hash = "sha256:5367226c7bcd7bfb2e17edaf225fd9a983095b1372281e9a3eb661336fb93748"},
@@ -4617,12 +4618,12 @@ h11 = [
     {file = "h11-0.12.0.tar.gz", hash = "sha256:47222cb6067e4a307d535814917cd98fd0a57b6788ce715755fa2b6c28b56042"},
 ]
 httpcore = [
-    {file = "httpcore-0.14.3-py3-none-any.whl", hash = "sha256:9a98d2416b78976fc5396ff1f6b26ae9885efbb3105d24eed490f20ab4c95ec1"},
-    {file = "httpcore-0.14.3.tar.gz", hash = "sha256:d10162a63265a0228d5807964bd964478cbdb5178f9a2eedfebb2faba27eef5d"},
+    {file = "httpcore-0.14.4-py3-none-any.whl", hash = "sha256:9410fe352bea732311f2b2bee0555c8cc5e62b9a73b9d3272fe125a2aa6eb28e"},
+    {file = "httpcore-0.14.4.tar.gz", hash = "sha256:d4305811f604d3c2e22869147392f134796976ff946c96a8cfba87f4e0171d83"},
 ]
 httpx = [
-    {file = "httpx-0.21.1-py3-none-any.whl", hash = "sha256:208e5ef2ad4d105213463cfd541898ed9d11851b346473539a8425e644bb7c66"},
-    {file = "httpx-0.21.1.tar.gz", hash = "sha256:02af20df486b78892a614a7ccd4e4e86a5409ec4981ab0e422c579a887acad83"},
+    {file = "httpx-0.21.2-py3-none-any.whl", hash = "sha256:6d88b1208f0996ee99c7a1e38fcfbdc66891c8fc583673337152681ac23585f6"},
+    {file = "httpx-0.21.2.tar.gz", hash = "sha256:c7c71345faa8983a094bbd24b5b5cc6f4bd274aadcb072a25b312cb209167aef"},
 ]
 identify = [
     {file = "identify-2.4.1-py2.py3-none-any.whl", hash = "sha256:0192893ff68b03d37fed553e261d4a22f94ea974093aefb33b29df2ff35fed3c"},
@@ -6217,8 +6218,8 @@ redis = [
     {file = "redis-4.1.0.tar.gz", hash = "sha256:21f0a23bce707909076e6ba2ce076cba59bff60d2ab22972e0647fdf620ffe47"},
 ]
 requests = [
-    {file = "requests-2.27.0-py2.py3-none-any.whl", hash = "sha256:f71a09d7feba4a6b64ffd8e9d9bc60f9bf7d7e19fd0e04362acb1cfc2e3d98df"},
-    {file = "requests-2.27.0.tar.gz", hash = "sha256:8e5643905bf20a308e25e4c1dd379117c09000bf8a82ebccc462cfb1b34a16b5"},
+    {file = "requests-2.27.1-py2.py3-none-any.whl", hash = "sha256:f22fa1e554c9ddfd16e6e41ac79759e17be9e492b3587efa038054674760e72d"},
+    {file = "requests-2.27.1.tar.gz", hash = "sha256:68d7c56fd5a8999887728ef304a6d12edc7be74f1cfa47714fc8b414525c9a61"},
 ]
 rfc3986 = [
     {file = "rfc3986-1.5.0-py2.py3-none-any.whl", hash = "sha256:a86d6e1f5b1dc238b218b012df0aa79409667bb209e58da56d0b94704e712a97"},
@@ -6310,8 +6311,8 @@ tomli = [
     {file = "tomli-1.2.3.tar.gz", hash = "sha256:05b6166bff487dc068d322585c7ea4ef78deed501cc124060e0f238e89a9231f"},
 ]
 types-redis = [
-    {file = "types-redis-4.1.2.tar.gz", hash = "sha256:ade89d5d706248f6de7f499476eec4e13c119834e0dbeda014a867629fc30cd4"},
-    {file = "types_redis-4.1.2-py3-none-any.whl", hash = "sha256:b5794db02e859c785a2e27d34b75770933e3b611a17e96497ffdc2bcf2e38e37"},
+    {file = "types-redis-4.1.3.tar.gz", hash = "sha256:4a9f046d895a6b4cae00449d4b75b5960cd88a41d2b08d7ea541b4682fd5e948"},
+    {file = "types_redis-4.1.3-py3-none-any.whl", hash = "sha256:1603c372188fb5ad10aee3da96ec2b68fabb43949be18569cc8e3d83786a8dc9"},
 ]
 types-requests = [
     {file = "types-requests-2.26.3.tar.gz", hash = "sha256:d63fa617846dcefff5aa2d59e47ab4ffd806e4bb0567115f7adbb5e438302fe4"},

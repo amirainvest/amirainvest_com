@@ -1,4 +1,5 @@
-from sqlalchemy import delete, select
+from sqlalchemy import delete
+from sqlalchemy.future import select
 
 from common_amirainvest_com.schemas.schema import Bookmarks
 from common_amirainvest_com.utils.decorators import Session

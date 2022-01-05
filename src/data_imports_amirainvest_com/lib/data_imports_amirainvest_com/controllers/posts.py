@@ -1,6 +1,6 @@
 import json
 
-from sqlalchemy import select
+from sqlalchemy.future import select
 
 from common_amirainvest_com.schemas.schema import Posts, UserSubscriptions
 from common_amirainvest_com.utils.consts import MAX_FEED_SIZE, WEBCACHE

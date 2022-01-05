@@ -6,7 +6,9 @@ from common_amirainvest_com.utils.consts import ENVIRONMENT, Environments
 
 __all__ = ["dynamo_resource"]
 
-dynamo_resource: DynamoDBServiceResource = boto3.resource("dynamodb", endpoint_url="http://dynamo:8000")
+dynamo_resource: DynamoDBServiceResource
 
 if ENVIRONMENT == Environments.prod or ENVIRONMENT == Environments.staging:
     dynamo_resource = boto3.resource("dynamodb")
+else:
+    boto3.resource("dynamodb", endpoint_url="http://dynamo:8000")

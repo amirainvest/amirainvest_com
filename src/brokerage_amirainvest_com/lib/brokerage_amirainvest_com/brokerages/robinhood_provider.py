@@ -1,4 +1,4 @@
-from brokerage_amirainvest_com.brokerages.brokerage_interface import TokenRepositoryInterface
+from brokerage_amirainvest_com.brokerages.interfaces import TokenRepositoryInterface
 from brokerage_amirainvest_com.models import Institution
 
 

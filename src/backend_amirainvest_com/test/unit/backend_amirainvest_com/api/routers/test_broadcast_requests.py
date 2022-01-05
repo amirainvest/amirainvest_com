@@ -2,7 +2,7 @@ pytest_plugins = ["common_amirainvest_com.utils.test.fixtures.database"]
 
 import pytest
 from httpx import AsyncClient
-from sqlalchemy import select
+from sqlalchemy.future import select
 
 from backend_amirainvest_com.api.app import app
 from common_amirainvest_com.schemas.schema import BroadcastRequests

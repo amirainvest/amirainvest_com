@@ -3,9 +3,9 @@ import os
 import typing
 
 import pytest
-from sqlalchemy import create_engine, text
-from sqlalchemy.engine import Engine
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
+from sqlalchemy.future import create_engine, Engine
 from sqlalchemy.orm import sessionmaker
 
 from alembic import command
@@ -75,9 +75,15 @@ async def session_test(db_engine: AsyncEngine, monkeypatch: pytest.MonkeyPatch) 
         autocommit=False,
         expire_on_commit=False,
         bind=connection,
+        future=True,
     )
     async_session = sessionmaker(
-        connection, autoflush=False, autocommit=False, class_=AsyncSession, expire_on_commit=False
+        connection,
+        autoflush=False,
+        autocommit=False,
+        class_=AsyncSession,
+        expire_on_commit=False,
+        future=True,
     )
     monkeypatch.setattr(consts, "POSTGRES_DATABASE_URL", str(db_engine.url))
     monkeypatch.setenv("POSTGRES_DATABASE_URL_ENV", str(db_engine.url))

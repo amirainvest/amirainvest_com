@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy.future import select
 
 from common_amirainvest_com.schemas.schema import YouTubeVideos
 from common_amirainvest_com.utils.decorators import Session

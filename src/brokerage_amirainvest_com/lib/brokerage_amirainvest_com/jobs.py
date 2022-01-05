@@ -2,7 +2,8 @@ import datetime
 import uuid
 from typing import Optional
 
-from sqlalchemy import and_, select, update
+from sqlalchemy import and_, update
+from sqlalchemy.future import select
 
 from common_amirainvest_com.schemas.schema import HistoricalJobs, HistoricalJobsStatus
 from common_amirainvest_com.utils.decorators import Session

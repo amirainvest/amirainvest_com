@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy.future import select
 
 from common_amirainvest_com.schemas.schema import Bookmarks, Posts, Users, UserSubscriptions
 from common_amirainvest_com.utils.generic_utils import get_past_datetime

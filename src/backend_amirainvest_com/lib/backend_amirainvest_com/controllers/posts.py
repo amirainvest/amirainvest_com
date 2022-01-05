@@ -1,4 +1,5 @@
-from sqlalchemy import func, select
+from sqlalchemy import func
+from sqlalchemy.future import select
 
 from common_amirainvest_com.schemas.schema import Posts, UserSubscriptions
 from common_amirainvest_com.utils.database_utils import update

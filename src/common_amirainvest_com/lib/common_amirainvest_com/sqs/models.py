@@ -13,6 +13,7 @@ class MediaPlatformDataLoadQueueModel(BaseModel):
 class BrokerageDataActions(Enum):
     holdings_change = "holdings_change"
     investments_change = "investments_change"
+    brokerage_change = "brokerage_change"
 
 
 class Brokerage(Enum):
@@ -21,7 +22,8 @@ class Brokerage(Enum):
 
 class BrokerageDataChange(BaseModel):
     brokerage: Brokerage
-    brokerage_user_id: str
+    user_id: str
+    token_identifier: str
     action: BrokerageDataActions
     start_date: Optional[Arrow]
     end_date: Optional[Arrow]

@@ -1,12 +1,12 @@
+from plaid import Environment  # type: ignore
+
 from common_amirainvest_com.utils.consts import ENVIRONMENT, Environments
 
 
-__all__ = ["PLAID_WEBHOOK_VERIFY_ENDPOINT"]
+__all__ = ["PLAID_ENVIRONMENT"]
 
-plaid_env = "sandbox"
+PLAID_ENVIRONMENT = Environment.Sandbox
 if ENVIRONMENT == Environments.prod.value:
-    plaid_env = "production"
+    PLAID_ENVIRONMENT = Environment.Production
 elif ENVIRONMENT == Environments.staging.value:
-    plaid_env = "development"
-
-PLAID_WEBHOOK_VERIFY_ENDPOINT = f"https://{plaid_env}.plaid.com/webhook_verification_key/get"
+    PLAID_ENVIRONMENT = Environment.Development

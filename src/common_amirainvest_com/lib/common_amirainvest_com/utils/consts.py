@@ -25,6 +25,7 @@ __all__ = [
     "WEBCACHE",
     "PLAID_CLIENT_ID",
     "PLAID_SECRET",
+    "PLAID_APPLICATION_NAME",
 ]
 
 
@@ -80,6 +81,7 @@ AUTH0_DOMAIN = _auth0_dict["domain"]
 _plaid_dict = decode_env_var("plaid")
 PLAID_CLIENT_ID = _plaid_dict["client_id"]
 PLAID_SECRET = _plaid_dict["secret"]
+PLAID_APPLICATION_NAME = "amira"  # _plaid_dict["application_name"]
 
 COMMON_ROOT_DIR = os.path.dirname(os.path.abspath(__file__)).split("src/common_amirainvest_com")[0]
 

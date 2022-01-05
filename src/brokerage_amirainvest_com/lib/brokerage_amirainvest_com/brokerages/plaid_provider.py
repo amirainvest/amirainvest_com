@@ -19,7 +19,6 @@ from plaid.model.security import Security as PlaidSecurity  # type: ignore
 from sqlalchemy import delete
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
 
 from brokerage_amirainvest_com.brokerages.interfaces import BrokerageInterface, TokenRepositoryInterface
 from brokerage_amirainvest_com.models import (
@@ -34,6 +33,12 @@ from brokerage_amirainvest_com.models import (
     Security,
     SecurityType,
 )
+from brokerage_amirainvest_com.repository import (
+    get_accounts_by_plaid_ids,
+    get_institutions_by_plaid_ids,
+    get_investment_transactions_by_plaid_id,
+    get_securities_by_plaid_ids,
+)
 from common_amirainvest_com.schemas.schema import (
     FinancialAccountCurrentHoldings,
     FinancialAccounts,
@@ -41,6 +46,7 @@ from common_amirainvest_com.schemas.schema import (
     FinancialInstitutions,
     Securities,
 )
+from common_amirainvest_com.utils.consts import PLAID_ENVIRONMENT
 from common_amirainvest_com.utils.decorators import Session  # type: ignore
 
 
@@ -57,7 +63,7 @@ class PlaidRepository:
         for inst_id in institutions:
             plaid_institution_ids.add(inst_id.plaid_institution_id)
 
-        existing_institutions = await self.get_institutions_by_plaid_ids(plaid_institution_ids)
+        existing_institutions = await get_institutions_by_plaid_ids(plaid_institution_ids)
         existing_institutions_dict = {}
         for exist_inst in existing_institutions:
             existing_institutions_dict[exist_inst.plaid_id] = exist_inst.id
@@ -79,11 +85,6 @@ class PlaidRepository:
         await session.execute(insert(FinancialInstitutions).values(institutions_to_insert))
 
     @Session
-    async def get_securities_by_plaid_ids(self, session: AsyncSession, ids: list[str]) -> list[Securities]:
-        existing_securities_res = await session.execute(select(Securities).where(Securities.plaid_security_id.in_(ids)))
-        return existing_securities_res.scalars().all()
-
-    @Session
     async def add_securities(self, session: AsyncSession, securities: list[Security]):
         plaid_security_ids = set()
         plaid_institution_ids = set()
@@ -92,12 +93,12 @@ class PlaidRepository:
             plaid_institution_ids.add(security.institution_id)
             plaid_security_ids.add(security.security_id)
 
-        existing_securities = await self.get_securities_by_plaid_ids(plaid_security_ids)
+        existing_securities = await get_securities_by_plaid_ids(plaid_security_ids)
         existing_securities_dict: dict[str, None] = {}
         for ex in existing_securities:
             existing_securities_dict[ex.plaid_security_id] = None
 
-        current_institutions = await self.get_institutions_by_plaid_ids(plaid_institution_ids)
+        current_institutions = await get_institutions_by_plaid_ids(plaid_institution_ids)
         existing_institutions_dict: dict[str, int] = {}
         for inst in current_institutions:
             existing_institutions_dict[inst.plaid_id] = inst.id
@@ -131,22 +132,12 @@ class PlaidRepository:
         session.add_all(securities_to_insert)
 
     @Session
-    async def get_institutions_by_plaid_ids(self, session: AsyncSession, ids: list[str]) -> list[FinancialInstitutions]:
-        result = await session.execute(select(FinancialInstitutions).where(FinancialInstitutions.plaid_id.in_(ids)))
-        return result.scalars().all()
-
-    @Session
-    async def get_accounts_by_plaid_ids(self, session: AsyncSession, ids: list[str]) -> list[FinancialAccounts]:
-        result = await session.execute(select(FinancialAccounts).where(FinancialAccounts.plaid_id.in_(ids)))
-        return result.scalars().all()
-
-    @Session
     async def add_accounts(self, session: AsyncSession, user_id: uuid.UUID, accounts: list[Account]):
         plaid_account_ids = set()
         for account in accounts:
             plaid_account_ids.add(account.account_id)
 
-        current_accounts = await self.get_accounts_by_plaid_ids(plaid_account_ids)
+        current_accounts = await get_accounts_by_plaid_ids(plaid_account_ids)
         plaid_to_internal_id = {}
         for acc in current_accounts:
             plaid_to_internal_id[acc.plaid_id] = acc.id
@@ -158,6 +149,7 @@ class PlaidRepository:
             accounts_to_insert.append(
                 FinancialAccounts(
                     user_id=user_id,
+                    plaid_item_id=acc.item_id,
                     plaid_id=acc.account_id,
                     official_account_name=acc.official_name,
                     user_assigned_account_name=acc.name,
@@ -174,17 +166,6 @@ class PlaidRepository:
         session.add_all(accounts_to_insert)
 
     @Session
-    async def get_investment_transactions_by_plaid_id(
-        self, session: AsyncSession, ids: list[str]
-    ) -> list[FinancialAccountTransactions]:
-        result = await session.execute(
-            select(FinancialAccountTransactions).where(
-                FinancialAccountTransactions.plaid_investment_transaction_id.in_(ids)
-            )
-        )
-        return result.scalars().all()
-
-    @Session
     async def add_investment_transactions(
         self, session: AsyncSession, investment_transactions: list[InvestmentTransaction]
     ):
@@ -196,17 +177,17 @@ class PlaidRepository:
             plaid_security_ids.add(t.security_id)
             plaid_investment_ids.add(t.investment_transaction_id)
 
-        current_accounts = await self.get_accounts_by_plaid_ids(plaid_account_ids)
+        current_accounts = await get_accounts_by_plaid_ids(plaid_account_ids)
         current_accounts_dict = {}
         for ca in current_accounts:
             current_accounts_dict[ca.plaid_id] = ca.id
 
-        current_securities = await self.get_securities_by_plaid_ids(plaid_security_ids)
+        current_securities = await get_securities_by_plaid_ids(plaid_security_ids)
         current_securities_dict = {}
         for ci in current_securities:
             current_securities_dict[ci.plaid_security_id] = ci.id
 
-        current_transactions = await self.get_investment_transactions_by_plaid_id(plaid_investment_ids)
+        current_transactions = await get_investment_transactions_by_plaid_id(plaid_investment_ids)
         current_transactions_dict = {}
         for ct in current_transactions:
             current_transactions_dict[ct.plaid_investment_transaction_id] = ct.id
@@ -250,12 +231,12 @@ class PlaidRepository:
             plaid_account_ids.add(t.account_id)
             plaid_security_ids.add(t.security_id)
 
-        current_accounts = await self.get_accounts_by_plaid_ids(plaid_account_ids)
+        current_accounts = await get_accounts_by_plaid_ids(plaid_account_ids)
         current_accounts_dict = {}
         for ca in current_accounts:
             current_accounts_dict[ca.plaid_id] = ca.id
 
-        current_securities = await self.get_securities_by_plaid_ids(plaid_security_ids)
+        current_securities = await get_securities_by_plaid_ids(plaid_security_ids)
         current_securities_dict = {}
         for ci in current_securities:
             current_securities_dict[ci.plaid_security_id] = ci.id
@@ -298,9 +279,7 @@ class PlaidHttp:
 
     def __init__(self, token_repository: TokenRepositoryInterface, client_id: str, secret: str):
         self.token_repository = token_repository
-        plaid_cfg = plaid.Configuration(
-            host=plaid.Environment.Sandbox, api_key={"clientId": client_id, "secret": secret}
-        )
+        plaid_cfg = plaid.Configuration(host=PLAID_ENVIRONMENT, api_key={"clientId": client_id, "secret": secret})
         self.client = plaid_api.PlaidApi(plaid.ApiClient(plaid_cfg))
 
     async def get_investment_history(
@@ -312,11 +291,9 @@ class PlaidHttp:
         offset: int = 0,
     ) -> InvestmentInformation:
         brokerage_user = await self.token_repository.get_key(str(user_id))
-        print("BROKERAGE: ", brokerage_user)
         if brokerage_user is None or item_id not in brokerage_user.plaid_access_tokens:
-            raise Exception("TODO LATER")
+            raise Exception("TODO LATER")  # TODO IMPLEMENT EXCEPTION
         access_token = brokerage_user.plaid_access_tokens[item_id]
-        print("ACCESS TOKEN: ", access_token)
         request = InvestmentsTransactionsGetRequest(
             access_token=access_token,
             start_date=start_date.date(),
@@ -335,7 +312,7 @@ class PlaidHttp:
 
         accounts = []
         for account in response["accounts"]:
-            accounts.append(plaid_account_to_account(account))
+            accounts.append(plaid_account_to_account(account, response['item']['item_id']))
 
         return InvestmentInformation(
             accounts=accounts,
@@ -365,7 +342,7 @@ class PlaidHttp:
 
         accounts = []
         for account in response["accounts"]:
-            accounts.append(plaid_account_to_account(account))
+            accounts.append(plaid_account_to_account(account, response['item']['item_id']))
 
         return HoldingInformation(accounts=accounts, securities=securities, holdings=holdings)
 
@@ -440,11 +417,13 @@ class PlaidProvider(BrokerageInterface):
             institution_response = self.http_client.get_institutions(offset=count)
             await self.repository.add_institutions(institutions=institution_response)
             count += len(institution_response)
+            # API would time out when we successively hit api -- hacky back-off
             time.sleep(5)
 
 
-def plaid_account_to_account(pa: PlaidAccount) -> Account:
+def plaid_account_to_account(pa: PlaidAccount, item_id: str) -> Account:
     return Account(
+        item_id=item_id,
         account_id=pa.account_id,
         mask=pa.mask,
         name=pa.name,

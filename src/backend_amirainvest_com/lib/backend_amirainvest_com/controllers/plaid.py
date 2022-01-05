@@ -8,8 +8,7 @@ from plaid.model.link_token_create_request import LinkTokenCreateRequest  # type
 from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUser  # type: ignore
 from plaid.model.products import Products  # type: ignore
 
-from backend_amirainvest_com.consts import PLAID_ENVIRONMENT
-from common_amirainvest_com.utils.consts import PLAID_APPLICATION_NAME, PLAID_CLIENT_ID, PLAID_SECRET
+from common_amirainvest_com.utils.consts import PLAID_APPLICATION_NAME, PLAID_CLIENT_ID, PLAID_ENVIRONMENT, PLAID_SECRET
 
 
 configuration = plaid.Configuration(

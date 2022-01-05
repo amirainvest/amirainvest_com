@@ -71,6 +71,7 @@ class AccountType(Enum):
 
 
 class Account(BaseModel):
+    item_id: str
     account_id: str
     mask: Optional[str]
     name: str

@@ -7,11 +7,6 @@ from common_amirainvest_com.utils.async_utils import run_async_function_synchron
 from common_amirainvest_com.utils.consts import PLAID_CLIENT_ID, PLAID_SECRET
 
 
-# TODO Collect Historical Transactions based on item id
-# TODO Collect Historical Transactions based on amira user(use all item ids available)
-# TODO Collect Holdings based on an item id
-# TODO Collect Holdings based on a amira user(use all item ids available
-
 user_id = "f6b8bdfc-5a9d-11ec-bc23-0242ac1a0002"
 brokerage_item_id = "87mB66x5N6iDGgRnLPnDiRVjabX3QetwEAyoZ"
 action = "COLLECT_HOLDINGS"

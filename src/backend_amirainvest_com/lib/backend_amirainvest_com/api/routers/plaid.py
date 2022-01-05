@@ -52,6 +52,6 @@ async def post_link(user_id: str, public_token: str = Form(...)):
             brokerage=Brokerage.plaid,
             user_id=user_id,
             token_identifier=item_id,
-            action=BrokerageDataActions.brokerage_change,
+            action=BrokerageDataActions.upsert_brokerage_account,
         ),
     )

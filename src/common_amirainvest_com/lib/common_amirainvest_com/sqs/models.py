@@ -13,7 +13,7 @@ class MediaPlatformDataLoadQueueModel(BaseModel):
 class BrokerageDataActions(Enum):
     holdings_change = "holdings_change"
     investments_change = "investments_change"
-    brokerage_change = "brokerage_change"
+    upsert_brokerage_account = "upsert_brokerage_account"
 
 
 class Brokerage(Enum):

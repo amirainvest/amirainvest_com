@@ -85,9 +85,8 @@ PLAID_CLIENT_ID = _plaid_dict["client_id"]
 PLAID_SECRET = _plaid_dict["secret"]
 PLAID_APPLICATION_NAME = "amira"  # _plaid_dict["application_name"]
 PLAID_ENVIRONMENT = Environment.Sandbox
-if ENVIRONMENT == Environments.prod.value:
-    PLAID_ENVIRONMENT = Environment.Production
-elif ENVIRONMENT == Environments.staging.value:
+# TODO This is a catch all for the time being -- we should change this once we get production credentials attached
+if ENVIRONMENT == Environments.prod.value or ENVIRONMENT == Environments.staging.value:
     PLAID_ENVIRONMENT = Environment.Development
 
 COMMON_ROOT_DIR = os.path.dirname(os.path.abspath(__file__)).split("src/common_amirainvest_com")[0]

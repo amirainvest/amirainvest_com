@@ -2,8 +2,8 @@ pytest_plugins = ["common_amirainvest_com.utils.test.fixtures.database"]
 import uuid
 
 import pytest
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
 from common_amirainvest_com.schemas.schema import Users
 from common_amirainvest_com.utils.consts import WEBCACHE

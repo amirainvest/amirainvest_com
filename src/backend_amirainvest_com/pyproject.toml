@@ -31,6 +31,7 @@ cryptography = "^36.0.1"
 fastapi = "^0.70.1"
 plaid-python = "^8.8.0"
 PyJWT = "^2.3.0"
+Jinja2 = "^3.0.3"
 
 [tool.poetry.dev-dependencies]
 

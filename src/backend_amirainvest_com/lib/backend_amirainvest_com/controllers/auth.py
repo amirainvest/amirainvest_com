@@ -10,15 +10,8 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, SecurityS
 from jose import jwt as j_jwt  # type: ignore
 from pydantic import BaseModel
 
-from backend_amirainvest_com.consts import PLAID_WEBHOOK_VERIFY_ENDPOINT
-from common_amirainvest_com.utils.consts import (
-    AUTH0_API_AUDIENCE,
-    AUTH0_CLIENT_ID,
-    AUTH0_CLIENT_SECRET,
-    AUTH0_DOMAIN,
-    PLAID_CLIENT_ID,
-    PLAID_SECRET,
-)
+from backend_amirainvest_com.controllers import plaid
+from common_amirainvest_com.utils.consts import AUTH0_API_AUDIENCE, AUTH0_CLIENT_ID, AUTH0_CLIENT_SECRET, AUTH0_DOMAIN
 
 
 http_bearer_scheme = HTTPBearer()
@@ -74,18 +67,7 @@ def verify_webhook(body: BaseModel, signed_jwt: str) -> bool:
         keys_ids_to_update.append(current_key_id)
 
         for key_id in keys_ids_to_update:
-            r = requests.post(
-                PLAID_WEBHOOK_VERIFY_ENDPOINT,
-                json={"client_id": PLAID_CLIENT_ID, "secret": PLAID_SECRET, "key_id": key_id},
-            )
-
-            # If this is the case, the key ID may be invalid.
-            if r.status_code != 200:
-                continue
-
-            response = r.json()
-            key = response["key"]
-            KEY_CACHE[key_id] = key
+            KEY_CACHE[key_id] = plaid.webhook_verify(key_id)
 
     # If the key ID is not in the cache, the key ID may be invalid.
     if current_key_id not in KEY_CACHE:

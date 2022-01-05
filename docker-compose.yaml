@@ -22,6 +22,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+      dynamo:
+        condition: service_started
     networks:
       local:
       credentials_network:
@@ -59,7 +61,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: ["pytest"]
+    command: [ "pytest" ]
     environment:
       ENVIRONMENT: "local"
       DEBUG: "true"
@@ -133,6 +135,14 @@ services:
     image: redis:6.2
     networks:
       - local
+
+  dynamo:
+    image: amazon/dynamodb-local
+    ports:
+      - "8000:8000"
+    networks:
+      - local
+    command: [ "-jar", "DynamoDBLocal.jar", "-sharedDb", "-inMemory" ]
 
 networks:
   local:

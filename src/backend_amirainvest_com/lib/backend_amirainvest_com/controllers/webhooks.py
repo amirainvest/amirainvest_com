@@ -11,7 +11,8 @@ async def handle_holdings_change(holdings: HoldingsUpdate):
         BROKERAGE_DATA_QUEUE_URL,
         BrokerageDataChange(
             brokerage=Brokerage.plaid,
-            brokerage_user_id=holdings.item_id,
+            user_id=holdings.item_id,
+            token_identifier=holdings.item_id,
             action=BrokerageDataActions.holdings_change,
             start_date=arrow.utcnow(),
             end_date=arrow.utcnow(),
@@ -24,7 +25,8 @@ async def handle_investments_change(investments: InvestmentsUpdate):
         BROKERAGE_DATA_QUEUE_URL,
         BrokerageDataChange(
             brokerage=Brokerage.plaid,
-            brokerage_user_id=investments.item_id,
+            user_id=investments.item_id,
+            token_identifier=investments.item_id,
             action=BrokerageDataActions.investments_change,
             start_date=arrow.utcnow(),
             end_date=arrow.utcnow(),

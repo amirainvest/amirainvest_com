@@ -3,6 +3,7 @@ import uuid
 from typing import Optional
 
 from sqlalchemy import and_, update
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from common_amirainvest_com.schemas.schema import HistoricalJobs, HistoricalJobsStatus
@@ -16,7 +17,7 @@ MAX_JOB_RETRIES = 3
 #   rather than selecting, then inserting -- as this could be a concurrency issue, or we could
 #   do something like lock table for each transaction
 @Session
-async def start_historical_job(session, user_id: uuid.UUID) -> Optional[int]:
+async def start_historical_job(session: AsyncSession, user_id: uuid.UUID) -> Optional[int]:
     response = await session.execute(
         select(HistoricalJobs).where(
             and_(HistoricalJobs.user_id == user_id),
@@ -43,7 +44,7 @@ async def start_historical_job(session, user_id: uuid.UUID) -> Optional[int]:
 
 
 @Session
-async def end_historical_job(session, job_id: int, status: HistoricalJobsStatus):
+async def end_historical_job(session: AsyncSession, job_id: int, status: HistoricalJobsStatus):
     return await session.execute(
         update(HistoricalJobs)
         .where(HistoricalJobs.id == job_id)
@@ -51,14 +52,16 @@ async def end_historical_job(session, job_id: int, status: HistoricalJobsStatus)
     )
 
 
-@Session
 async def end_historical_job_successfully(job_id: int):
-    return end_historical_job(job_id, HistoricalJobsStatus.succeeded)
+    return await end_historical_job(job_id, HistoricalJobsStatus.succeeded)
 
 
 @Session
-async def retry_historical_job(session, job_id: int):
-    job = session.select(HistoricalJobs).where(HistoricalJobs.id == job_id)
+async def retry_historical_job(session: AsyncSession, job_id: int):
+    data = await session.execute(select(HistoricalJobs).where(HistoricalJobs.id == job_id))
+    job = data.scalar()
+    if job is None:
+        return
     if job.retries > MAX_JOB_RETRIES:
         return await end_historical_job(job_id=job_id, status=HistoricalJobsStatus.failed)
 

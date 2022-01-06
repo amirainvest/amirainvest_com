@@ -1,7 +1,7 @@
 {
   "version": 4,
   "terraform_version": "1.1.2",
-  "serial": 81,
+  "serial": 80,
   "lineage": "cadb54e9-4fbb-1de5-f2c6-df57ee199e08",
   "outputs": {},
   "resources": [
@@ -130,7 +130,7 @@
     {
       "mode": "managed",
       "type": "aws_ecs_cluster",
-      "name": "api",
+      "name": "tfer--api",
       "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
       "instances": [
         {

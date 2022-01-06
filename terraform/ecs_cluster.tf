@@ -1,4 +1,4 @@
-resource "aws_ecs_cluster" "tfer--api" {
+resource "aws_ecs_cluster" "api" {
   capacity_providers = ["FARGATE", "FARGATE_SPOT"]
 
   configuration {

@@ -39,8 +39,9 @@ def exchange_public_for_access_token(public_token: str) -> ItemPublicTokenExchan
 
 def webhook_verify(key_id: str) -> dict:
     # Debug the SDK and get this to work using the SDK rather than requests
+
     r = requests.post(
-        f"https://{PLAID_ENVIRONMENT}.plaid.com/webhook_verification_key/get",
+        f"{PLAID_ENVIRONMENT}/webhook_verification_key/get",
         json={"client_id": PLAID_CLIENT_ID, "secret": PLAID_SECRET, "key_id": key_id},
     )
 

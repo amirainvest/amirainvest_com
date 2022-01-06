@@ -459,7 +459,6 @@ class FinancialAccounts(Base):
 
 class FinancialAccountTransactions(Base):
     __tablename__ = "financial_account_transactions"
-    __table_args__ = (UniqueConstraint("account_id", "security_id", "posting_date"),)
     id = Column(BigInteger, primary_key=True, nullable=False, unique=True)
     account_id = Column(Integer, ForeignKey("financial_accounts.id"), nullable=False)
     security_id = Column(Integer, ForeignKey("securities.id"))

@@ -1,3 +1,4 @@
+# Latest python 3.9
 FROM python@sha256:c0dcc146710fed0a6d62cb55b92f00bfbfc3b931fff6218f4958bab58333c37b as base
 
 WORKDIR /function

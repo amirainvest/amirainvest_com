@@ -31,7 +31,6 @@ services:
     ports:
       - "5000:5000"
 
-
   # DO NOT CHANGE amirainvest_com_pycharm!! Not even the ENVIRONMENT.
   amirainvest_com_pycharm:
     build:
@@ -95,6 +94,24 @@ services:
     ports:
       - "5000:5000"
 
+  lambda:
+    build:
+      context: .
+      dockerfile: Dockerfiles/lambda.Dockerfile
+    environment:
+      ENVIRONMENT: "prod"
+      AWS_CONTAINER_CREDENTIALS_RELATIVE_URI: "/creds"
+    depends_on:
+      ecs-local-endpoints:
+        condition: service_started
+    networks:
+      local:
+      credentials_network:
+        ipv4_address: 169.254.170.6
+
+
+
+### Infrastructure containers
   ecs-local-endpoints:
     # The Amazon ECS Local Container Endpoints Docker Image
     image: amazon/amazon-ecs-local-container-endpoints
@@ -143,23 +160,6 @@ services:
     networks:
       - local
     command: [ "-jar", "DynamoDBLocal.jar", "-sharedDb", "-inMemory" ]
-
-  brokerage-lambda:
-    build:
-      context: .
-      dockerfile: ./Dockerfiles/brokerage_amirainvest_com.lambdas.Dockerfile
-    environment:
-      ENVIRONMENT: "prod"
-      AWS_CONTAINER_CREDENTIALS_RELATIVE_URI: "/creds"
-    depends_on:
-      ecs-local-endpoints:
-        condition: service_started
-    networks:
-      local:
-      credentials_network:
-        ipv4_address: 169.254.170.6
-
-
 
 networks:
   local:

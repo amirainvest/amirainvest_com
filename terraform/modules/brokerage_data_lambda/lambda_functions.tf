@@ -14,7 +14,6 @@ resource "aws_lambda_function" "brokerage-data-sqs-consumer" {
   package_type                   = "Image"
   reserved_concurrent_executions = "-1"
   role                           = "arn:aws:iam::903791206266:role/${var.environment}-lambda"
-  source_code_hash               = "b03f25362d49e350017d0f2707efdf2e1d61ba2acbad1489ee704df50a863c95"
 
   tags = {
     env = var.environment

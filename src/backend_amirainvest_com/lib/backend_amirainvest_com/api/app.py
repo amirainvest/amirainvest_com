@@ -12,7 +12,7 @@ from backend_amirainvest_com.api.routers import (
     code_challenge,
     feed,
     husk_requests,
-    plaid,
+    # plaid,
     posts,
     search,
     user_subscriptions,
@@ -33,7 +33,7 @@ app.include_router(husk_requests.router)
 app.include_router(broadcast_requests.router)
 app.include_router(code_challenge.router)
 app.include_router(search.router)
-app.include_router(plaid.router)
+# app.include_router(plaid.router)
 
 app.mount("/webhooks", webhooks_app)
 

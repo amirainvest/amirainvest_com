@@ -21,7 +21,7 @@ async def test_get_all_user_bookmarks():
     post = await PostsFactory(creator_id=post_creator.id)
     bookmark = await BookmarksFactory(user_id=post_bookmarker.id, post_id=post.id)
     async with AsyncClient(app=app, base_url="http://test") as async_client:
-        response = await async_client.get("/bookmarks/", params={"user_id": bookmark.user_id}, headers=AUTH_HEADERS)
+        response = await async_client.get("/bookmarks", params={"user_id": bookmark.user_id}, headers=AUTH_HEADERS)
     response_data = response.json()
     assert type(response_data) == list
     assert response_data[0]["user_id"] == str(post_bookmarker.id)
@@ -37,7 +37,7 @@ async def test_create_bookmark(session_test):
     post = await PostsFactory(creator_id=post_creator.id, id=randint(0, 10000))
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(
-            "/bookmarks/",
+            "/bookmarks",
             data=json.dumps(
                 {
                     "user_id": str(post_bookmarker.id),
@@ -66,7 +66,7 @@ async def test_delete_bookmark(session_test):
     post = await PostsFactory(creator_id=post_creator.id)
     bookmark = await BookmarksFactory(user_id=post_bookmarker.id, post_id=post.id)
     async with AsyncClient(app=app, base_url="http://test") as async_client:
-        response = await async_client.delete("/bookmarks/", params={"bookmark_id": bookmark.id}, headers=AUTH_HEADERS)
+        response = await async_client.delete("/bookmarks", params={"bookmark_id": bookmark.id}, headers=AUTH_HEADERS)
     assert response.status_code == 200
     user_bookmarks = await session_test.execute(select(Bookmarks).where(Bookmarks.user_id == post_bookmarker.id))
     assert bookmark.id not in [x.id for x in user_bookmarks]

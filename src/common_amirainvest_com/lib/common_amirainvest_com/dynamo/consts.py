@@ -8,7 +8,7 @@ __all__ = ["dynamo_resource"]
 
 dynamo_resource: DynamoDBServiceResource
 
-if ENVIRONMENT == Environments.prod or ENVIRONMENT == Environments.staging:
+if ENVIRONMENT == Environments.prod.value or ENVIRONMENT == Environments.staging.value:
     dynamo_resource = boto3.resource("dynamodb")
 else:
     dynamo_resource = boto3.resource("dynamodb", endpoint_url="http://dynamo:8000")

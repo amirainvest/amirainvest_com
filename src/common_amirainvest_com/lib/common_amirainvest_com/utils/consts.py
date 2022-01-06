@@ -37,6 +37,12 @@ class Environments(Enum):
     local = "local"
 
 
+class Projects(Enum):
+    mono = "mono"
+    backend = "backend"
+    brokerage = "brokerage"
+
+
 def decode_env_var(env_var_name: str) -> dict:
     env_var_dict = json.loads(base64.b64decode(os.environ.get(env_var_name, "")).decode("utf-8"))
     return env_var_dict
@@ -44,12 +50,20 @@ def decode_env_var(env_var_name: str) -> dict:
 
 DEBUG = os.environ.get("DEBUG", "true").strip().lower()
 ENVIRONMENT = Environments[os.environ.get("ENVIRONMENT", "local").strip().lower()].value
+PROJECT = Projects[os.environ.get("PROJECT", "mono").strip().lower()].value
 
 try:
     import sentry_sdk
     from sentry_sdk.integrations.redis import RedisIntegration
     from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
     from sentry_sdk.utils import BadDsn
+
+    integrations = [SqlalchemyIntegration(), RedisIntegration()]
+
+    if PROJECT == "brokerage":
+        from sentry_sdk.integrations.aws_lambda import AwsLambdaIntegration
+
+        integrations.append(AwsLambdaIntegration(timeout_warning=True))
 
     SENTRY_URL = "https://{public_key}@{domain}/{project_id}".format(**decode_env_var("sentry"))
 
@@ -59,7 +73,7 @@ try:
         sample_rate=1.0,
         traces_sample_rate=1.0,
         request_bodies="always",
-        integrations=[SqlalchemyIntegration(), RedisIntegration()],
+        integrations=integrations,
         debug=True if DEBUG == "true" else False,
     )
 except (BadDsn, JSONDecodeError):

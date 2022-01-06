@@ -49,14 +49,15 @@ def handler(event, context):
 
     provider_service = Providers({"plaid": plaid_service})
     for record in event["Records"]:
-        brokerage_data_change = BrokerageDataChange(**record["body"])
+        brokerage_data_change = BrokerageDataChange.parse_raw(record["body"])
         try:
-            func = options[brokerage_data_change.action](
+            func = options[brokerage_data_change.action]
+            run_async_function_synchronously(
+                func,
                 provider_service,
                 brokerage_data_change.brokerage,
                 brokerage_data_change.user_id,
                 brokerage_data_change.token_identifier,
             )
-            run_async_function_synchronously(func)
         except KeyError:
             print("action not supported ", brokerage_data_change.action)

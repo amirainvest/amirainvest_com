@@ -30,10 +30,14 @@ class BrokerageDataChange(BaseModel):
 
     @validator("start_date")
     def format_start_date(cls, value):
+        if value is None:
+            return None
         return value.datetime
 
     @validator("end_date")
     def format_end_date(cls, value):
+        if value is None:
+            return None
         return value.datetime
 
     class Config:

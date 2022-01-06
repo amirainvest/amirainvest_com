@@ -2,6 +2,7 @@ from typing import Optional
 
 from common_amirainvest_com.dynamo.consts import dynamo_resource
 from common_amirainvest_com.dynamo.models import BrokerageUser
+from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
 
 
 # Using this as a catch-all for the time being, but thinking we come up with a service package or something
@@ -52,3 +53,7 @@ async def get_brokerage_user(user_id: str) -> Optional[BrokerageUser]:
     if "Item" not in brokerage_user:
         return None
     return BrokerageUser(**brokerage_user["Item"])
+
+
+if __name__ == "__main__":
+    run_async_function_synchronously(create_table, "brokerage_users", "user_id")

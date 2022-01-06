@@ -11,7 +11,7 @@ from common_amirainvest_com.schemas.schema import BookmarksModel
 router = APIRouter(prefix="/bookmarks", tags=["Bookmarks"], dependencies=[Security(auth_dep, scopes=[])])
 
 
-@router.get("/", status_code=200, response_model=List[BookmarksModel])
+@router.get("", status_code=200, response_model=List[BookmarksModel])
 async def get_all_user_bookmarks(
     user_id: str,
 ):
@@ -20,7 +20,7 @@ async def get_all_user_bookmarks(
     return user_bookmarks
 
 
-@router.post("/", status_code=201, response_model=BookmarksModel)
+@router.post("", status_code=201, response_model=BookmarksModel)
 async def create_bookmark(
     bookmark_data: BookmarkCreate,
 ):
@@ -29,7 +29,7 @@ async def create_bookmark(
     return bookmark
 
 
-@router.delete("/", status_code=200)
+@router.delete("", status_code=200)
 async def delete_bookmark(
     bookmark_id: int,
 ):

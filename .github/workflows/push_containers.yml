@@ -8,7 +8,7 @@ on:
     inputs:
       microservice_list:
         description: "List of microservice names"
-        default: "[\"backend_amirainvest_com\"]"
+        default: "[\"backend_amirainvest_com\", \"lambda\"]"
         required: true
         type: string
     secrets:
@@ -63,3 +63,9 @@ jobs:
       - name: Push to ECR
         run: docker push 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:"latest"
 
+
+
+
+# docker-compose build --build-arg INSTALL_DEV_DEPS="false" backend_amirainvest_com
+# docker tag amirainvest_com_backend_amirainvest_com:"latest" 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/backend_amirainvest_com:"latest"
+# docker push 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/backend_amirainvest_com:"latest"

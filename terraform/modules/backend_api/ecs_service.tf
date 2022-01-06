@@ -1,4 +1,4 @@
-resource "aws_ecs_service" "api_prod-api-public-service" {
+resource "aws_ecs_service" "api-public-service" {
   capacity_provider_strategy {
     base              = "0"
     capacity_provider = "FARGATE_SPOT"
@@ -26,10 +26,10 @@ resource "aws_ecs_service" "api_prod-api-public-service" {
   load_balancer {
     container_name   = "backend_api"
     container_port   = "5000"
-    target_group_arn = "arn:aws:elasticloadbalancing:us-east-1:903791206266:targetgroup/prod-api-public-service-TG/7d8e301140dfece3"
+    target_group_arn = "arn:aws:elasticloadbalancing:${var.region}:903791206266:targetgroup/${var.environment}-api-public-service-TG/7d8e301140dfece3"
   }
 
-  name = "prod-api-public-service"
+  name = "${var.environment}-api-public-service"
 
   network_configuration {
     assign_public_ip = "false"
@@ -41,12 +41,12 @@ resource "aws_ecs_service" "api_prod-api-public-service" {
   scheduling_strategy = "REPLICA"
 
   tags = {
-    env = "prod"
+    env = var.environment
   }
 
   tags_all = {
-    env = "prod"
+    env = var.environment
   }
 
-  task_definition = aws_ecs_task_definition.prod-api-public-ecs-task-definition.arn
+  task_definition = aws_ecs_task_definition.api-public-ecs-task-definition.arn
 }

@@ -1,4 +1,4 @@
-resource "aws_ecs_task_definition" "prod-api-public-ecs-task-definition" {
+resource "aws_ecs_task_definition" "api-public-ecs-task-definition" {
   container_definitions = jsonencode(
   [
     {
@@ -9,7 +9,7 @@ resource "aws_ecs_task_definition" "prod-api-public-ecs-task-definition" {
       dockerSecurityOptions : [],
       entryPoint : [],
       environment : [
-        { "name" : "ENVIRONMENT", "value" : "prod" },
+        { "name" : "ENVIRONMENT", "value" : var.environment },
         { "name" : "PROJECT", "value" : "backend" }
       ],
       essential : true,
@@ -18,8 +18,8 @@ resource "aws_ecs_task_definition" "prod-api-public-ecs-task-definition" {
       logConfiguration : {
         "logDriver" : "awslogs",
         "options" : {
-          "awslogs-group" : "/ecs/prod-api-public-ecs-task-definition",
-          "awslogs-region" : "us-east-1",
+          "awslogs-group" : "/ecs/${var.environment}-api-public-ecs-task-definition",
+          "awslogs-region" : var.region,
           "awslogs-stream-prefix" : "ecs"
         }
       },
@@ -40,7 +40,7 @@ resource "aws_ecs_task_definition" "prod-api-public-ecs-task-definition" {
   )
   cpu = "256"
   execution_role_arn = "arn:aws:iam::903791206266:role/ecsTaskExecutionRole"
-  family = "prod-api-public-ecs-task-definition"
+  family = "${var.environment}-api-public-ecs-task-definition"
   memory = "512"
   network_mode = "awsvpc"
   requires_compatibilities = ["FARGATE"]
@@ -51,15 +51,15 @@ resource "aws_ecs_task_definition" "prod-api-public-ecs-task-definition" {
 
   tags = {
     "ecs:taskDefinition:createdFrom" = "ecs-console-v2"
-    "ecs:taskDefinition:stackId" = "arn:aws:cloudformation:us-east-1:903791206266:stack/ECS-Console-V2-TaskDefinition-f0122edf-e85a-4f1f-908e-aa9d4c121a2a/006c05b0-68c8-11ec-83ae-12be906bece1"
-    env = "prod"
+    "ecs:taskDefinition:stackId" = "arn:aws:cloudformation:${var.region}:903791206266:stack/ECS-Console-V2-TaskDefinition-f0122edf-e85a-4f1f-908e-aa9d4c121a2a/006c05b0-68c8-11ec-83ae-12be906bece1"
+    env = var.environment
   }
 
   tags_all = {
     "ecs:taskDefinition:createdFrom" = "ecs-console-v2"
-    "ecs:taskDefinition:stackId" = "arn:aws:cloudformation:us-east-1:903791206266:stack/ECS-Console-V2-TaskDefinition-f0122edf-e85a-4f1f-908e-aa9d4c121a2a/006c05b0-68c8-11ec-83ae-12be906bece1"
-    env = "prod"
+    "ecs:taskDefinition:stackId" = "arn:aws:cloudformation:${var.region}:903791206266:stack/ECS-Console-V2-TaskDefinition-f0122edf-e85a-4f1f-908e-aa9d4c121a2a/006c05b0-68c8-11ec-83ae-12be906bece1"
+    env = var.environment
   }
 
-  task_role_arn = "arn:aws:iam::903791206266:role/prod-api-public-ecs-task-definition-role"
+  task_role_arn = "arn:aws:iam::903791206266:role/${var.environment}-api-public-ecs-task-definition-role"
 }

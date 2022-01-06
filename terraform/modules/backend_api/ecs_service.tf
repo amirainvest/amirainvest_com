@@ -18,7 +18,7 @@ resource "aws_ecs_service" "api-public-service" {
 
   deployment_maximum_percent         = "200"
   deployment_minimum_healthy_percent = "100"
-  desired_count                      = "2"
+  desired_count                      = "4"
   enable_ecs_managed_tags            = "true"
   enable_execute_command             = "false"
   health_check_grace_period_seconds  = "0"

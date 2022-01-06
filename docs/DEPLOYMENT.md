@@ -2,20 +2,23 @@ We are using Terraform for deployment.
 
 # Requirements
 
-* [Install Terraform](https://learn.hashicorp.com/tutorials/terraform/install-cli?in=terraform/aws-get-started).
-* Cd `amirainvest_com/terraform`
-* Run `terraform init`
+* Have a Amira Invest Terraform Cloud Account
 
 # Deployment
 
 * Merge PR into main
 * Wait for the [deploy GH action](https://github.com/amirainvest/amirainvest_com/actions/workflows/deploy.yml) to finish
-* Run `terraform refresh`
-* Run `terraform plan -out="./tf_plan"`
+* Go to [the Amira Invest Terraform cloud.](https://app.terraform.io/app/AmiraInvest/workspaces/Production)
+* Click `actions` on the top right
+* Click `Start a new plan`
+* In `Reason for starting plan` type `PR #<PR number>`
+* Make sure `Choose plan type` is `Plan (most common)`
+* Click `Start plan`
+* Wait for `Plan` to finish running
 * Read the output and make sure nothing crazy is going to happen
-* Run `terraform apply "./tf_plan"`
-* Push ANY `*.tfstate` changes to `main` ASAP!
-* Apply any Alembic migrations
+* Click `Apply plan`
+* Wait for the little green check to appear.
+* [Apply any Alembic migrations]
 
 # Adding existing infrastructure to TF
 

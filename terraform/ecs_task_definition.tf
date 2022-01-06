@@ -1,4 +1,4 @@
-resource "aws_ecs_task_definition" "tfer--task-definition-002F-prod-api-public-ecs-task-definition" {
+resource "aws_ecs_task_definition" "prod-api-public-ecs-task-definition" {
   container_definitions = jsonencode(
   [
     {

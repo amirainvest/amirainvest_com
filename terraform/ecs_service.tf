@@ -48,5 +48,5 @@ resource "aws_ecs_service" "api_prod-api-public-service" {
     env = "prod"
   }
 
-  task_definition = aws_ecs_task_definition.tfer--task-definition-002F-prod-api-public-ecs-task-definition.arn
+  task_definition = aws_ecs_task_definition.prod-api-public-ecs-task-definition.arn
 }

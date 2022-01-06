@@ -1,7 +1,7 @@
 {
   "version": 4,
   "terraform_version": "1.1.2",
-  "serial": 83,
+  "serial": 82,
   "lineage": "cadb54e9-4fbb-1de5-f2c6-df57ee199e08",
   "outputs": {},
   "resources": [
@@ -257,14 +257,19 @@
             "wait_for_steady_state": false
           },
           "sensitive_attributes": [],
-          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiZGVsZXRlIjoxMjAwMDAwMDAwMDAwfX0="
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiZGVsZXRlIjoxMjAwMDAwMDAwMDAwfX0=",
+          "dependencies": [
+            "aws_ecr_repository.backend_amirainvest_com",
+            "aws_ecs_task_definition.tfer--task-definition-002F-prod-api-public-ecs-task-definition",
+            "data.aws_ecr_image.backend_amirainvest_com"
+          ]
         }
       ]
     },
     {
       "mode": "managed",
       "type": "aws_ecs_task_definition",
-      "name": "prod-api-public-ecs-task-definition",
+      "name": "tfer--task-definition-002F-prod-api-public-ecs-task-definition",
       "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
       "instances": [
         {

@@ -58,12 +58,10 @@ try:
     from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
     from sentry_sdk.utils import BadDsn
 
-
     integrations = [SqlalchemyIntegration(), RedisIntegration()]
 
     if PROJECT == "brokerage":
         from sentry_sdk.integrations.aws_lambda import AwsLambdaIntegration
-
 
         integrations.append(AwsLambdaIntegration(timeout_warning=True))
 

@@ -9,3 +9,12 @@ module "brokerage_data_lambda" {
   region = var.region
   environment = var.environment
 }
+
+terraform {
+  cloud {
+    organization = "Amirainvest"
+    workspaces {
+      name="Production"
+    }
+  }
+}

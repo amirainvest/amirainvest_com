@@ -1,4 +1,4 @@
-resource "aws_lambda_function" "testing_stuff_and_things" {
+resource "aws_lambda_function" "prod-brokerage-data-sqs-consumer" {
   architectures = ["x86_64"]
 
   environment {
@@ -8,7 +8,7 @@ resource "aws_lambda_function" "testing_stuff_and_things" {
     }
   }
 
-  function_name                  = "testing_stuff_and_things"
+  function_name                  = "prod-brokerage-data-sqs-consumer"
   image_uri                      = "${aws_ecr_repository.lambda.repository_url}@${data.aws_ecr_image.lambda.id}"
   memory_size                    = "256"
   package_type                   = "Image"

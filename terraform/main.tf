@@ -18,4 +18,4 @@ terraform {
     }
   }
 }
-chrome://vivaldi-webui/startpage?section=Speed-dials&activeSpeedDialIndex=0&background-color=#2e2f37
+

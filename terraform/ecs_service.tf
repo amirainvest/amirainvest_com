@@ -1,4 +1,4 @@
-resource "aws_ecs_service" "tfer--api_prod-api-public-service" {
+resource "aws_ecs_service" "api_prod-api-public-service" {
   capacity_provider_strategy {
     base              = "0"
     capacity_provider = "FARGATE_SPOT"

@@ -20,24 +20,26 @@ resource "aws_sqs_queue" "brokerage-data" {
 
 resource "aws_sqs_queue_policy" "brokerage-data-sqs-policy" {
   queue_url = aws_sqs_queue.brokerage-data.id
-  policy = <<POLICY
-{
-  "Id": "__default_policy_ID",
-  "Statement": [
-    {
-      "Action": "SQS:*",
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "arn:aws:iam::903791206266:root"
-      },
-      "Resource": "${aws_sqs_queue.brokerage-data.arn}"
-      "Sid": "__owner_statement"
+  policy    = data.aws_iam_policy_document.brokerage-data-sqs.json
+}
+
+data "aws_iam_policy_document" "brokerage-data-sqs" {
+
+  statement {
+    actions = ["SQS:*"]
+    effect  = "Allow"
+    principals {
+      type        = "AWS"
+      identifiers = ["arn:aws:iam::903791206266:root"]
     }
-  ],
-  "Version": "2008-10-17"
+    resources = [aws_sqs_queue.brokerage-data.arn]
+    sid       = "__owner_statement"
+  }
+  version = "2008-10-17"
+
+
 }
-POLICY
-}
+
 
 resource "aws_sqs_queue" "brokerage-data-deadletter" {
   content_based_deduplication       = "false"

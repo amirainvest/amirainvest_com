@@ -7,6 +7,19 @@ resource "aws_sqs_queue" "brokerage-data" {
   message_retention_seconds         = "345600"
   name                              = "${var.environment}-brokerage-data"
 
+  receive_wait_time_seconds = "0"
+  redrive_policy = jsonencode(
+    {
+      "deadLetterTargetArn" : aws_sqs_queue.brokerage-data-deadletter.arn,
+      "maxReceiveCount" : 10
+    }
+  )
+  sqs_managed_sse_enabled    = "false"
+  visibility_timeout_seconds = "901"
+}
+
+resource "aws_sqs_queue_policy" "brokerage-data-sqs-policy" {
+  queue_url = aws_sqs_queue.brokerage-data.id
   policy = <<POLICY
 {
   "Id": "__default_policy_ID",
@@ -17,23 +30,13 @@ resource "aws_sqs_queue" "brokerage-data" {
       "Principal": {
         "AWS": "arn:aws:iam::903791206266:root"
       },
-      "Resource": "arn:aws:sqs:us-east-1:903791206266:${var.environment}-brokerage-data",
+      "Resource": "${aws_sqs_queue.brokerage-data.arn}"
       "Sid": "__owner_statement"
     }
   ],
   "Version": "2008-10-17"
 }
 POLICY
-
-  receive_wait_time_seconds = "0"
-  redrive_policy = jsonencode(
-    {
-      "deadLetterTargetArn" : aws_sqs_queue.brokerage-data-deadletter.arn,
-      "maxReceiveCount" : 10
-    }
-  )
-  sqs_managed_sse_enabled    = "false"
-  visibility_timeout_seconds = "901"
 }
 
 resource "aws_sqs_queue" "brokerage-data-deadletter" {

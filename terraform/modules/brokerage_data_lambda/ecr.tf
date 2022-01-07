@@ -14,5 +14,5 @@ resource "aws_ecr_repository" "lambda" {
 
 data "aws_ecr_image" "lambda" {
   repository_name = aws_ecr_repository.lambda.name
-  image_tag = "latest"
+  image_tag       = "latest"
 }

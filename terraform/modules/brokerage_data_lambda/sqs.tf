@@ -17,7 +17,7 @@ resource "aws_sqs_queue" "brokerage-data" {
       "Principal": {
         "AWS": "arn:aws:iam::903791206266:root"
       },
-      "Resource": "arn:aws:sqs:us-east-1:903791206266:${var.environment}-brokerage-data",
+      "Resource": "${aws_sqs_queue.brokerage-data.arn}",
       "Sid": "__owner_statement"
     }
   ],
@@ -55,7 +55,7 @@ resource "aws_sqs_queue" "brokerage-data-deadletter" {
       "Principal": {
         "AWS": "arn:aws:iam::903791206266:root"
       },
-      "Resource": "arn:aws:sqs:us-east-1:903791206266:${var.environment}-brokerage-data-deadletter",
+      "Resource": "${aws_sqs_queue.brokerage-data-deadletter.arn}",
       "Sid": "__owner_statement"
     }
   ],

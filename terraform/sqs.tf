@@ -17,7 +17,7 @@ resource "aws_sqs_queue" "data-imports" {
       "Principal": {
         "AWS": "arn:aws:iam::903791206266:root"
       },
-      "Resource": "${aws_sqs_queue.data-imports.arn}",
+      "Resource": "arn:aws:sqs:us-east-1:903791206266:data-imports",
       "Sid": "__owner_statement"
     }
   ],
@@ -55,7 +55,7 @@ resource "aws_sqs_queue" "data-imports-deadletters" {
       "Principal": {
         "AWS": "arn:aws:iam::903791206266:root"
       },
-      "Resource": "${aws_sqs_queue.data-imports-deadletters.arn}",
+      "Resource": "arn:aws:sqs:us-east-1:903791206266:data-imports-deadletters",
       "Sid": "__owner_statement"
     }
   ],
@@ -87,7 +87,7 @@ resource "aws_sqs_queue" "expedited-data-imports" {
       "Principal": {
         "AWS": "arn:aws:iam::903791206266:root"
       },
-      "Resource": "${aws_sqs_queue.expedited-data-imports.arn}",
+      "Resource": "arn:aws:sqs:us-east-1:903791206266:expedited-data-imports",
       "Sid": "__owner_statement"
     }
   ],
@@ -125,7 +125,7 @@ resource "aws_sqs_queue" "expedited-data-imports-deadletters" {
       "Principal": {
         "AWS": "arn:aws:iam::903791206266:root"
       },
-      "Resource": "${aws_sqs_queue.expedited-data-imports-deadletters.arn}",
+      "Resource": "arn:aws:sqs:us-east-1:903791206266:expedited-data-imports-deadletters",
       "Sid": "__owner_statement"
     }
   ],

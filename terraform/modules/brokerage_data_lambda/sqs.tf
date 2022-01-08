@@ -1,56 +1,54 @@
 resource "aws_sqs_queue" "brokerage-data" {
-  content_based_deduplication       = "false"
-  delay_seconds                     = "0"
-  fifo_queue                        = "false"
+  content_based_deduplication = "false"
+  delay_seconds = "0"
+  fifo_queue = "false"
   kms_data_key_reuse_period_seconds = "300"
-  max_message_size                  = "262144"
-  message_retention_seconds         = "345600"
-  name                              = "${var.environment}-brokerage-data"
+  max_message_size = "262144"
+  message_retention_seconds = "345600"
+  name = "${var.environment}-brokerage-data"
+
+  policy = <<POLICY
+{
+  "Id": "__default_policy_ID",
+  "Statement": [
+    {
+      "Action": "SQS:*",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::903791206266:root"
+      },
+      "Resource": "arn:aws:sqs:us-east-1:903791206266:${var.environment}-brokerage-data",
+      "Sid": "__owner_statement"
+    }
+  ],
+  "Version": "2008-10-17"
+}
+POLICY
 
   receive_wait_time_seconds = "0"
   redrive_policy = jsonencode(
-    {
-      "deadLetterTargetArn" : aws_sqs_queue.brokerage-data-deadletter.arn,
-      "maxReceiveCount" : 10
-    }
+  {
+    "deadLetterTargetArn" : aws_sqs_queue.brokerage-data-deadletter.arn,
+    "maxReceiveCount" : 10
+  }
   )
-  sqs_managed_sse_enabled    = "false"
+  sqs_managed_sse_enabled = "false"
   visibility_timeout_seconds = "901"
 }
 
-resource "aws_sqs_queue_policy" "brokerage-data-sqs-policy" {
-  queue_url = aws_sqs_queue.brokerage-data.id
-  policy    = data.aws_iam_policy_document.brokerage-data-sqs.json
-}
 
-data "aws_iam_policy_document" "brokerage-data-sqs" {
-  policy_id = "__default_policy_ID"
-  statement {
-    actions = ["SQS:*"]
-    effect  = "Allow"
-    principals {
-      type        = "AWS"
-      identifiers = ["arn:aws:iam::903791206266:root"]
-    }
-    resources = [aws_sqs_queue.brokerage-data.arn]
-    sid       = "__owner_statement"
-  }
-  version = "2008-10-17"
-
-
-}
 
 
 resource "aws_sqs_queue" "brokerage-data-deadletter" {
-  content_based_deduplication       = "false"
-  delay_seconds                     = "0"
-  fifo_queue                        = "false"
-  kms_data_key_reuse_period_seconds = "300"
-  max_message_size                  = "262144"
-  message_retention_seconds         = "345600"
-  name                              = "${var.environment}-brokerage-data-deadletter"
+content_based_deduplication = "false"
+delay_seconds = "0"
+fifo_queue = "false"
+kms_data_key_reuse_period_seconds = "300"
+max_message_size = "262144"
+message_retention_seconds = "345600"
+name = "${var.environment}-brokerage-data-deadletter"
 
-  policy = <<POLICY
+policy = <<POLICY
 {
   "Id": "__default_policy_ID",
   "Statement": [
@@ -68,7 +66,7 @@ resource "aws_sqs_queue" "brokerage-data-deadletter" {
 }
 POLICY
 
-  receive_wait_time_seconds  = "0"
-  sqs_managed_sse_enabled    = "false"
-  visibility_timeout_seconds = "30"
+receive_wait_time_seconds = "0"
+sqs_managed_sse_enabled    = "false"
+visibility_timeout_seconds = "30"
 }

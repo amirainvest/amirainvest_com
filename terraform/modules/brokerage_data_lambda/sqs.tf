@@ -24,7 +24,7 @@ resource "aws_sqs_queue_policy" "brokerage-data-sqs-policy" {
 }
 
 data "aws_iam_policy_document" "brokerage-data-sqs" {
-
+  policy_id = "__default_policy_ID"
   statement {
     actions = ["SQS:*"]
     effect  = "Allow"

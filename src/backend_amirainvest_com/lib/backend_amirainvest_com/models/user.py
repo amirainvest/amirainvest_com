@@ -1,34 +1,28 @@
 import datetime
 
 from pydantic import BaseModel
+from typing import Optional, List
 
 
 class UserCreate(BaseModel):
     sub: str
     name: str
-    bio: str
+    bio: Optional[str]
     username: str
     picture_url: str
     email: str
-    personal_site_url: str
-    linkedin_profile: str
-    email_verified: bool = False
-    interests_value: bool
-    interests_growth: bool
-    interests_long_term: bool
-    interests_short_term: bool
-    interests_diversification_rating: int
-    benchmark: str
-    public_profile: bool
-    public_performance: bool
-    public_holdings: bool
-    public_trades: bool
-    is_claimed: bool
-    is_deactivated: bool
-    is_deleted: bool
-    deleted_at: datetime.datetime
-    created_at: datetime.datetime
-    updated_at: datetime.datetime
-    twitter_username: str
-    youtube_channel_id: str
-    substack_username: str
+    personal_site_url: Optional[str]
+    linkedin_profile: Optional[str]
+    email_verified: bool
+    interests_value: Optional[bool]
+    interests_growth: Optional[bool]
+    interests_long_term: Optional[bool]
+    interests_short_term: Optional[bool]
+    interests_diversification_rating: Optional[int]
+    benchmark: Optional[str]
+    chip_labels: Optional[List[str]]
+    public_profile: Optional[bool]
+    public_performance: Optional[bool]
+    public_holdings: Optional[bool]
+    public_trades: Optional[bool]
+    is_claimed: Optional[bool]

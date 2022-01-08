@@ -32,4 +32,4 @@ async def load_refresh_ready_data():
 
 
 if __name__ == "__main__":
-    print(run_async_function_synchronously(load_refresh_ready_data))
+    print(run_async_function_synchronously(get_refresh_ready_platform_data))

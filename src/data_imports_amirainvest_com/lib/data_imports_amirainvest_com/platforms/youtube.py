@@ -1,4 +1,3 @@
-# https://developers.google.com/youtube/v3/docs/
 from typing import Optional
 
 import requests
@@ -10,6 +9,7 @@ from data_imports_amirainvest_com.controllers import posts
 from data_imports_amirainvest_com.controllers.youtube_videos import create_youtube_video, get_videos_for_channel
 from data_imports_amirainvest_com.controllers.youtubers import create_youtuber, get_youtuber
 from data_imports_amirainvest_com.platforms.platforms import PlatformUser
+from data_imports_amirainvest_com.controllers.users import get_user
 
 
 HEADERS = {
@@ -107,6 +107,7 @@ class YouTuber(PlatformUser):
         videos = []
         video_posts = []
         stored_videos = await self.get_stored_youtube_videos_from_database()
+        user = await get_user(self.creator_id)
         log.info(f"Getting videos for {self.channel_username}")
         next_token = True
         found_existing = False
@@ -151,6 +152,7 @@ class YouTuber(PlatformUser):
                             "html": "",
                             "title": video_data["snippet"]["title"],
                             "profile_url": "",
+                            "chip_labels": user.chip_labels,
                             "created_at": video_data["contentDetails"]["videoPublishedAt"],
                             "updated_at": video_data["contentDetails"]["videoPublishedAt"],
                         }

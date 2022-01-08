@@ -1,10 +1,22 @@
 import datetime
 import enum
 import uuid
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel
-from sqlalchemy import BigInteger, Boolean, Column, DECIMAL, Enum, Float, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import (
+    ARRAY,
+    BigInteger,
+    Boolean,
+    Column,
+    DECIMAL,
+    Enum,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    UniqueConstraint
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.orm import declarative_base, relationship
@@ -312,6 +324,7 @@ class Posts(Base):
     html = Column(String)
     title = Column(String)
     profile_url = Column(String)
+    chip_labels = Column(ARRAY(String))
     created_at = Column(DateTime, server_default=UTCNow())
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
@@ -331,8 +344,12 @@ class PostsModel(BaseModel):
     html: Optional[str]
     title: Optional[str]
     profile_url: Optional[str]
+    chip_labels = Optional[List[str]]
     created_at: Optional[datetime.datetime]
     updated_at: Optional[datetime.datetime]
+
+    class Config:
+        arbitrary_types_allowed = True
 
 
 class PostLikes(Base):

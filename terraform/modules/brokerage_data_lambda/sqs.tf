@@ -1,11 +1,11 @@
 resource "aws_sqs_queue" "brokerage-data" {
-  content_based_deduplication = "false"
-  delay_seconds = "0"
-  fifo_queue = "false"
+  content_based_deduplication       = "false"
+  delay_seconds                     = "0"
+  fifo_queue                        = "false"
   kms_data_key_reuse_period_seconds = "300"
-  max_message_size = "262144"
-  message_retention_seconds = "345600"
-  name = "${var.environment}-brokerage-data"
+  max_message_size                  = "262144"
+  message_retention_seconds         = "345600"
+  name                              = "${var.environment}-brokerage-data"
 
   policy = <<POLICY
 {
@@ -27,28 +27,29 @@ POLICY
 
   receive_wait_time_seconds = "0"
   redrive_policy = jsonencode(
-  {
-    "deadLetterTargetArn" : aws_sqs_queue.brokerage-data-deadletter.arn,
-    "maxReceiveCount" : 10
-  }
+    {
+      "deadLetterTargetArn" : aws_sqs_queue.brokerage-data-deadletter.arn,
+      "maxReceiveCount" : 10
+    }
   )
-  sqs_managed_sse_enabled = "false"
+  sqs_managed_sse_enabled    = "false"
   visibility_timeout_seconds = "901"
+  tags = {
+    env = var.environment
+  }
 }
 
 
-
-
 resource "aws_sqs_queue" "brokerage-data-deadletter" {
-content_based_deduplication = "false"
-delay_seconds = "0"
-fifo_queue = "false"
-kms_data_key_reuse_period_seconds = "300"
-max_message_size = "262144"
-message_retention_seconds = "345600"
-name = "${var.environment}-brokerage-data-deadletter"
+  content_based_deduplication       = "false"
+  delay_seconds                     = "0"
+  fifo_queue                        = "false"
+  kms_data_key_reuse_period_seconds = "300"
+  max_message_size                  = "262144"
+  message_retention_seconds         = "345600"
+  name                              = "${var.environment}-brokerage-data-deadletter"
 
-policy = <<POLICY
+  policy = <<POLICY
 {
   "Id": "__default_policy_ID",
   "Statement": [
@@ -66,7 +67,10 @@ policy = <<POLICY
 }
 POLICY
 
-receive_wait_time_seconds = "0"
-sqs_managed_sse_enabled    = "false"
-visibility_timeout_seconds = "30"
+  receive_wait_time_seconds  = "0"
+  sqs_managed_sse_enabled    = "false"
+  visibility_timeout_seconds = "30"
+  tags = {
+    env = var.environment
+  }
 }

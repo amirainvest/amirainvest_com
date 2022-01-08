@@ -34,6 +34,9 @@ POLICY
   )
   sqs_managed_sse_enabled    = "false"
   visibility_timeout_seconds = "30"
+  tags = {
+    env = var.environment
+  }
 }
 
 resource "aws_sqs_queue" "data-imports-deadletters" {
@@ -66,6 +69,9 @@ POLICY
   receive_wait_time_seconds  = "0"
   sqs_managed_sse_enabled    = "false"
   visibility_timeout_seconds = "30"
+  tags = {
+    env = var.environment
+  }
 }
 
 resource "aws_sqs_queue" "expedited-data-imports" {
@@ -104,6 +110,9 @@ POLICY
   )
   sqs_managed_sse_enabled    = "false"
   visibility_timeout_seconds = "30"
+  tags = {
+    env = var.environment
+  }
 }
 
 resource "aws_sqs_queue" "expedited-data-imports-deadletters" {
@@ -136,5 +145,8 @@ POLICY
   receive_wait_time_seconds  = "0"
   sqs_managed_sse_enabled    = "false"
   visibility_timeout_seconds = "30"
+  tags = {
+    env = var.environment
+  }
 }
 

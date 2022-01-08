@@ -5,7 +5,7 @@ resource "aws_sqs_queue" "data-imports" {
   kms_data_key_reuse_period_seconds = "300"
   max_message_size                  = "262144"
   message_retention_seconds         = "345600"
-  name                              = "data-imports"
+  name                              = "${var.environment}-data-imports"
 
   policy = <<POLICY
 {
@@ -17,7 +17,7 @@ resource "aws_sqs_queue" "data-imports" {
       "Principal": {
         "AWS": "arn:aws:iam::903791206266:root"
       },
-      "Resource": "arn:aws:sqs:us-east-1:903791206266:data-imports",
+      "Resource": "arn:aws:sqs:us-east-1:903791206266:${var.environment}-data-imports",
       "Sid": "__owner_statement"
     }
   ],
@@ -43,7 +43,7 @@ resource "aws_sqs_queue" "data-imports-deadletters" {
   kms_data_key_reuse_period_seconds = "300"
   max_message_size                  = "262144"
   message_retention_seconds         = "345600"
-  name                              = "data-imports-deadletters"
+  name                              = "${var.environment}-data-imports-deadletters"
 
   policy = <<POLICY
 {
@@ -55,7 +55,7 @@ resource "aws_sqs_queue" "data-imports-deadletters" {
       "Principal": {
         "AWS": "arn:aws:iam::903791206266:root"
       },
-      "Resource": "arn:aws:sqs:us-east-1:903791206266:data-imports-deadletters",
+      "Resource": "arn:aws:sqs:us-east-1:903791206266:${var.environment}-data-imports-deadletters",
       "Sid": "__owner_statement"
     }
   ],
@@ -75,7 +75,7 @@ resource "aws_sqs_queue" "expedited-data-imports" {
   kms_data_key_reuse_period_seconds = "300"
   max_message_size                  = "262144"
   message_retention_seconds         = "345600"
-  name                              = "expedited-data-imports"
+  name                              = "${var.environment}-expedited-data-imports"
 
   policy = <<POLICY
 {
@@ -87,7 +87,7 @@ resource "aws_sqs_queue" "expedited-data-imports" {
       "Principal": {
         "AWS": "arn:aws:iam::903791206266:root"
       },
-      "Resource": "arn:aws:sqs:us-east-1:903791206266:expedited-data-imports",
+      "Resource": "arn:aws:sqs:us-east-1:903791206266:${var.environment}-expedited-data-imports",
       "Sid": "__owner_statement"
     }
   ],
@@ -113,7 +113,7 @@ resource "aws_sqs_queue" "expedited-data-imports-deadletters" {
   kms_data_key_reuse_period_seconds = "300"
   max_message_size                  = "262144"
   message_retention_seconds         = "345600"
-  name                              = "expedited-data-imports-deadletters"
+  name                              = "${var.environment}-expedited-data-imports-deadletters"
 
   policy = <<POLICY
 {
@@ -125,7 +125,7 @@ resource "aws_sqs_queue" "expedited-data-imports-deadletters" {
       "Principal": {
         "AWS": "arn:aws:iam::903791206266:root"
       },
-      "Resource": "arn:aws:sqs:us-east-1:903791206266:expedited-data-imports-deadletters",
+      "Resource": "arn:aws:sqs:us-east-1:903791206266:${var.environment}-expedited-data-imports-deadletters",
       "Sid": "__owner_statement"
     }
   ],

@@ -17,6 +17,7 @@ from backend_amirainvest_com.api.routers import (
     search,
     user_subscriptions,
     users,
+    application
 )
 from backend_amirainvest_com.api.webhooks.app import app as webhooks_app
 
@@ -34,6 +35,7 @@ app.include_router(broadcast_requests.router)
 app.include_router(code_challenge.router)
 app.include_router(search.router)
 app.include_router(plaid.router)
+app.include_router(application.router)
 
 app.mount("/webhooks", webhooks_app)
 

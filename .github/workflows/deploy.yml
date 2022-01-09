@@ -6,9 +6,9 @@ on:
       - main
     types:
       - closed
-  push:
-    branches:
-      [ main ]
+#  push:
+#    branches:
+#      [ main ]
 
 
 jobs:

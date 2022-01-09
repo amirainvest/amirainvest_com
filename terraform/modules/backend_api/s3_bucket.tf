@@ -2,6 +2,7 @@ resource "aws_s3_bucket" "amira-user-profile-photos" {
   bucket         = "amira-user-profile-photos"
   force_destroy  = "false"
   request_payer  = "BucketOwner"
+  acl = "private"
 
   server_side_encryption_configuration {
     rule {

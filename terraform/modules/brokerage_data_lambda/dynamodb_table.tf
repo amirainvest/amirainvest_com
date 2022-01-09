@@ -5,27 +5,27 @@ resource "aws_dynamodb_table" "brokerage_users" {
   }
 
   billing_mode = "PAY_PER_REQUEST"
-  hash_key = "user_id"
-  name = "brokerage_users"
+  hash_key     = "user_id"
+  name         = "brokerage_users"
 
   point_in_time_recovery {
     enabled = "false"
   }
 
   stream_enabled = "false"
-  table_class = "STANDARD"
+  table_class    = "STANDARD"
 
   tags = {
-    env = "prod"
+    env     = "prod"
     project = "brokerage"
   }
 
   tags_all = {
-    env = "prod"
+    env     = "prod"
     project = "brokerage"
   }
 
-  read_capacity = "0"
+  read_capacity  = "0"
   write_capacity = "0"
 
   lifecycle {

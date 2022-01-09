@@ -25,9 +25,13 @@ jobs:
       - name: Check if .tf files have changed
         id: check_changed_files
         run: |
-          if  git log -1 --name-only --oneline | grep  -q "^terraform/.*\.tf" {
+          if [ -z $(git log -1 --name-only --oneline | grep "^terraform/.*\.tf") ]; then
+            echo "no tf"
+          else
+            echo "tf"
             exit 1
-          }
+          fi
+
 
 
       - name: Setup Terraform

@@ -12,23 +12,23 @@ on:
 
 
 jobs:
-  tests:
-    uses: amirainvest/amirainvest_com/.github/workflows/tests.yml@main
-    secrets:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-  ecr_images:
-    needs: tests
-    uses: amirainvest/amirainvest_com/.github/workflows/push_containers.yml@main
-    with:
-      microservice_list: "[\"backend_amirainvest_com\", \"lambda\"]"
-    secrets:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#  tests:
+#    uses: amirainvest/amirainvest_com/.github/workflows/tests.yml@main
+#    secrets:
+#      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#
+#  ecr_images:
+#    needs: tests
+#    uses: amirainvest/amirainvest_com/.github/workflows/push_containers.yml@main
+#    with:
+#      microservice_list: "[\"backend_amirainvest_com\", \"lambda\"]"
+#    secrets:
+#      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
   run_terraform:
-    needs: ecr_images
+#    needs: ecr_images
     uses: amirainvest/amirainvest_com/.github/workflows/terraform.yml@main
     with:
       environment: "prod"

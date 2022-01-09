@@ -20,7 +20,8 @@ from common_amirainvest_com.schemas.schema import Base, Users
 Needs to get all FKs and init those tables,
 Needs to be able to take a faker function in column info and run that to add default data
 Needs to take default type and generate blank data for it with required keys,
-Needs to take override data for column (via dict)
+Needs to take override data for column (via dict),
+more?
 """
 class Factories:
     def __init__(self, *, session, base: DeclarativeMeta):

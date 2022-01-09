@@ -11,10 +11,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Change src iter
+        run: date -u +%c-%N > ./terraform/src_iter
+
       - name: Set git config
         run: |
           git config --global user.name 'Peter Hoburg'
           git config --global user.email 'peterHoburg@users.noreply.github.com'
+
       - name: Add changed file
         run: git add ./terraform/src_iter
 

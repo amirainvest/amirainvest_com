@@ -24,8 +24,10 @@ jobs:
 
       - name: Check if .tf files have changed
         id: check_changed_files
-        if: git log -1 --name-only --oneline | grep  -q "^terraform/.*\.tf"
-        run: exit 1
+        run: |
+        if  git log -1 --name-only --oneline | grep  -q "^terraform/.*\.tf" {
+          exit 1
+        }
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1

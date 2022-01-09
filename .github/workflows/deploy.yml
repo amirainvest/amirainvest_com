@@ -29,7 +29,7 @@ jobs:
 
   run_terraform:
     needs: ecr_images
-    uses: amirainvest/amirainvest_com/workflows/activate_terraform_with_commit.yml@main
+    uses: amirainvest/amirainvest_com/.github/workflows/activate_terraform_with_commit.yml@main
 
 #  run_terraform:
 #    needs: ecr_images

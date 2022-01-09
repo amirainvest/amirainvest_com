@@ -21,5 +21,6 @@ resource "aws_s3_bucket" "amira-user-profile-photos" {
 
   tags = {
     env = var.environment
+    project = "backend_api"
   }
 }

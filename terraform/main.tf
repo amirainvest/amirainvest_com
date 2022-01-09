@@ -15,7 +15,6 @@ terraform {
     organization = "Amirainvest"
     workspaces {
       name = "Production"
-
     }
   }
 }

@@ -1,5 +1,6 @@
 import datetime
 import enum
+import typing as t
 import uuid
 from typing import Optional
 
@@ -24,10 +25,15 @@ def pg_utcnow(element, compiler, **kw):
     return "TIMEZONE('utc', CURRENT_TIMESTAMP)"
 
 
+class Info(BaseModel):
+    default: t.Union[bool, str, uuid.UUID, int, datetime.datetime]
+    generator: t.Optional[t.Callable]
+
+
 class Users(Base):
     __tablename__ = "users"
     id: uuid.UUID = Column(UUID(as_uuid=True), primary_key=True, unique=True, default=uuid.uuid4)
-    sub = Column(String, nullable=False)
+    sub = Column(String, nullable=False, info=Info(default="fake_sub").dict())
     name = Column(String, nullable=False)
     bio = Column(String)
     username = Column(String, nullable=False)

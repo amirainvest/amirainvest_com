@@ -22,13 +22,14 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+      dynamo:
+        condition: service_started
     networks:
       local:
       credentials_network:
         ipv4_address: 169.254.170.3
     ports:
       - "5000:5000"
-
 
   # DO NOT CHANGE amirainvest_com_pycharm!! Not even the ENVIRONMENT.
   amirainvest_com_pycharm:
@@ -55,11 +56,11 @@ services:
         ipv4_address: 169.254.170.4
   # ^^^^^^^^ DO NOT CHANGE amirainvest_com_pycharm!! Not even the ENVIRONMENT.
 
-  amirainvest_com_test:
+  test_amirainvest_com:
     build:
       context: .
       dockerfile: Dockerfile
-    command: ["pytest"]
+    command: [ "pytest" ]
     environment:
       ENVIRONMENT: "local"
       DEBUG: "true"
@@ -91,8 +92,26 @@ services:
       credentials_network:
         ipv4_address: 169.254.170.5
     ports:
-      - "5000:80"
+      - "5000:5000"
 
+  lambda:
+    build:
+      context: .
+      dockerfile: Dockerfiles/lambda.Dockerfile
+    environment:
+      ENVIRONMENT: "prod"
+      AWS_CONTAINER_CREDENTIALS_RELATIVE_URI: "/creds"
+    depends_on:
+      ecs-local-endpoints:
+        condition: service_started
+    networks:
+      local:
+      credentials_network:
+        ipv4_address: 169.254.170.6
+
+
+
+### Infrastructure containers
   ecs-local-endpoints:
     # The Amazon ECS Local Container Endpoints Docker Image
     image: amazon/amazon-ecs-local-container-endpoints
@@ -133,6 +152,14 @@ services:
     image: redis:6.2
     networks:
       - local
+
+  dynamo:
+    image: amazon/dynamodb-local
+    ports:
+      - "8000:8000"
+    networks:
+      - local
+    command: [ "-jar", "DynamoDBLocal.jar", "-sharedDb", "-inMemory" ]
 
 networks:
   local:

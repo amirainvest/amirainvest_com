@@ -1,17 +1,18 @@
+import uuid
+
 from brokerage_amirainvest_com.brokerages import plaid_provider
-from brokerage_amirainvest_com.consts import PLAID_CLIENT_ID, PLAID_SECRET
-from brokerage_amirainvest_com.mocks import MockWithAccessToken
+from brokerage_amirainvest_com.dynamo import TokenProvider
 from brokerage_amirainvest_com.providers import Providers
 from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
+from common_amirainvest_com.utils.consts import PLAID_CLIENT_ID, PLAID_SECRET
 
 
-action = "HISTORICAL_COLLECTION"
+user_id = "f6b8bdfc-5a9d-11ec-bc23-0242ac1a0002"
+brokerage_item_id = "87mB66x5N6iDGgRnLPnDiRVjabX3QetwEAyoZ"
+action = "COLLECT_HOLDINGS"
 if __name__ == "__main__":
-    # User authentication token fetcher for each service -> replaced by Dynamo implementation
-    # this way the provider doesn't need to know how to fetch a user token appropriately,
-    # it just needs to fetch user token to make request against a service
-    # TODO: Maybe we wire this up in the providers class itself for registered providers?
-    token_repository = MockWithAccessToken()
+    token_repository = TokenProvider()
+
     plaid_service = plaid_provider.PlaidProvider(
         http_client=plaid_provider.PlaidHttp(
             token_repository=token_repository, client_id=PLAID_CLIENT_ID, secret=PLAID_SECRET
@@ -23,15 +24,17 @@ if __name__ == "__main__":
 
     if action == "INSTITUTIONS_COLLECTION":
         run_async_function_synchronously(plaid_service.collect_institutions)
-    elif action == "HISTORICAL_COLLECTION":
+    elif action == "COLLECT_INVESTMENT_HISTORY":
         run_async_function_synchronously(
             provider_service.collect_investment_history,
             provider_key="plaid",
-            user_id="f6b8bdfc-5a9d-11ec-bc23-0242ac1a0002",
+            user_id=uuid.UUID(user_id),
+            item_id=brokerage_item_id,
         )
-    elif action == "HOLDINGS_COLLECTION":
+    elif action == "COLLECT_HOLDINGS":
         run_async_function_synchronously(
             provider_service.collect_current_holdings,
             provider_key="plaid",
-            user_id="f6b8bdfc-5a9d-11ec-bc23-0242ac1a0002",
+            user_id=uuid.UUID(user_id),
+            item_id=brokerage_item_id,
         )

@@ -15,7 +15,7 @@ ENV PROJECT_NAME="backend_amirainvest_com"
 ENV PROJECT="backend"
 ENV AWS_DEFAULT_REGION="us-east-1"
 
-EXPOSE 80:80
+EXPOSE 5000:5000
 
 FROM base as builder
 
@@ -51,4 +51,4 @@ COPY --chown=default:default --from=builder "$VIRTUALENV_PATH" "$VIRTUALENV_PATH
 
 
 ENTRYPOINT ["/bin/bash", "./src/backend_amirainvest_com/entrypoint.sh"]
-CMD ["uvicorn", "backend_amirainvest_com.api.app:app", "--host", "0.0.0.0", "--port", "80"]
+CMD ["uvicorn", "backend_amirainvest_com.api.app:app", "--host", "0.0.0.0", "--port", "5000"]

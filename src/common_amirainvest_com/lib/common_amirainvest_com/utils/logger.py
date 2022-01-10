@@ -22,7 +22,7 @@ for handler in log.handlers:
     log.removeHandler(handler)
 
 # Set logging level based on env var
-if consts.DEBUG == "true" or consts.ENVIRONMENT == "local":
+if consts.DEBUG == "true" or consts.ENVIRONMENT == consts.Environments.local.value:
     log.setLevel(logging.DEBUG)
 else:
     log.setLevel(logging.INFO)

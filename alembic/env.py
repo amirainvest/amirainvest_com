@@ -1,8 +1,9 @@
+import base64
+import json
 import os
 from logging.config import fileConfig
 
 from alembic import context
-
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 from sqlalchemy import create_engine
@@ -30,10 +31,15 @@ target_metadata = Base.metadata
 
 
 def _get_url() -> str:
-    url = os.environ.get("POSTGRES_DATABASE_URL_ENV", "postgresql://test:test@postgres/test")
-    if "psycopg2" in url:
-        return url
-    return url.replace("://", "+psycopg2://")
+    url = "postgresql://{username}:{password}@{host}/{database}".format(
+        **json.loads(base64.b64decode(os.environ.get("postgres", "")).decode("utf-8"))
+    )
+
+    if "asyncpg" in url:
+        url = url.replace("asyncpg", "psycopg2")
+    elif "psycopg2" not in url:
+        url = url.replace("://", "+psycopg2://")
+    return url
 
 
 def run_migrations_offline():

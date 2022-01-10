@@ -1,4 +1,5 @@
-from sqlalchemy import select, update
+from sqlalchemy.future import select
+from sqlalchemy import update
 
 from backend_amirainvest_com.controllers.data_imports import add_data_import_data_to_sqs_queue
 from common_amirainvest_com.schemas.schema import Users

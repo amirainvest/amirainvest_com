@@ -14,7 +14,7 @@ from common_amirainvest_com.utils.consts import AWS_REGION
 from common_amirainvest_com.utils.logger import log
 
 
-sqs_resource: SQSServiceResource = boto3.resource("sqs", AWS_REGION)
+sqs_resource: SQSServiceResource = boto3.resource("sqs", region_name=AWS_REGION)
 
 
 def get_messages(sqs_queue: Queue, timeout: int = 60) -> list[Message]:

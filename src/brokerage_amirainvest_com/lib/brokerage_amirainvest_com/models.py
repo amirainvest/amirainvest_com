@@ -71,6 +71,7 @@ class AccountType(Enum):
 
 
 class Account(BaseModel):
+    item_id: str
     account_id: str
     mask: Optional[str]
     name: str
@@ -110,7 +111,7 @@ class InvestmentTransaction(BaseModel):
     unofficial_currency_code: Optional[str]
 
 
-class AccountHolding(BaseModel):
+class Holding(BaseModel):
     account_id: str
     security_id: str
     institution_price: Decimal
@@ -127,6 +128,12 @@ class InvestmentInformation(BaseModel):
     investment_transactions: list[InvestmentTransaction]
     accounts: list[Account]
     total_investment_transactions: int
+
+
+class HoldingInformation(BaseModel):
+    securities: dict[str, Security]
+    accounts: list[Account]
+    holdings: list[Holding]
 
 
 class Institution(BaseModel):

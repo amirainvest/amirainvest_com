@@ -23,3 +23,6 @@ plaid-python = "^8.6.0"
 pydantic = "^1.8.2"
 sentry-sdk = "^1.5.0"
 SQLAlchemy = "^1.4.27"
+Jinja2 = "^3.0.3"
+boto3-stubs = { extras = ["dynamodb", "sqs"], version = "^1.20.24" }
+

@@ -8,7 +8,7 @@ on:
     inputs:
       microservice_list:
         description: "List of microservice names"
-        default: "[\"backend_amirainvest_com\"]"
+        default: "[\"backend_amirainvest_com\", \"lambda\"]"
         required: true
         type: string
     secrets:
@@ -48,14 +48,14 @@ jobs:
       - name: Kill containers
         run: make _down
 
-#      - name: Test container
-#        run: docker-compose run ${{ matrix.microservice }} pytest # TODO test the container right before pushing
+      #      - name: Test container
+      #        run: docker-compose run ${{ matrix.microservice }} pytest # TODO test the container right before pushing
 
-#      - name: Tag container version
-#        run: docker tag amirainvest_com_${{ matrix.microservice }}:latest 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:1
+      #      - name: Tag container version
+      #        run: docker tag amirainvest_com_${{ matrix.microservice }}:latest 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:1
 
-#      - name: Push to ECR
-#        run: docker push 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:1
+      #      - name: Push to ECR
+      #        run: docker push 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:1
 
       - name: Tag container latest
         run: docker tag amirainvest_com_${{ matrix.microservice }}:"latest" 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:"latest"
@@ -63,3 +63,9 @@ jobs:
       - name: Push to ECR
         run: docker push 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:"latest"
 
+
+
+
+# docker-compose build --build-arg INSTALL_DEV_DEPS="false" backend_amirainvest_com
+# docker tag amirainvest_com_backend_amirainvest_com:"latest" 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/backend_amirainvest_com:"latest"
+# docker push 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/backend_amirainvest_com:"latest"

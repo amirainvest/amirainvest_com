@@ -1,7 +1,8 @@
 import datetime
 import uuid
 
-from sqlalchemy import delete, select, update
+from sqlalchemy import delete, update
+from sqlalchemy.future import select
 
 from common_amirainvest_com.schemas.schema import UserSubscriptions
 from common_amirainvest_com.utils.decorators import Session

@@ -19,9 +19,7 @@ async def get_user(user_id: str):
 
 @router.put("/", status_code=200, response_model=UsersModel)
 async def update_user(user_data: UserUpdate):
-    return (
-        await users.update_user(user_data)
-    ).__dict__  # type: ignore # TODO fix
+    return (await users.update_user(user_data)).__dict__  # type: ignore # TODO fix
 
 
 # TODO: ALL WORKING OTHER THAN BOTO3 CRED ERROR

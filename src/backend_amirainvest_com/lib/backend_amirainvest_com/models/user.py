@@ -53,6 +53,7 @@ class UserUpdate(BaseModel):
     interests_short_term: Optional[bool]
     interests_diversification_rating: Optional[int]
     benchmark: Optional[str]
+    chip_labels: Optional[List[str]]
     public_profile: Optional[bool]
     public_performance: Optional[bool]
     public_holdings: Optional[bool]

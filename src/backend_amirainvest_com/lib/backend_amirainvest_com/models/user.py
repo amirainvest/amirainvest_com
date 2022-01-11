@@ -1,5 +1,5 @@
 import datetime
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel
 
@@ -24,10 +24,11 @@ class UserCreate(BaseModel):
     public_performance: Optional[bool]
     public_holdings: Optional[bool]
     public_trades: Optional[bool]
+    chip_labels: Optional[List[str]]
     is_claimed: Optional[bool]
     is_deactivated: Optional[bool] = False
     is_deleted: Optional[bool] = False
-    # deleted_at: Optional[datetime.datetime]
+    deleted_at: Optional[datetime.datetime]
     created_at: Optional[datetime.datetime]
     updated_at: Optional[datetime.datetime]
     twitter_username: Optional[str] = ""
@@ -51,6 +52,7 @@ class UserUpdate(BaseModel):
     interests_short_term: Optional[bool]
     interests_diversification_rating: Optional[int]
     benchmark: Optional[str]
+    chip_labels: Optional[List[str]]
     public_profile: Optional[bool]
     public_performance: Optional[bool]
     public_holdings: Optional[bool]

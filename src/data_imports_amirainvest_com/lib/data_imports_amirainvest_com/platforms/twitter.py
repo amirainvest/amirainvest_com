@@ -12,8 +12,8 @@ from data_imports_amirainvest_com.consts import TWITTER_API_TOKEN_ENV, TWITTER_A
 from data_imports_amirainvest_com.controllers import posts
 from data_imports_amirainvest_com.controllers.tweets import create_tweet, get_tweets_for_creator
 from data_imports_amirainvest_com.controllers.twitter_users import create_twitter_user
-from data_imports_amirainvest_com.platforms.platforms import PlatformUser
 from data_imports_amirainvest_com.controllers.users import get_user
+from data_imports_amirainvest_com.platforms.platforms import PlatformUser
 
 
 HEADERS = {

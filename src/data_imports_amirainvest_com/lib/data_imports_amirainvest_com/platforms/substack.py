@@ -13,8 +13,8 @@ from data_imports_amirainvest_com.controllers.substack_articles import (
     get_substack_articles_for_username,
 )
 from data_imports_amirainvest_com.controllers.substack_users import create_substack_user
-from data_imports_amirainvest_com.platforms.platforms import PlatformUser
 from data_imports_amirainvest_com.controllers.users import get_user
+from data_imports_amirainvest_com.platforms.platforms import PlatformUser
 
 
 class SubstackUser(PlatformUser):

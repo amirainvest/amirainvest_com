@@ -1,3 +1,5 @@
+import base64
+import json
 import os
 from logging.config import fileConfig
 
@@ -7,7 +9,6 @@ from alembic import context
 from sqlalchemy import create_engine
 
 from common_amirainvest_com.schemas.schema import Base
-from common_amirainvest_com.utils.consts import POSTGRES_DATABASE_URL
 
 
 config = context.config
@@ -30,12 +31,13 @@ target_metadata = Base.metadata
 
 
 def _get_url() -> str:
-    url = os.environ.get("POSTGRES_DATABASE_URL_ENV", POSTGRES_DATABASE_URL)
+    url = "postgresql://{username}:{password}@{host}/{database}".format(
+        **json.loads(base64.b64decode(os.environ.get("postgres", "")).decode("utf-8"))
+    )
+
     if "asyncpg" in url:
         url = url.replace("asyncpg", "psycopg2")
-    elif "psycopg2" in url:
-        return url
-    else:
+    elif "psycopg2" not in url:
         url = url.replace("://", "+psycopg2://")
     return url
 

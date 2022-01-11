@@ -5,7 +5,17 @@ from typing import List, Optional
 
 from pydantic import BaseModel
 from sqlalchemy import (
-    ARRAY, BigInteger, Boolean, Column, DECIMAL, Enum, Float, ForeignKey, Integer, String, UniqueConstraint,
+    ARRAY,
+    BigInteger,
+    Boolean,
+    Column,
+    DECIMAL,
+    Enum,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.compiler import compiles
@@ -44,6 +54,7 @@ class Users(Base):
     interests_short_term = Column(Boolean)
     interests_diversification_rating = Column(Integer)
     benchmark = Column(String)
+    chip_labels = Column(ARRAY(String))
     public_profile = Column(Boolean)
     public_performance = Column(Boolean)
     public_holdings = Column(Boolean)
@@ -51,7 +62,7 @@ class Users(Base):
     is_claimed = Column(Boolean)
     is_deactivated = Column(Boolean)
     is_deleted = Column(Boolean)
-    # deleted_at = Column(DateTime)
+    deleted_at = Column(DateTime)
     created_at = Column(DateTime, server_default=UTCNow())
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
@@ -73,6 +84,7 @@ class UsersModel(BaseModel):
     interests_short_term: Optional[bool]
     interests_diversification_rating: Optional[int]
     benchmark: Optional[str]
+    chip_labels: Optional[List[str]]
     public_profile: Optional[bool]
     public_performance: Optional[bool]
     public_holdings: Optional[bool]
@@ -80,7 +92,7 @@ class UsersModel(BaseModel):
     is_claimed: Optional[bool]
     is_deactivated: Optional[bool]
     is_deleted: Optional[bool]
-    # deleted_at: Optional[datetime.datetime] = Column(DateTime)
+    deleted_at: Optional[datetime.datetime]
     created_at: Optional[datetime.datetime]
     updated_at: Optional[datetime.datetime]
 

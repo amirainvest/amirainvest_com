@@ -8,7 +8,7 @@ from backend_amirainvest_com.models.feed import Feed
 router = APIRouter(prefix="/feed", tags=["Feed"], dependencies=[Security(auth_dep, scopes=[])])
 
 
-@router.get("/subscriber/", status_code=200, response_model=Feed)
+@router.get("/subscriber", status_code=200, response_model=Feed)
 async def get_subscriber_feed(
     subscriber_id,
     page: int = 0,
@@ -17,7 +17,7 @@ async def get_subscriber_feed(
     return {"posts": [x.__dict__ for x in posts], "feed_type": feed_type}
 
 
-@router.get("/creator/", status_code=200, response_model=Feed)
+@router.get("/creator", status_code=200, response_model=Feed)
 async def get_creator_feed(
     creator_id,
     page: int = 0,
@@ -26,7 +26,7 @@ async def get_creator_feed(
     return {"posts": [x for x in posts], "feed_type": feed_type}
 
 
-@router.get("/discovery/", status_code=200, response_model=Feed)
+@router.get("/discovery", status_code=200, response_model=Feed)
 async def get_discovery_feed(
     user_id: str,
     page: int = 0,

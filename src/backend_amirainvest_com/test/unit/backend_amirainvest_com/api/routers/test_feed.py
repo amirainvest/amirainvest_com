@@ -22,7 +22,7 @@ async def test_get_subscriber_feed(number_of_posts):
         posts_redis_factory(creator.id, "subscriber", PostsModel(**post.__dict__))
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.get(
-            "/feed/subscriber/", headers=AUTH_HEADERS, params={"subscriber_id": subscriber.id}
+            "/feed/subscriber", headers=AUTH_HEADERS, params={"subscriber_id": subscriber.id}
         )
     response_data = response.json()
     assert response.status_code == 200
@@ -43,7 +43,7 @@ async def test_get_empty_subscriber_feed():
     await UserSubscriptionsFactory(subscriber_id=subscriber.id, creator_id=creator.id, is_deleted=False)
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.get(
-            "/feed/subscriber/", headers=AUTH_HEADERS, params={"subscriber_id": subscriber.id}
+            "/feed/subscriber", headers=AUTH_HEADERS, params={"subscriber_id": subscriber.id}
         )
     response_data = response.json()
     assert response.status_code == 200
@@ -64,7 +64,7 @@ async def test_get_creator_feed(number_of_posts):
         post = await PostsFactory(creator_id=creator.id)
         posts_redis_factory(creator.id, "creator", PostsModel(**post.__dict__))
     async with AsyncClient(app=app, base_url="http://test") as async_client:
-        response = await async_client.get("/feed/creator/", headers=AUTH_HEADERS, params={"creator_id": creator.id})
+        response = await async_client.get("/feed/creator", headers=AUTH_HEADERS, params={"creator_id": creator.id})
     response_data = response.json()
     assert response.status_code == 200
     assert type(response_data) == dict
@@ -83,7 +83,7 @@ async def test_get_empty_creator_feed():
     subscriber = await UsersFactory()
     await UserSubscriptionsFactory(creator_id=creator.id, subscriber_id=subscriber.id)
     async with AsyncClient(app=app, base_url="http://test") as async_client:
-        response = await async_client.get("/feed/creator/", headers=AUTH_HEADERS, params={"creator_id": creator.id})
+        response = await async_client.get("/feed/creator", headers=AUTH_HEADERS, params={"creator_id": creator.id})
     response_data = response.json()
     assert response.status_code == 200
     assert type(response_data) == dict
@@ -103,7 +103,7 @@ async def test_get_discovery_feed(number_of_posts: int):
         post = await PostsFactory(creator_id=creator.id)
         posts_redis_factory(creator.id, "discovery", PostsModel(**post.__dict__))
     async with AsyncClient(app=app, base_url="http://test") as async_client:
-        response = await async_client.get("/feed/discovery/", headers=AUTH_HEADERS, params={"user_id": subscriber.id})
+        response = await async_client.get("/feed/discovery", headers=AUTH_HEADERS, params={"user_id": subscriber.id})
     response_data = response.json()
     assert response.status_code == 200
     assert type(response_data) == dict

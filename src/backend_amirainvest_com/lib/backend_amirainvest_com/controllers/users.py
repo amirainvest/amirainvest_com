@@ -1,16 +1,15 @@
+from sqlalchemy import update
 from sqlalchemy.future import select
 
 from backend_amirainvest_com.controllers.data_imports import add_data_import_data_to_sqs_queue
 from common_amirainvest_com.schemas.schema import Users
-from common_amirainvest_com.utils.database_utils import update
 from common_amirainvest_com.utils.decorators import Session
 from common_amirainvest_com.utils.generic_utils import get_class_attrs
 
 
 @Session
 async def get_user(session, user_id: str) -> Users:
-    user = await session.execute(select(Users).where(Users.id == user_id))
-    return user.scalars().first()
+    return (await session.execute(select(Users).where(Users.id == user_id))).scalars().first()
 
 
 @Session
@@ -20,9 +19,11 @@ async def create_user(session, user_data: dict) -> Users:
     return user
 
 
-async def update_user(user_data: dict) -> Users:
-    user = await update(Users, user_data)
-    return user
+@Session
+async def update_user(session, user_id: str, user_data: dict) -> Users:
+    return (
+        await (session.execute(update(Users).where(Users.id == user_id).values(**user_data).returning(Users)))
+    ).one()
 
 
 def handle_data_imports(creator_id: str, substack_username: str, youtube_channel_id: str, twitter_username: str):

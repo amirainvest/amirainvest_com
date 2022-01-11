@@ -1,10 +1,11 @@
 import datetime
 import enum
 import uuid
-from typing import Optional, List
+from typing import List, Optional
 
 from pydantic import BaseModel
 from sqlalchemy import (
+    ARRAY,
     BigInteger,
     Boolean,
     Column,
@@ -15,7 +16,6 @@ from sqlalchemy import (
     Integer,
     String,
     UniqueConstraint,
-    ARRAY
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.compiler import compiles

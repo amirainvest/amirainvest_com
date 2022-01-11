@@ -15,7 +15,7 @@ router = APIRouter(
 
 
 @router.get(
-    "/subscriber/",
+    "/subscriber",
     status_code=200,
     response_model=List[UserSubscriptionsModel],
 )
@@ -26,7 +26,7 @@ async def get_subscriptions_for_subscriber(subscriber_id):
 
 
 @router.get(
-    "/creator/",
+    "/creator",
     status_code=200,
     response_model=List[UserSubscriptionsModel],
 )
@@ -36,7 +36,7 @@ async def get_subscriptions_for_creator(creator_id):
     return subscriptions
 
 
-@router.post("/subscribe/", status_code=200, response_model=UserSubscriptionsModel)
+@router.post("/subscribe", status_code=200, response_model=UserSubscriptionsModel)
 async def create_subscription(subscriber_id: str, creator_id: str):
     user_subscription = await user_subscriptions.get_user_subscription(subscriber_id, creator_id)
     if not user_subscription:
@@ -48,7 +48,7 @@ async def create_subscription(subscriber_id: str, creator_id: str):
     return user_subscription
 
 
-@router.put("/unsubscribe/", status_code=200, response_model=UserSubscriptionsModel)
+@router.put("/unsubscribe", status_code=200, response_model=UserSubscriptionsModel)
 async def unsubscribe(subscriber_id: str, creator_id: str):
     subscription = await user_subscriptions.get_user_subscription(subscriber_id, creator_id)
     subscription.is_deleted = True

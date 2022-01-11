@@ -11,14 +11,14 @@ from common_amirainvest_com.schemas.schema import HuskRequestsModel
 router = APIRouter(prefix="/husk_requests", tags=["Husk Requests"], dependencies=[Security(auth_dep, scopes=[])])
 
 
-@router.get("/", status_code=200, response_model=List[HuskRequestsModel])
+@router.get("", status_code=200, response_model=List[HuskRequestsModel])
 async def get_husk_requests():
     husk_request = await husk_requests.get_husk_requests()
     husk_request_data = [x.__dict__ for x in husk_request]
     return husk_request_data
 
 
-@router.post("/", status_code=201, response_model=HuskRequestsModel)
+@router.post("", status_code=201, response_model=HuskRequestsModel)
 async def create_husk_request(
     husk_request_data: CreateHuskRequestModel,
 ):
@@ -27,7 +27,7 @@ async def create_husk_request(
     return husk_request
 
 
-@router.delete("/", status_code=200)
+@router.delete("", status_code=200)
 async def delete_husk_request(husk_request_id: int):
     await husk_requests.delete_husk_request(husk_request_id)
     return 200

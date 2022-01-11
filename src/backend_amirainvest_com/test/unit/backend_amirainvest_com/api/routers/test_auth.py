@@ -18,7 +18,7 @@ routes_with_no_auth_required_path = [
     "/docs/oauth2-redirect",
     "/redoc",
     "/admin/health_check",
-    "/code_challenge/",
+    "/code_challenge",
     "/",
 ]
 

@@ -12,14 +12,14 @@ router = APIRouter(prefix="/amira_posts", tags=["Amira Posts"], dependencies=[Se
 # ALL PLATFORM POSTS GENERATED VIA DATA IMPORTS
 
 
-@router.post("/", status_code=200, response_model=PostsModel)
+@router.post("", status_code=200, response_model=PostsModel)
 async def create_amira_post(post_data: PostCreate):
     data = await posts.create_amira_post(post_data.dict())
     data = data.__dict__
     return data
 
 
-@router.put("/", status_code=200, response_model=PostsModel)
+@router.put("", status_code=200, response_model=PostsModel)
 async def update_amira_post(post_data: PostsModel):
     data = await posts.update_amira_post(post_data.dict())
     data = data.__dict__

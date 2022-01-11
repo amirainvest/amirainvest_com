@@ -6,6 +6,10 @@ on:
       - main
     types:
       - closed
+#  push:
+#    branches:
+#      [ main ]
+
 
 jobs:
   tests:
@@ -14,7 +18,7 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-  db_container:
+  ecr_images:
     needs: tests
     uses: amirainvest/amirainvest_com/.github/workflows/push_containers.yml@main
     with:
@@ -23,4 +27,14 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
+  run_terraform:
+    needs: ecr_images
+    uses: amirainvest/amirainvest_com/.github/workflows/activate_terraform_with_commit.yml@main
 
+#  run_terraform:
+#    needs: ecr_images
+#    uses: amirainvest/amirainvest_com/.github/workflows/terraform.yml@main
+#    with:
+#      environment: "prod"
+#    secrets:
+#      TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}

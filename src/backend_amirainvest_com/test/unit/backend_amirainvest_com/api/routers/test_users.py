@@ -28,7 +28,7 @@ async def test_not_authenticated_get_user():
 async def test_get_user():
     user = await UsersFactory()
     async with AsyncClient(app=app, base_url="http://test") as async_client:
-        response = await async_client.get("/user/", params={"user_id": user.id}, headers=AUTH_HEADERS)
+        response = await async_client.get("/user", params={"user_id": user.id}, headers=AUTH_HEADERS)
         response_data = response.json()
         print(response_data)
 
@@ -40,7 +40,7 @@ async def test_update_user(async_session_maker_test):
     user = await UsersFactory()
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.put(
-            "/user/",
+            "/user",
             headers=AUTH_HEADERS,
             params={"user_id": str(user.id)},
             data=json.dumps({"is_deleted": True, "name": "Test Name 2", "username": "Test Username 2"}),
@@ -62,7 +62,7 @@ async def test_create_user(async_session_maker_test):
 
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(
-            "/user/",
+            "/user",
             data=json.dumps(
                 {
                     "sub": "Test Sub",
@@ -95,14 +95,14 @@ async def test_is_existing(async_session_maker_test):
     user = await UsersFactory()
     non_existing_user_id = "054d6d6f-2e99-4699-b433-1309ea6fac99"
     async with AsyncClient(app=app, base_url="http://test") as async_client:
-        response = await async_client.get("/user/is_existing/", headers=AUTH_HEADERS, params={"user_id": user.id})
+        response = await async_client.get("/user/is_existing", headers=AUTH_HEADERS, params={"user_id": user.id})
         response_data = response.json()
         data = (await session_test.execute(select(Users).where(Users.id == user.id))).scalars().first()
         assert data
         assert data.id == user.id
         assert response_data is True
         response = await async_client.get(
-            "/user/is_existing/", headers=AUTH_HEADERS, params={"user_id": non_existing_user_id}
+            "/user/is_existing", headers=AUTH_HEADERS, params={"user_id": non_existing_user_id}
         )
         response_data = response.json()
         assert response_data is False
@@ -116,7 +116,7 @@ async def test_deactivate_user(async_session_maker_test):
 
     user = await UsersFactory()
     async with AsyncClient(app=app, base_url="http://test") as async_client:
-        response = await async_client.put("/user/deactivate/", params={"user_id": user.id}, headers=AUTH_HEADERS)
+        response = await async_client.put("/user/deactivate", params={"user_id": user.id}, headers=AUTH_HEADERS)
         response_data = response.json()
         assert response_data["is_deactivated"] is True
         data = (await session_test.execute(select(Users))).scalars().first()
@@ -130,7 +130,7 @@ async def test_reactivate_user(async_session_maker_test):
 
     user = await UsersFactory(is_deactivated=True)
     async with AsyncClient(app=app, base_url="http://test") as async_client:
-        response = await async_client.put("/user/reactivate/", params={"user_id": user.id}, headers=AUTH_HEADERS)
+        response = await async_client.put("/user/reactivate", params={"user_id": user.id}, headers=AUTH_HEADERS)
         response_data = response.json()
         assert response_data["is_deactivated"] is False
         data = (await session_test.execute(select(Users))).scalars().first()
@@ -144,7 +144,7 @@ async def test_delete_user(async_session_maker_test):
 
     user = await UsersFactory()
     async with AsyncClient(app=app, base_url="http://test") as async_client:
-        response = await async_client.put("/user/delete/", params={"user_id": user.id}, headers=AUTH_HEADERS)
+        response = await async_client.put("/user/mark_deleted", params={"user_id": user.id}, headers=AUTH_HEADERS)
         response_data = response.json()
         assert response_data["is_deleted"] is True
         data = (await session_test.execute(select(Users))).scalars().first()
@@ -158,7 +158,7 @@ async def test_undelete_user(async_session_maker_test):
 
     user = await UsersFactory(is_deleted=True)
     async with AsyncClient(app=app, base_url="http://test") as async_client:
-        response = await async_client.put("/user/undelete/", params={"user_id": user.id}, headers=AUTH_HEADERS)
+        response = await async_client.put("/user/unmark_deleted", params={"user_id": user.id}, headers=AUTH_HEADERS)
         response_data = response.json()
         assert response_data["is_deleted"] is False
         data = (await session_test.execute(select(Users))).scalars().first()
@@ -172,7 +172,7 @@ async def test_claim_user(async_session_maker_test):
 
     user = await UsersFactory(is_claimed=False)
     async with AsyncClient(app=app, base_url="http://test") as async_client:
-        response = await async_client.put("/user/claim_user/", params={"user_id": user.id}, headers=AUTH_HEADERS)
+        response = await async_client.put("/user/claim_user", params={"user_id": user.id}, headers=AUTH_HEADERS)
         response_data = response.json()
         assert response_data["is_claimed"] is True
         data = (await session_test.execute(select(Users))).scalars().all()

@@ -65,7 +65,7 @@ async def upload_profile_picture(user_id: str, image: UploadFile = File(...)):
     return (await users.update_user(user_id, {"picture_url": s3_file_url}))._asdict()
 
 
-@router.put("/claim_user/", status_code=200, response_model=UsersModel)
+@router.put("/claim_user", status_code=200, response_model=UsersModel)
 async def claim_user(user_id: str):
     # WHAT DO WE NEED TO DO HERE?
     # SHOULD WE JUST DELETE THE OLD USER & HAVE THEM SIGN UP?

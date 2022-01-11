@@ -13,7 +13,7 @@ router = APIRouter(prefix="/user", tags=["User"], dependencies=[Security(auth_de
 
 @router.get("", status_code=200, response_model=UsersModel)
 async def get_user(user_id: str):
-    return (await users.get_user(user_id))._asdict()
+    return (await users.get_user(user_id)).__dict__
 
 
 @router.put("", status_code=200, response_model=UsersModel)
@@ -23,7 +23,7 @@ async def update_user(user_id: str, user_data: UserUpdate):
 
 @router.post("", status_code=200, response_model=UsersModel)
 async def create_user(user_data: UserCreate):
-    return (await users.handle_user_create(user_data.dict()))._asdict()
+    return (await users.handle_user_create(user_data.dict())).__dict__
 
 
 @router.get("/is_existing", status_code=200)

@@ -1,5 +1,6 @@
-import boto3  # type: ignore
 from io import BytesIO
+
+import boto3  # type: ignore
 
 
 class S3:

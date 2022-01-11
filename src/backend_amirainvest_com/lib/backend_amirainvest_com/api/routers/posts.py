@@ -4,9 +4,9 @@ from fastapi import APIRouter, File, Security, UploadFile
 
 from backend_amirainvest_com.controllers import posts
 from backend_amirainvest_com.controllers.auth import auth_dep
+from backend_amirainvest_com.controllers.uploads import upload_post_photo
 from backend_amirainvest_com.models.post import PostCreate
 from common_amirainvest_com.schemas.schema import PostsModel
-from backend_amirainvest_com.controllers.uploads import upload_post_photo
 
 
 router = APIRouter(prefix="/posts", tags=["Posts"], dependencies=[Security(auth_dep, scopes=[])])

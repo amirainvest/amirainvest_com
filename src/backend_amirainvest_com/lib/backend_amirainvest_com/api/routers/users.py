@@ -1,4 +1,3 @@
-import os
 from datetime import datetime
 
 from fastapi import APIRouter, File, Security, UploadFile

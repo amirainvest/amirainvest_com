@@ -8,4 +8,8 @@ class S3:
 
     def upload_file(self, local_filepath, bucket, s3_filepath):
         self.s3_resource.meta.client.upload_file(local_filepath, bucket, s3_filepath)
-        return f"https://s3.amazonaws.com/{bucket}/{s3_filepath}"
+        return build_s3_url(bucket, s3_filepath)
+
+
+def build_s3_url(bucket, s3_filepath):
+    return f"https://s3.amazonaws.com/{bucket}/{s3_filepath}"

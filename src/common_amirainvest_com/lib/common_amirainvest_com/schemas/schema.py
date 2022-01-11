@@ -1,10 +1,22 @@
 import datetime
 import enum
 import uuid
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel
-from sqlalchemy import BigInteger, Boolean, Column, DECIMAL, Enum, Float, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import (
+    ARRAY,
+    BigInteger,
+    Boolean,
+    Column,
+    DECIMAL,
+    Enum,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    UniqueConstraint,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.orm import declarative_base, relationship
@@ -42,6 +54,7 @@ class Users(Base):
     interests_short_term = Column(Boolean)
     interests_diversification_rating = Column(Integer)
     benchmark = Column(String)
+    chip_labels = Column(ARRAY(String))
     public_profile = Column(Boolean)
     public_performance = Column(Boolean)
     public_holdings = Column(Boolean)
@@ -71,6 +84,7 @@ class UsersModel(BaseModel):
     interests_short_term: Optional[bool]
     interests_diversification_rating: Optional[int]
     benchmark: Optional[str]
+    chip_labels: Optional[List[str]]
     public_profile: Optional[bool]
     public_performance: Optional[bool]
     public_holdings: Optional[bool]

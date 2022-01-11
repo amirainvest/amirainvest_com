@@ -24,7 +24,6 @@ async def update_user(user: UsersModel):
     return user
 
 
-# TODO: ALL WORKING OTHER THAN BOTO3 CRED ERROR
 @router.post("", status_code=200, response_model=UsersModel)
 async def create_user(user_data: UserCreate):
     user = await users.handle_user_create(user_data.dict())
@@ -67,14 +66,9 @@ async def undelete_user(user_id: str):
     return (await users.update_user(user.__dict__)).__dict__
 
 
-# TODO: ALL WORKING OTHER THAN BOTO3 CRED ERROR
 @router.post("/upload_profile_picture", status_code=200, response_model=UsersModel)
 async def upload_profile_picture(user_id: str, image: UploadFile = File(...)):
-    # TODO: ADD VALIDATION & SIZING AS REQUESTED BY FRONTEND
-    with open(image.filename, "wb+") as file:
-        file.write(image.file.read())
-    s3_file_url = uploads.upload_profile_photo(image.filename)
-    os.remove(image.filename)
+    s3_file_url = uploads.upload_profile_photo(image.file.read(), image.filename, user_id)
     user = await users.get_user(user_id)
     user.picture_url = s3_file_url
     return (await users.update_user(user.__dict__)).__dict__
@@ -82,9 +76,6 @@ async def upload_profile_picture(user_id: str, image: UploadFile = File(...)):
 
 @router.put("/claim_user", status_code=200, response_model=UsersModel)
 async def claim_user(user_id: str):
-    # WHAT DO WE NEED TO DO HERE?
-    # SHOULD WE JUST DELETE THE OLD USER & HAVE THEM SIGN UP?
-    # MAYBE REMAP THEIR SUBSCRIBERS TO THEIR NEW USER_ID?
     user = await users.get_user(user_id)
     user.is_claimed = True
     return (await users.update_user(user)).__dict__

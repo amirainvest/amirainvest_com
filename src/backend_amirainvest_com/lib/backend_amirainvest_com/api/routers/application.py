@@ -1,16 +1,9 @@
-from fastapi import APIRouter, Security
+from fastapi import APIRouter
 
 from backend_amirainvest_com.controllers.application import config
 
 
-# from backend_amirainvest_com.controllers.auth import auth_dep
-
-
-router = APIRouter(
-    prefix="/application",
-    tags=["Application"],
-    # dependencies=[Security(auth_dep, scopes=[])]
-)
+router = APIRouter(prefix="/application", tags=["Application"])
 
 
 @router.get("/config", status_code=200)

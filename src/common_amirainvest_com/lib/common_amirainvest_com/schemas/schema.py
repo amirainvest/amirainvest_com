@@ -346,7 +346,7 @@ class PostsModel(BaseModel):
     html: Optional[str]
     title: Optional[str]
     profile_url: Optional[str]
-    chip_labels = Optional[List[str]]
+    chip_labels: Optional[List[str]]
     created_at: Optional[datetime.datetime]
     updated_at: Optional[datetime.datetime]
 

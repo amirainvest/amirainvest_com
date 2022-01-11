@@ -20,7 +20,7 @@ routes_with_no_auth_required_path = [
     "/admin/health_check",
     "/code_challenge",
     "/",
-    "/application/config"
+    "/application/config",
 ]
 
 mounts_auth_bypass = [

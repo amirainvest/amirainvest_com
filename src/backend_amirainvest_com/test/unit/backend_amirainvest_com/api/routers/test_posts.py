@@ -17,7 +17,7 @@ async def test_not_authenticated_get_post():
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         post_creator = await UsersFactory()
         response = await async_client.post(
-            "/amira_posts/",
+            "/amira_posts",
             data=json.dumps(
                 {
                     "creator_id": str(post_creator.id),
@@ -44,7 +44,7 @@ async def test_create_amira_post():
     post_creator = await UsersFactory()
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(
-            "/amira_posts/",
+            "/amira_posts",
             headers=AUTH_HEADERS,
             data=json.dumps(
                 {
@@ -72,7 +72,7 @@ async def test_update_post():
     post = await PostsFactory(creator_id=post_creator.id, platform="amira")
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.put(
-            "/amira_posts/",
+            "/amira_posts",
             headers=AUTH_HEADERS,
             data=json.dumps(
                 {

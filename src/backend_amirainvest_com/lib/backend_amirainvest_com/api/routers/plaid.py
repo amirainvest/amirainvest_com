@@ -11,7 +11,7 @@ from common_amirainvest_com.sqs.models import Brokerage, BrokerageDataActions, B
 from common_amirainvest_com.sqs.utils import add_message_to_queue
 
 
-router = APIRouter(prefix="/plaid", tags=["Feed"], dependencies=[Security(auth_dep, scopes=[])])
+router = APIRouter(prefix="/plaid", tags=["Plaid"], dependencies=[Security(auth_dep, scopes=[])])
 templates = Jinja2Templates(directory="src/backend_amirainvest_com/lib/backend_amirainvest_com/templates")
 
 

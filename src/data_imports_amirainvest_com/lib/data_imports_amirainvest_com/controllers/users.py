@@ -1,5 +1,6 @@
-from sqlalchemy import select
 from functools import lru_cache
+
+from sqlalchemy import select
 
 from common_amirainvest_com.schemas.schema import Users
 from common_amirainvest_com.utils.decorators import Session

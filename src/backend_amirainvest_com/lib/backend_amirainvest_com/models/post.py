@@ -1,6 +1,6 @@
 import datetime
 import uuid
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel
 
@@ -14,6 +14,7 @@ class PostCreate(BaseModel):
     text: Optional[str]
     html: Optional[str]
     title: Optional[str]
+    chip_labels = Optional[List[str]]
     profile_url: Optional[str]
     created_at: Optional[datetime.datetime]
     updated_at: Optional[datetime.datetime]

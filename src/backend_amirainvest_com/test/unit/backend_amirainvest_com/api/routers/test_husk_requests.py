@@ -1,3 +1,6 @@
+from sqlalchemy.ext.asyncio import AsyncSession
+
+
 pytest_plugins = ["common_amirainvest_com.utils.test.fixtures.database"]
 import json
 
@@ -20,7 +23,9 @@ async def test_get_husk_requests():
 
 
 @pytest.mark.asyncio
-async def test_create_husk_request(session_test):
+async def test_create_husk_request(async_session_maker_test):
+    session_test: AsyncSession = async_session_maker_test()
+
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(
             "/husk_requests",
@@ -44,7 +49,9 @@ async def test_create_husk_request(session_test):
 
 
 @pytest.mark.asyncio
-async def test_delete_husk_request(session_test):
+async def test_delete_husk_request(async_session_maker_test):
+    session_test: AsyncSession = async_session_maker_test()
+
     husk_request = await HuskRequestsFactory()
 
     husk_requests = await session_test.execute(select(HuskRequests))

@@ -49,7 +49,7 @@ class Users(Base):
     is_claimed = Column(Boolean)
     is_deactivated = Column(Boolean)
     is_deleted = Column(Boolean)
-    # deleted_at = Column(DateTime)
+    deleted_at = Column(DateTime)
     created_at = Column(DateTime, server_default=UTCNow())
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
@@ -78,7 +78,7 @@ class UsersModel(BaseModel):
     is_claimed: Optional[bool]
     is_deactivated: Optional[bool]
     is_deleted: Optional[bool]
-    # deleted_at: Optional[datetime.datetime] = Column(DateTime)
+    deleted_at: Optional[datetime.datetime]
     created_at: Optional[datetime.datetime]
     updated_at: Optional[datetime.datetime]
 

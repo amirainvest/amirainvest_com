@@ -350,9 +350,6 @@ class PostsModel(BaseModel):
     created_at: Optional[datetime.datetime]
     updated_at: Optional[datetime.datetime]
 
-    class Config:
-        arbitrary_types_allowed = True
-
 
 class PostLikes(Base):
     __tablename__ = "post_likes"

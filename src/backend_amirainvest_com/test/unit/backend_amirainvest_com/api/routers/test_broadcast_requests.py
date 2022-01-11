@@ -1,3 +1,6 @@
+from sqlalchemy.ext.asyncio import AsyncSession
+
+
 pytest_plugins = ["common_amirainvest_com.utils.test.fixtures.database"]
 
 import pytest
@@ -14,7 +17,7 @@ from .config import AUTH_HEADERS
 @pytest.mark.asyncio
 async def test_not_authenticated_get_broadcast_requests():
     async with AsyncClient(app=app, base_url="http://test") as async_client:
-        response = await async_client.get("/broadcast_requests/")
+        response = await async_client.get("/broadcast_requests")
     assert response.status_code == 403
     assert response.json() == {"detail": "Not authenticated"}
 
@@ -26,7 +29,7 @@ async def test_get_broadcast_requests_for_creator():
     broadcast_request = await BroadcastRequestsFactory(subscriber_id=subscriber.id, creator_id=creator.id)
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.get(
-            "/broadcast_requests/", params={"creator_id": str(creator.id)}, headers=AUTH_HEADERS
+            "/broadcast_requests", params={"creator_id": str(creator.id)}, headers=AUTH_HEADERS
         )
     assert response.status_code == 200
     response_data = response.json()
@@ -38,12 +41,14 @@ async def test_get_broadcast_requests_for_creator():
 
 
 @pytest.mark.asyncio
-async def test_create_broadcast_request(session_test):
+async def test_create_broadcast_request(async_session_maker_test):
+    session_test: AsyncSession = async_session_maker_test()
+
     creator = await UsersFactory()
     subscriber = await UsersFactory()
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(
-            "/broadcast_requests/",
+            "/broadcast_requests",
             params={
                 "requester_id": str(subscriber.id),
                 "creator_id": str(creator.id),

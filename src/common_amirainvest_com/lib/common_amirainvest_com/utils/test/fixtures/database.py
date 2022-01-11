@@ -67,17 +67,19 @@ async def db_engine() -> typing.AsyncIterable[AsyncEngine]:
 
 
 @pytest.fixture(scope="function", autouse=True)
-async def session_test(db_engine: AsyncEngine, monkeypatch: pytest.MonkeyPatch) -> typing.AsyncIterable[AsyncSession]:
+async def async_session_maker_test(
+    db_engine: AsyncEngine, monkeypatch: pytest.MonkeyPatch
+) -> typing.AsyncIterator[sessionmaker]:
     connection = await db_engine.connect()
     transaction = await connection.begin_nested()
-    session = AsyncSession(
+    async_session = AsyncSession(
         autoflush=False,
         autocommit=False,
         expire_on_commit=False,
         bind=connection,
         future=True,
     )
-    async_session = sessionmaker(
+    async_session_maker = sessionmaker(
         connection,
         autoflush=False,
         autocommit=False,
@@ -88,20 +90,18 @@ async def session_test(db_engine: AsyncEngine, monkeypatch: pytest.MonkeyPatch) 
     monkeypatch.setattr(consts, "POSTGRES_DATABASE_URL", str(db_engine.url))
     monkeypatch.setenv("POSTGRES_DATABASE_URL_ENV", str(db_engine.url))
 
-    monkeypatch.setattr(consts, "engine", db_engine)
+    monkeypatch.setattr(consts, "async_engine", db_engine)
+    monkeypatch.setattr(consts, "async_session_maker", async_session_maker)
 
-    monkeypatch.setattr(decorators, "_session", session)
     monkeypatch.setattr(decorators, "_async_session", async_session)
-
-    monkeypatch.setattr(consts, "async_session", async_session)
-    await session.begin_nested()
+    monkeypatch.setattr(decorators, "_async_session_maker", async_session_maker)
 
     print("BEFORE SESSION")
-    yield session
+    yield async_session_maker
     print("AFTER SESSION")
 
-    await session.rollback()
-    await session.close()
+    await async_session.rollback()
+    await async_session.close()
     await transaction.rollback()
     await connection.close()
 

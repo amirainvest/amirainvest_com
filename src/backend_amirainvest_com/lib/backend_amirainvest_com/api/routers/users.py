@@ -18,8 +18,8 @@ async def get_user(user_id: str):
 
 
 @router.put("/", status_code=200, response_model=UsersModel)
-async def update_user(user_data: UserUpdate):
-    return (await users.update_user(user_data)).__dict__  # type: ignore # TODO fix
+async def update_user(user_id: str, user_data: UserUpdate):
+    return (await users.update_user(user_id=user_id, user_data=user_data.dict(exclude_none=True)))._asdict()
 
 
 # TODO: ALL WORKING OTHER THAN BOTO3 CRED ERROR
@@ -35,32 +35,22 @@ async def get_is_existing_user(user_id: str):
 
 @router.put("/deactivate/", status_code=200, response_model=UsersModel)
 async def deactivate_user(user_id: str):
-    user = await users.get_user(user_id)
-    user.is_deactivated = True
-    return (await users.update_user(user)).__dict__
+    return (await users.update_user(user_id, {"is_deactivated": True}))._asdict()
 
 
 @router.put("/reactivate/", status_code=200, response_model=UsersModel)
 async def reactivate_user(user_id: str):
-    user = await users.get_user(user_id)
-    user.is_deactivated = False
-    return (await users.update_user(user)).__dict__
+    return (await users.update_user(user_id, {"is_deactivated": False}))._asdict()
 
 
 @router.put("/delete/", status_code=200, response_model=UsersModel)
 async def delete_user(user_id: str):
-    user = await users.get_user(user_id)
-    user.is_deleted = True
-    user.deleted_at = datetime.utcnow()
-    return (await users.update_user(user)).__dict__
+    return (await users.update_user(user_id, {"is_deleted": True, "deleted_at": datetime.utcnow()}))._asdict()
 
 
 @router.put("/undelete/", status_code=200, response_model=UsersModel)
 async def undelete_user(user_id: str):
-    user = await users.get_user(user_id)
-    user.is_deleted = False
-    user.deleted_at = None
-    return (await users.update_user(user)).__dict__
+    return (await users.update_user(user_id, {"is_deleted": False, "deleted_at": None}))._asdict()
 
 
 # TODO: ALL WORKING OTHER THAN BOTO3 CRED ERROR
@@ -70,10 +60,9 @@ async def upload_profile_picture(user_id: str, image: UploadFile = File(...)):
     with open(image.filename, "wb+") as file:
         file.write(image.file.read())
     s3_file_url = uploads.upload_profile_photo(image.filename)
-    os.remove(image.filename)
-    user = await users.get_user(user_id)
-    user.picture_url = s3_file_url
-    return (await users.update_user(user.__dict__)).__dict__
+    os.remove(image.filename)  # TODO do this in a temp file in memory
+
+    return (await users.update_user(user_id, {"picture_url": s3_file_url}))._asdict()
 
 
 @router.put("/claim_user/", status_code=200, response_model=UsersModel)
@@ -81,6 +70,4 @@ async def claim_user(user_id: str):
     # WHAT DO WE NEED TO DO HERE?
     # SHOULD WE JUST DELETE THE OLD USER & HAVE THEM SIGN UP?
     # MAYBE REMAP THEIR SUBSCRIBERS TO THEIR NEW USER_ID?
-    user = await users.get_user(user_id)
-    user.is_claimed = True
-    return (await users.update_user(user.__dict__)).__dict__
+    return (await users.update_user(user_id, {"is_claimed": True}))._asdict()

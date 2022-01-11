@@ -1,5 +1,4 @@
 import datetime
-import uuid
 from typing import Optional
 
 from pydantic import BaseModel
@@ -37,7 +36,6 @@ class UserCreate(BaseModel):
 
 
 class UserUpdate(BaseModel):
-    id: uuid.UUID
     sub: Optional[str]
     name: Optional[str]
     bio: Optional[str]

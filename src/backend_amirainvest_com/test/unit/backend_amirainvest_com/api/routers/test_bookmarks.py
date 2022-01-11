@@ -1,3 +1,6 @@
+from sqlalchemy.ext.asyncio import AsyncSession
+
+
 pytest_plugins = ["common_amirainvest_com.utils.test.fixtures.database"]
 import json
 from datetime import datetime
@@ -31,7 +34,9 @@ async def test_get_all_user_bookmarks():
 
 
 @pytest.mark.asyncio
-async def test_create_bookmark(session_test):
+async def test_create_bookmark(async_session_maker_test):
+    session_test: AsyncSession = async_session_maker_test()
+
     post_bookmarker = await UsersFactory()
     post_creator = await UsersFactory()
     post = await PostsFactory(creator_id=post_creator.id, id=randint(0, 10000))
@@ -60,7 +65,9 @@ async def test_create_bookmark(session_test):
 
 
 @pytest.mark.asyncio
-async def test_delete_bookmark(session_test):
+async def test_delete_bookmark(async_session_maker_test):
+    session_test: AsyncSession = async_session_maker_test()
+
     post_bookmarker = await UsersFactory()
     post_creator = await UsersFactory()
     post = await PostsFactory(creator_id=post_creator.id)

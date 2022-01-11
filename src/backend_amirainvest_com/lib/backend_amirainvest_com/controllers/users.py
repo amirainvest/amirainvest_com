@@ -20,15 +20,10 @@ async def create_user(session, user_data: dict) -> Users:
 
 
 @Session
-async def update_user(session, user_data: dict) -> Users:
-    await (
-        session.execute(
-            update(Users)
-            .where(Users.id == user_data["id"])
-            .values(**{k: v for k, v in user_data.items() if k in Users.__dict__ and v is not None})
-        )
-    )
-    return (await session.execute(select(Users).where(Users.id == user_data["id"]))).scalars().first()
+async def update_user(session, user_id: str, user_data: dict) -> Users:
+    return (
+        await (session.execute(update(Users).where(Users.id == user_id).values(**user_data).returning(Users)))
+    ).one()
 
 
 def handle_data_imports(creator_id: str, substack_username: str, youtube_channel_id: str, twitter_username: str):

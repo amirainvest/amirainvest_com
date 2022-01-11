@@ -1,7 +1,5 @@
 import uuid
 
-from fastapi.encoders import jsonable_encoder  # type: ignore
-from sqlalchemy.future import select
 from sqlalchemy.inspection import inspect
 
 from common_amirainvest_com.utils.exceptions.database import CompositePrimaryKeyError

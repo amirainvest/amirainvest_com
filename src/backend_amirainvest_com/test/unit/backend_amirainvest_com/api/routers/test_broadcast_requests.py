@@ -1,3 +1,6 @@
+from sqlalchemy.ext.asyncio import AsyncSession
+
+
 pytest_plugins = ["common_amirainvest_com.utils.test.fixtures.database"]
 
 import pytest
@@ -38,7 +41,9 @@ async def test_get_broadcast_requests_for_creator():
 
 
 @pytest.mark.asyncio
-async def test_create_broadcast_request(session_test):
+async def test_create_broadcast_request(async_session_maker_test):
+    session_test: AsyncSession = async_session_maker_test()
+
     creator = await UsersFactory()
     subscriber = await UsersFactory()
     async with AsyncClient(app=app, base_url="http://test") as async_client:

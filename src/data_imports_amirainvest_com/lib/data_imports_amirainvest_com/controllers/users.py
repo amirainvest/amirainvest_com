@@ -1,5 +1,3 @@
-from functools import lru_cache
-
 from sqlalchemy import select
 
 from common_amirainvest_com.schemas.schema import Users

@@ -8,7 +8,7 @@ from common_amirainvest_com.schemas.schema import PostsModel
 from common_amirainvest_com.utils.test.factories.redis_factories import posts_redis_factory
 from common_amirainvest_com.utils.test.factories.schema import PostsFactory, UsersFactory, UserSubscriptionsFactory
 
-from .config import AUTH_HEADERS
+from ..config import AUTH_HEADERS
 
 
 @pytest.mark.asyncio

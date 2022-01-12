@@ -5,10 +5,10 @@ from fastapi import FastAPI
 # from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 from starlette.responses import RedirectResponse
 
+from backend_amirainvest_com.api.backend.bookmark.router import router as bookmark_router
 from backend_amirainvest_com.api.routers import (
     admin,
     application,
-    bookmarks,
     broadcast_requests,
     code_challenge,
     feed,
@@ -29,7 +29,7 @@ app.include_router(users.router)
 app.include_router(user_subscriptions.router)
 app.include_router(feed.router)
 app.include_router(posts.router)
-app.include_router(bookmarks.router)
+app.include_router(bookmark_router)
 app.include_router(husk_requests.router)
 app.include_router(broadcast_requests.router)
 app.include_router(code_challenge.router)

@@ -36,7 +36,21 @@ def pg_utcnow(element, compiler, **kw):
     return "TIMEZONE('utc', CURRENT_TIMESTAMP)"
 
 
-class Users(Base):
+class ToDict:
+    # This is just to shut up Pycharm
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def dict(self) -> dict:
+        return_dict = {}
+        key: str
+        for key, value in self.__dict__.items():
+            if not key.startswith("_"):
+                return_dict[key] = value
+        return return_dict
+
+
+class Users(Base, ToDict):
     __tablename__ = "users"
     id: uuid.UUID = Column(UUID(as_uuid=True), primary_key=True, unique=True, default=uuid.uuid4)
     sub = Column(String, nullable=False)
@@ -97,7 +111,7 @@ class UsersModel(BaseModel):
     updated_at: Optional[datetime.datetime]
 
 
-class BroadcastRequests(Base):
+class BroadcastRequests(Base, ToDict):
     __tablename__ = "broadcast_requests"
     id = Column(Integer, primary_key=True, unique=True)
     subscriber_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -119,7 +133,7 @@ class BroadcastRequestsModel(BaseModel):
     created_at: Optional[datetime.datetime]
 
 
-class UserSubscriptions(Base):
+class UserSubscriptions(Base, ToDict):
     __tablename__ = "user_subscriptions"
     id = Column(Integer, primary_key=True, unique=True)
     subscriber_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -145,7 +159,7 @@ class UserSubscriptionsModel(BaseModel):
     is_deleted: bool
 
 
-class UserMediaErrors(Base):
+class UserMediaErrors(Base, ToDict):
     __tablename__ = "user_media_errors"
     id = Column(Integer, primary_key=True, unique=True)
     user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -156,7 +170,7 @@ class UserMediaErrors(Base):
     creator: Users = relationship("Users", backref="user_media_errors", passive_deletes=True, cascade="all,delete")
 
 
-class SubstackUsers(Base):
+class SubstackUsers(Base, ToDict):
     __tablename__ = "substack_users"
     username = Column(String, primary_key=True, unique=True)
     user_url = Column(String)
@@ -167,7 +181,7 @@ class SubstackUsers(Base):
     creator: Users = relationship("Users", backref="substack_users", passive_deletes=True, cascade="all,delete")
 
 
-class SubstackArticles(Base):
+class SubstackArticles(Base, ToDict):
     __tablename__ = "substack_articles"
     article_id = Column(String, primary_key=True, unique=True, nullable=False)
     url = Column(String)
@@ -182,7 +196,7 @@ class SubstackArticles(Base):
     )
 
 
-class YouTubers(Base):
+class YouTubers(Base, ToDict):
     __tablename__ = "youtubers"
     channel_id = Column(String, primary_key=True, unique=True)
     creator_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -198,7 +212,7 @@ class YouTubers(Base):
     creator: Users = relationship("Users", backref="youtubers", passive_deletes=True, cascade="all,delete")
 
 
-class YouTubeVideos(Base):
+class YouTubeVideos(Base, ToDict):
     __tablename__ = "youtube_videos"
     video_id = Column(String, primary_key=True, unique=True)
     title = Column(String)
@@ -213,7 +227,7 @@ class YouTubeVideos(Base):
     )
 
 
-class TwitterUsers(Base):
+class TwitterUsers(Base, ToDict):
     __tablename__ = "twitter_users"
     twitter_user_id = Column(String, primary_key=True, unique=True)
     creator_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -230,7 +244,7 @@ class TwitterUsers(Base):
     creator: Users = relationship("Users", backref="twitter_users", passive_deletes=True, cascade="all,delete")
 
 
-class Tweets(Base):
+class Tweets(Base, ToDict):
     __tablename__ = "tweets"
     tweet_id = Column(String, primary_key=True, unique=True)
     twitter_user_id = Column(String, ForeignKey("twitter_users.twitter_user_id", ondelete="CASCADE"))
@@ -250,7 +264,7 @@ class Tweets(Base):
     )
 
 
-class TweetAnnotations(Base):
+class TweetAnnotations(Base, ToDict):
     __tablename__ = "tweet_annotations"
     id = Column(Integer, primary_key=True, unique=True)
     tweet_id = Column(String, ForeignKey("tweets.tweet_id", ondelete="CASCADE"), unique=True)
@@ -263,7 +277,7 @@ class TweetAnnotations(Base):
     tweet: Tweets = relationship("Tweets", backref="tweet_annotations", passive_deletes=True, cascade="all,delete")
 
 
-class TweetCashtags(Base):
+class TweetCashtags(Base, ToDict):
     __tablename__ = "tweet_cashtags"
     id = Column(Integer, primary_key=True, unique=True)
     tweet_id = Column(String, ForeignKey("tweets.tweet_id", ondelete="CASCADE"), unique=True)
@@ -274,7 +288,7 @@ class TweetCashtags(Base):
     tweet: Tweets = relationship("Tweets", backref="tweet_cashtags", passive_deletes=True, cascade="all,delete")
 
 
-class TweetHashtags(Base):
+class TweetHashtags(Base, ToDict):
     __tablename__ = "tweet_hashtags"
     id = Column(Integer, primary_key=True, unique=True)
     tweet_id = Column(String, ForeignKey("tweets.tweet_id", ondelete="CASCADE"), unique=True)
@@ -285,7 +299,7 @@ class TweetHashtags(Base):
     tweet: Tweets = relationship("Tweets", backref="tweet_hashtags", passive_deletes=True, cascade="all,delete")
 
 
-class TweetMentions(Base):
+class TweetMentions(Base, ToDict):
     __tablename__ = "tweet_mentions"
     id = Column(Integer, primary_key=True, unique=True)
     tweet_id = Column(String, ForeignKey("tweets.tweet_id", ondelete="CASCADE"), unique=True)
@@ -296,7 +310,7 @@ class TweetMentions(Base):
     tweet: Tweets = relationship("Tweets", backref="tweet_mentions", passive_deletes=True, cascade="all,delete")
 
 
-class TweetURLs(Base):
+class TweetURLs(Base, ToDict):
     __tablename__ = "tweet_urls"
     id = Column(Integer, primary_key=True, unique=True)
     tweet_id = Column(String, ForeignKey("tweets.tweet_id", ondelete="CASCADE"), unique=True)
@@ -314,7 +328,7 @@ class TweetURLs(Base):
     tweet: Tweets = relationship("Tweets", backref="tweet_urls", passive_deletes=True, cascade="all,delete")
 
 
-class Posts(Base):
+class Posts(Base, ToDict):
     __tablename__ = "posts"
     id = Column(Integer, primary_key=True, unique=True)
     creator_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"))
@@ -353,7 +367,7 @@ class PostsModel(BaseModel):
     updated_at: Optional[datetime.datetime]
 
 
-class PostLikes(Base):
+class PostLikes(Base, ToDict):
     __tablename__ = "post_likes"
     user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
     post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"), primary_key=True)
@@ -367,7 +381,7 @@ class PostLikes(Base):
     )
 
 
-class PostComments(Base):
+class PostComments(Base, ToDict):
     __tablename__ = "post_comments"
     id = Column(Integer, primary_key=True, unique=True)
     user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -384,7 +398,7 @@ class PostComments(Base):
     )
 
 
-class PostReads(Base):
+class PostReads(Base, ToDict):
     __tablename__ = "post_reads"
     id = Column(Integer, primary_key=True, unique=True)
     user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -400,7 +414,7 @@ class PostReads(Base):
     )
 
 
-class Bookmarks(Base):
+class Bookmarks(Base, ToDict):
     __tablename__ = "bookmarks"
     id = Column(Integer, primary_key=True, unique=True)
     user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -417,7 +431,7 @@ class Bookmarks(Base):
     )
 
 
-class BookmarksModel(BaseModel):
+class BookmarkModel(BaseModel):
     id: int
     user_id: uuid.UUID
     post_id: int
@@ -426,7 +440,7 @@ class BookmarksModel(BaseModel):
     is_deleted: bool
 
 
-class HuskRequests(Base):
+class HuskRequests(Base, ToDict):
     __tablename__ = "husk_requests"
     id = Column(Integer, primary_key=True, unique=True)
     twitter_user_id = Column(String)
@@ -445,7 +459,7 @@ class HuskRequestsModel(BaseModel):
     fulfilled: Optional[bool]
 
 
-class FinancialInstitutions(Base):
+class FinancialInstitutions(Base, ToDict):
     __tablename__ = "financial_institutions"
     id = Column(Integer, primary_key=True, unique=True, nullable=False)
     name = Column(String, nullable=False)
@@ -455,7 +469,7 @@ class FinancialInstitutions(Base):
     created_at = Column(DateTime, server_default=UTCNow())
 
 
-class FinancialAccounts(Base):
+class FinancialAccounts(Base, ToDict):
     __tablename__ = "financial_accounts"
     id = Column(Integer, primary_key=True, unique=True, nullable=False)
     user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
@@ -475,7 +489,7 @@ class FinancialAccounts(Base):
     created_at = Column(DateTime, server_default=UTCNow())
 
 
-class FinancialAccountTransactions(Base):
+class FinancialAccountTransactions(Base, ToDict):
     __tablename__ = "financial_account_transactions"
     id = Column(BigInteger, primary_key=True, nullable=False, unique=True)
     account_id = Column(Integer, ForeignKey("financial_accounts.id"), nullable=False)
@@ -494,7 +508,7 @@ class FinancialAccountTransactions(Base):
     unofficial_currency_code = Column(String)
 
 
-class FinancialAccountCurrentHoldings(Base):
+class FinancialAccountCurrentHoldings(Base, ToDict):
     __tablename__ = "financial_account_current_holdings"
     __table_args__ = (UniqueConstraint("account_id", "security_id"),)
     id = Column(BigInteger, primary_key=True, unique=True, nullable=False)
@@ -512,7 +526,7 @@ class FinancialAccountCurrentHoldings(Base):
     created_at = Column(DateTime, server_default=UTCNow())
 
 
-class Securities(Base):
+class Securities(Base, ToDict):
     __tablename__ = "securities"
     id = Column(Integer, primary_key=True, unique=True, nullable=False)
     plaid_security_id = Column(String, unique=True)
@@ -533,7 +547,7 @@ class Securities(Base):
     created_at = Column(DateTime, server_default=UTCNow())
 
 
-class SecurityPrices(Base):
+class SecurityPrices(Base, ToDict):
     __tablename__ = "security_prices"
     __table_args__ = (UniqueConstraint("price_time", "securities_id"),)
     id = Column(BigInteger, primary_key=True, unique=True, nullable=False)
@@ -550,7 +564,7 @@ class HistoricalJobsStatus(enum.Enum):
     failed = "FAILED"
 
 
-class HistoricalJobs(Base):
+class HistoricalJobs(Base, ToDict):
     __tablename__ = "historical_jobs"
     id = Column(Integer, primary_key=True, unique=True, nullable=False)
     user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)

@@ -7,6 +7,7 @@ from starlette.responses import RedirectResponse
 
 from backend_amirainvest_com.api.routers import (
     admin,
+    application,
     bookmarks,
     broadcast_requests,
     code_challenge,
@@ -34,6 +35,7 @@ app.include_router(broadcast_requests.router)
 app.include_router(code_challenge.router)
 app.include_router(search.router)
 app.include_router(plaid.router)
+app.include_router(application.router)
 
 app.mount("/webhooks", webhooks_app)
 

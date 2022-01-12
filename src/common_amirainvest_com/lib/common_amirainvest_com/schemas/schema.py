@@ -327,6 +327,7 @@ class Posts(Base):
     title = Column(String)
     profile_url = Column(String)
     photos = Column(ARRAY(String))
+    chip_labels = Column(ARRAY(String))
     created_at = Column(DateTime, server_default=UTCNow())
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
@@ -347,11 +348,9 @@ class PostsModel(BaseModel):
     title: Optional[str]
     profile_url: Optional[str]
     photos: Optional[List[str]]
+    chip_labels: Optional[List[str]]
     created_at: Optional[datetime.datetime]
     updated_at: Optional[datetime.datetime]
-
-    class Config:
-        arbitrary_types_allowed = True
 
 
 class PostLikes(Base):

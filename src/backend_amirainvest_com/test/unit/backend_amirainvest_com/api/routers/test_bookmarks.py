@@ -66,6 +66,7 @@ async def test_create_bookmark(async_session_maker_test):
         users = users.scalars().all()
         assert post_bookmarker.id in [x.id for x in users]
 
+
 @pytest.mark.asyncio
 async def test_delete_bookmark(async_session_maker_test):
     session_test: AsyncSession = async_session_maker_test()

@@ -13,7 +13,7 @@ from backend_amirainvest_com.api.app import app
 from common_amirainvest_com.schemas.schema import Users
 from common_amirainvest_com.utils.test.factories.schema import UsersFactory
 
-from .config import AUTH_HEADERS
+from ..config import AUTH_HEADERS
 
 
 @pytest.mark.asyncio

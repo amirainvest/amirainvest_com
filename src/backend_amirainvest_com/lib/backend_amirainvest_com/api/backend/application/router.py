@@ -7,5 +7,5 @@ router = APIRouter(prefix="/application", tags=["Application"])
 
 
 @router.get("/config", status_code=200)
-async def get_application_config():
+async def config_route():
     return config

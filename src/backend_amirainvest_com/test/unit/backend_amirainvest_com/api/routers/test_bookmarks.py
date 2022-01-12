@@ -4,6 +4,7 @@ from datetime import datetime
 from random import randint
 
 import pytest
+from fastapi import status
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -16,7 +17,16 @@ from .config import AUTH_HEADERS
 
 
 @pytest.mark.asyncio
-async def test_get_all_user_bookmarks():
+async def test_auth():
+    async with AsyncClient(app=app, base_url="http://test") as async_client:
+        response = await async_client.post("/bookmark/list")
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.json() == {"detail": "Not authenticated"}
+
+
+@pytest.mark.asyncio
+async def test_list():
     post_bookmarker = await UsersFactory()
     post_creator = await UsersFactory()
     post = await PostsFactory(creator_id=post_creator.id)
@@ -25,7 +35,7 @@ async def test_get_all_user_bookmarks():
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post("/bookmark/list", params={"user_id": bookmark.user_id}, headers=AUTH_HEADERS)
 
-    assert response.status_code == 200
+    assert response.status_code == status.HTTP_200_OK
     response_data = response.json()
 
     results = response_data["results"]
@@ -36,7 +46,7 @@ async def test_get_all_user_bookmarks():
 
 
 @pytest.mark.asyncio
-async def test_create_bookmark(async_session_maker_test):
+async def test_create(async_session_maker_test):
     session_test: AsyncSession = async_session_maker_test()
 
     post_bookmarker = await UsersFactory()
@@ -57,7 +67,7 @@ async def test_create_bookmark(async_session_maker_test):
             ),
             headers=AUTH_HEADERS,
         )
-        assert response.status_code == 201
+        assert response.status_code == status.HTTP_201_CREATED
         response_data = response.json()
         assert response_data["user_id"] == str(post_bookmarker.id)
         assert response_data["post_id"] == post.id
@@ -68,7 +78,7 @@ async def test_create_bookmark(async_session_maker_test):
 
 
 @pytest.mark.asyncio
-async def test_delete_bookmark(async_session_maker_test):
+async def test_delete(async_session_maker_test):
     session_test: AsyncSession = async_session_maker_test()
 
     post_bookmarker = await UsersFactory()
@@ -83,7 +93,7 @@ async def test_delete_bookmark(async_session_maker_test):
             headers=AUTH_HEADERS,
         )
 
-    assert response.status_code == 200
+    assert response.status_code == status.HTTP_200_OK
 
     user_bookmarks = await session_test.execute(select(Bookmarks).where(Bookmarks.user_id == post_bookmarker.id))
     assert bookmark.id not in [x.id for x in user_bookmarks]

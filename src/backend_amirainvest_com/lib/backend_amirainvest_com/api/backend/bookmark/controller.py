@@ -1,4 +1,5 @@
 import typing as t
+import uuid
 
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,13 +11,13 @@ from common_amirainvest_com.utils.decorators import Session
 
 
 @Session
-async def get_all_for_user_controller(session: AsyncSession, user_id: str) -> t.List[Bookmarks]:
+async def list_controller(session: AsyncSession, user_id: uuid.UUID) -> t.List[Bookmarks]:
     data = await session.execute(select(aliased(Bookmarks)).where(Bookmarks.user_id == user_id))
     return data.scalars().all()
 
 
 @Session
-async def create_controller(session: AsyncSession, user_id: str, bookmark_data: dict) -> Bookmarks:
+async def create_controller(session: AsyncSession, user_id: uuid.UUID, bookmark_data: dict) -> Bookmarks:
     bookmark_data["user_id"] = user_id
     bookmark = Bookmarks(**bookmark_data)
     session.add(bookmark)
@@ -24,5 +25,5 @@ async def create_controller(session: AsyncSession, user_id: str, bookmark_data: 
 
 
 @Session
-async def delete_controller(session: AsyncSession, bookmark_id: int, user_id: str):
+async def delete_controller(session: AsyncSession, user_id: uuid.UUID, bookmark_id: int):
     await session.execute(delete(Bookmarks).where(Bookmarks.id == bookmark_id, Bookmarks.user_id == user_id))

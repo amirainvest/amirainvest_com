@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from backend_amirainvest_com.controllers.application import config
+from backend_amirainvest_com.api.backend.application.controller import config
 
 
 router = APIRouter(prefix="/application", tags=["Application"])

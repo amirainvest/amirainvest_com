@@ -326,6 +326,7 @@ class Posts(Base):
     html = Column(String)
     title = Column(String)
     profile_url = Column(String)
+    chip_labels = Column(ARRAY(String))
     created_at = Column(DateTime, server_default=UTCNow())
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
@@ -345,6 +346,7 @@ class PostsModel(BaseModel):
     html: Optional[str]
     title: Optional[str]
     profile_url: Optional[str]
+    chip_labels: Optional[List[str]]
     created_at: Optional[datetime.datetime]
     updated_at: Optional[datetime.datetime]
 

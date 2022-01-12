@@ -13,6 +13,7 @@ from data_imports_amirainvest_com.controllers.substack_articles import (
     get_substack_articles_for_username,
 )
 from data_imports_amirainvest_com.controllers.substack_users import create_substack_user
+from data_imports_amirainvest_com.controllers.users import get_user
 from data_imports_amirainvest_com.platforms.platforms import PlatformUser
 
 
@@ -32,6 +33,7 @@ class SubstackUser(PlatformUser):
         articles = []
         article_posts = []
         existing_articles = await get_substack_articles_for_username(self.username)
+        user = await get_user(self.creator_id)
         for article in feedparser.parse(self.user_url).entries:
             if article["id"] not in [x.article_id for x in existing_articles]:
                 summary = BeautifulSoup(article["summary"], features="html.parser").get_text()
@@ -58,6 +60,7 @@ class SubstackUser(PlatformUser):
                         "html": "",
                         "title": article["title"],
                         "profile_url": "",
+                        "chip_labels": user.chip_labels,
                         "created_at": created_at,
                         "updated_at": created_at,
                     }

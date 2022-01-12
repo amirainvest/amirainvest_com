@@ -1,7 +1,7 @@
 """added photos to posts
 
 Revision ID: f5af631e5a8e
-Revises: 5b040aa8b85b
+Revises: 2ec5de1da021
 Create Date: 2022-01-11 23:42:24.117615
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'f5af631e5a8e'
-down_revision = '5b040aa8b85b'
+down_revision = '2ec5de1da021'
 branch_labels = None
 depends_on = None
 

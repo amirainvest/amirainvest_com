@@ -7,7 +7,12 @@ from common_amirainvest_com.utils.generic_utils import get_past_datetime
 
 
 @Session
-async def update_amira_post(session, amira_post_data: dict):
+async def get_post(session, post_id: int):
+    return (await session.execute(select(Posts).where(Posts.id == post_id))).scalars().first()
+
+
+@Session
+async def update_post(session, amira_post_data: dict):
     await (
         session.execute(
             update(Posts)
@@ -19,8 +24,8 @@ async def update_amira_post(session, amira_post_data: dict):
 
 
 @Session
-async def create_amira_post(session, amira_post_data: dict):
-    post = Posts(**amira_post_data)
+async def create_post(session, post_data: dict):
+    post = Posts(**post_data)
     session.add(post)
     return post
 

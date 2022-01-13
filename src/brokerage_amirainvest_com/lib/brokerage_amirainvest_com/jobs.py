@@ -6,7 +6,7 @@ from sqlalchemy import and_, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from common_amirainvest_com.schemas.schema import FinancialJobs, FinancialJobsStatus
+from common_amirainvest_com.schemas.schema import BrokerageJobs, BrokerageJobsStatus
 from common_amirainvest_com.utils.decorators import Session
 
 
@@ -19,9 +19,9 @@ MAX_JOB_RETRIES = 3
 @Session
 async def start_historical_job(session: AsyncSession, user_id: uuid.UUID) -> Optional[int]:
     response = await session.execute(
-        select(FinancialJobs).where(
-            and_(FinancialJobs.user_id == user_id),
-            and_(FinancialJobs.status == FinancialJobsStatus.running),
+        select(BrokerageJobs).where(
+            and_(BrokerageJobs.user_id == user_id),
+            and_(BrokerageJobs.status == BrokerageJobsStatus.running),
         )
     )
 
@@ -29,9 +29,9 @@ async def start_historical_job(session: AsyncSession, user_id: uuid.UUID) -> Opt
     if len(data) > 0:
         return 0
 
-    historical_job = FinancialJobs(
+    historical_job = BrokerageJobs(
         user_id=user_id,
-        status=FinancialJobsStatus.running,
+        status=BrokerageJobsStatus.running,
         retries=0,
         params="",
         started_at=datetime.datetime.utcnow(),
@@ -44,30 +44,30 @@ async def start_historical_job(session: AsyncSession, user_id: uuid.UUID) -> Opt
 
 
 @Session
-async def end_historical_job(session: AsyncSession, job_id: int, status: FinancialJobsStatus):
+async def end_historical_job(session: AsyncSession, job_id: int, status: BrokerageJobsStatus):
     return await session.execute(
-        update(FinancialJobs)
-        .where(FinancialJobs.id == job_id)
+        update(BrokerageJobs)
+        .where(BrokerageJobs.id == job_id)
         .values(status=status, ended_at=datetime.datetime.utcnow())
     )
 
 
 async def end_historical_job_successfully(job_id: int):
-    return await end_historical_job(job_id, FinancialJobsStatus.succeeded)
+    return await end_historical_job(job_id, BrokerageJobsStatus.succeeded)
 
 
 @Session
 async def retry_historical_job(session: AsyncSession, job_id: int):
-    data = await session.execute(select(FinancialJobs).where(FinancialJobs.id == job_id))
+    data = await session.execute(select(BrokerageJobs).where(BrokerageJobs.id == job_id))
     job = data.scalar()
     if job is None:
         return
     if job.retries > MAX_JOB_RETRIES:
-        return await end_historical_job(job_id=job_id, status=FinancialJobsStatus.failed)
+        return await end_historical_job(job_id=job_id, status=BrokerageJobsStatus.failed)
 
     cur_retires = job.retries + 1
     return await session.execute(
-        update(FinancialJobs)
-        .where(FinancialJobs.id == job_id)
-        .values(retries=cur_retires, status=FinancialJobsStatus.pending)
+        update(BrokerageJobs)
+        .where(BrokerageJobs.id == job_id)
+        .values(retries=cur_retires, status=BrokerageJobsStatus.pending)
     )

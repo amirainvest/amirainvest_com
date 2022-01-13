@@ -557,18 +557,18 @@ class PlaidSecurityPrices(Base, ToDict):
     created_at = Column(DateTime, server_default=UTCNow())
 
 
-class FinancialJobsStatus(enum.Enum):
+class BrokerageJobsStatus(enum.Enum):
     pending = "PENDING"
     running = "RUNNING"
     succeeded = "SUCCEEDED"
     failed = "FAILED"
 
 
-class FinancialJobs(Base, ToDict):
-    __tablename__ = "financial_jobs"
+class BrokerageJobs(Base, ToDict):
+    __tablename__ = "brokerage_jobs"
     id = Column(Integer, primary_key=True, unique=True, nullable=False)
     user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    status = Column(Enum(FinancialJobsStatus), default=FinancialJobsStatus.pending.value, nullable=False)
+    status = Column(Enum(BrokerageJobsStatus), default=BrokerageJobsStatus.pending.value, nullable=False)
     retries = Column(Integer, default=0, nullable=False)
     params = Column(String)
     started_at = Column(DateTime)

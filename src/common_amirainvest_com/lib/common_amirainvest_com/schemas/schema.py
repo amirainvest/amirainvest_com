@@ -449,7 +449,7 @@ class Platforms(enum.Enum):
 class HuskRequests(Base, ToDict):
     __tablename__ = "husk_requests"
     id = Column(Integer, primary_key=True, unique=True)
-    platform_id = Column(String, nullable=False),
+    platform_id = Column(String, nullable=False)
     platform = Column(Enum(Platforms), nullable=False)
     created_at = Column(DateTime, server_default=UTCNow())
     fulfilled = Column(Boolean)

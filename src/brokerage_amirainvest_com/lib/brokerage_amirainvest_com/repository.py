@@ -8,7 +8,7 @@ from common_amirainvest_com.schemas.schema import (
     FinancialAccounts,
     FinancialAccountTransactions,
     FinancialInstitutions,
-    Securities,
+    PlaidSecurities,
 )
 from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
 from common_amirainvest_com.utils.decorators import Session
@@ -27,8 +27,10 @@ async def add_financial_account(session: AsyncSession, financial_account: Financ
 
 
 @Session
-async def get_securities_by_plaid_ids(session: AsyncSession, ids: list[str]) -> list[Securities]:
-    existing_securities_res = await session.execute(select(Securities).where(Securities.plaid_security_id.in_(ids)))
+async def get_securities_by_plaid_ids(session: AsyncSession, ids: list[str]) -> list[PlaidSecurities]:
+    existing_securities_res = await session.execute(
+        select(PlaidSecurities).where(PlaidSecurities.plaid_security_id.in_(ids))
+    )
     return existing_securities_res.scalars().all()
 
 

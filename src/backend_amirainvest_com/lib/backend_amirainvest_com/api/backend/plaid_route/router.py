@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Form, Request, Security
+from fastapi import APIRouter, Form, Request, Security, status
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 
@@ -12,17 +12,17 @@ from common_amirainvest_com.sqs.utils import add_message_to_queue
 
 
 router = APIRouter(prefix="/plaid", tags=["Plaid"], dependencies=[Security(auth_dep, scopes=[])])
-templates = Jinja2Templates(directory="src/backend_amirainvest_com/lib/backend_amirainvest_com/templates")
+templates = Jinja2Templates(directory="./templates")
 
 
-@router.get("/link", status_code=200, response_class=HTMLResponse)
+@router.get("/link", status_code=status.HTTP_200_OK, response_class=HTMLResponse)
 async def get_link(request: Request, user_id: str):
     link_token = generate_link_token(user_id)
     return templates.TemplateResponse("link.html", {"request": request, "link_token": link_token})
 
 
 # TODO Could move most of the logic to controller
-@router.post("/link", status_code=200, response_class=JSONResponse)
+@router.post("/link", status_code=status.HTTP_200_OK, response_class=JSONResponse)
 async def post_link(user_id: str, public_token: str = Form(...)):
     exchange_response = exchange_public_for_access_token(public_token)
     access_token = exchange_response["access_token"]

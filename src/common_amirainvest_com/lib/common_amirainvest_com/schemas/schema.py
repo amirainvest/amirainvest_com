@@ -530,8 +530,8 @@ class FinancialAccountCurrentHoldings(Base, ToDict):
     created_at = Column(DateTime, server_default=UTCNow())
 
 
-class Securities(Base, ToDict):
-    __tablename__ = "securities"
+class PlaidSecurities(Base, ToDict):
+    __tablename__ = "plaid_securities"
     id = Column(Integer, primary_key=True, unique=True, nullable=False)
     plaid_security_id = Column(String, unique=True)
     name = Column(String, nullable=False)
@@ -551,6 +551,60 @@ class Securities(Base, ToDict):
     created_at = Column(DateTime, server_default=UTCNow())
 
 
+class PlaidSecurityPrices(Base, ToDict):
+    __tablename__ = "plaid_security_prices"
+    __table_args__ = (UniqueConstraint("price_time", "plaid_securities_id"),)
+    id = Column(BigInteger, primary_key=True, unique=True, nullable=False)
+    plaid_securities_id = Column(Integer, ForeignKey("plaid_securities.id"), nullable=False)
+    price = Column(DECIMAL(19, 4), nullable=False)
+    price_time = Column(DateTime, nullable=False)
+    created_at = Column(DateTime, server_default=UTCNow())
+
+
+class BrokerageJobsStatus(enum.Enum):
+    pending = "PENDING"
+    running = "RUNNING"
+    succeeded = "SUCCEEDED"
+    failed = "FAILED"
+
+
+class BrokerageJobs(Base, ToDict):
+    __tablename__ = "brokerage_jobs"
+    id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    status = Column(Enum(BrokerageJobsStatus), default=BrokerageJobsStatus.pending.value, nullable=False)
+    retries = Column(Integer, default=0, nullable=False)
+    params = Column(String)
+    started_at = Column(DateTime)
+    ended_at = Column(DateTime)
+    created_at = Column(DateTime, server_default=UTCNow(), nullable=False)
+
+
+class Securities(Base, ToDict):
+    __tablename__ = "securities"
+    id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    name = Column(String, nullable=False)
+    ticker_symbol = Column(String, unique=True)
+    exchange = Column(String)
+    description = Column(String)
+    website = Column(String)
+    industry = Column(String)
+    ceo = Column(String)
+    issue_type = Column(String)
+    sector = Column(String)
+    primary_sic_code = Column(BigInteger)
+    employee_count = Column(Integer)
+    address = Column(String)
+    phone = Column(String)
+    open_price = Column(DECIMAL(19, 4), nullable=False)
+    close_price = Column(DECIMAL(19, 4), nullable=False)
+    type = Column(String)
+    iso_currency_code = Column(String)
+    unofficial_currency_code = Column(String)
+    last_updated = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
+    created_at = Column(DateTime, server_default=UTCNow())
+
+
 class SecurityPrices(Base, ToDict):
     __tablename__ = "security_prices"
     __table_args__ = (UniqueConstraint("price_time", "securities_id"),)
@@ -559,22 +613,3 @@ class SecurityPrices(Base, ToDict):
     price = Column(DECIMAL(19, 4), nullable=False)
     price_time = Column(DateTime, nullable=False)
     created_at = Column(DateTime, server_default=UTCNow())
-
-
-class HistoricalJobsStatus(enum.Enum):
-    pending = "PENDING"
-    running = "RUNNING"
-    succeeded = "SUCCEEDED"
-    failed = "FAILED"
-
-
-class HistoricalJobs(Base, ToDict):
-    __tablename__ = "historical_jobs"
-    id = Column(Integer, primary_key=True, unique=True, nullable=False)
-    user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    status = Column(Enum(HistoricalJobsStatus), default=HistoricalJobsStatus.pending.value, nullable=False)
-    retries = Column(Integer, default=0, nullable=False)
-    params = Column(String)
-    started_at = Column(DateTime)
-    ended_at = Column(DateTime)
-    created_at = Column(DateTime, server_default=UTCNow(), nullable=False)

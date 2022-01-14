@@ -28,7 +28,7 @@ async def create_route(
     user_id: uuid.UUID,
     bookmark_data: CreateModel,
 ):
-    bookmark = await create_controller(user_id, bookmark_data.dict())
+    bookmark = await create_controller(user_id, bookmark_data)
     bookmark = bookmark.dict()
     return bookmark
 

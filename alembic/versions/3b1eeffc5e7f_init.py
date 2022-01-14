@@ -1,8 +1,8 @@
 """init
 
-Revision ID: 86596800335d
+Revision ID: 3b1eeffc5e7f
 Revises: 
-Create Date: 2022-01-04 16:41:16.891726
+Create Date: 2022-01-13 22:34:16.288794
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = '86596800335d'
+revision = '3b1eeffc5e7f'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -40,6 +40,32 @@ def upgrade():
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('id')
     )
+    op.create_table('securities',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('name', sa.String(), nullable=False),
+    sa.Column('ticker_symbol', sa.String(), nullable=True),
+    sa.Column('exchange', sa.String(), nullable=True),
+    sa.Column('description', sa.String(), nullable=True),
+    sa.Column('website', sa.String(), nullable=True),
+    sa.Column('industry', sa.String(), nullable=True),
+    sa.Column('ceo', sa.String(), nullable=True),
+    sa.Column('issue_type', sa.String(), nullable=True),
+    sa.Column('sector', sa.String(), nullable=True),
+    sa.Column('primary_sic_code', sa.BigInteger(), nullable=True),
+    sa.Column('employee_count', sa.Integer(), nullable=True),
+    sa.Column('address', sa.String(), nullable=True),
+    sa.Column('phone', sa.String(), nullable=True),
+    sa.Column('open_price', sa.DECIMAL(precision=19, scale=4), nullable=False),
+    sa.Column('close_price', sa.DECIMAL(precision=19, scale=4), nullable=False),
+    sa.Column('type', sa.String(), nullable=True),
+    sa.Column('iso_currency_code', sa.String(), nullable=True),
+    sa.Column('unofficial_currency_code', sa.String(), nullable=True),
+    sa.Column('last_updated', sa.DateTime(), server_default=sa.text("TIMEZONE('utc', CURRENT_TIMESTAMP)"), nullable=True),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text("TIMEZONE('utc', CURRENT_TIMESTAMP)"), nullable=True),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('id'),
+    sa.UniqueConstraint('ticker_symbol')
+    )
     op.create_table('users',
     sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
     sa.Column('sub', sa.String(), nullable=False),
@@ -57,6 +83,7 @@ def upgrade():
     sa.Column('interests_short_term', sa.Boolean(), nullable=True),
     sa.Column('interests_diversification_rating', sa.Integer(), nullable=True),
     sa.Column('benchmark', sa.String(), nullable=True),
+    sa.Column('chip_labels', sa.ARRAY(sa.String()), nullable=True),
     sa.Column('public_profile', sa.Boolean(), nullable=True),
     sa.Column('public_performance', sa.Boolean(), nullable=True),
     sa.Column('public_holdings', sa.Boolean(), nullable=True),
@@ -64,6 +91,7 @@ def upgrade():
     sa.Column('is_claimed', sa.Boolean(), nullable=True),
     sa.Column('is_deactivated', sa.Boolean(), nullable=True),
     sa.Column('is_deleted', sa.Boolean(), nullable=True),
+    sa.Column('deleted_at', sa.DateTime(), nullable=True),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text("TIMEZONE('utc', CURRENT_TIMESTAMP)"), nullable=True),
     sa.Column('updated_at', sa.DateTime(), server_default=sa.text("TIMEZONE('utc', CURRENT_TIMESTAMP)"), nullable=True),
     sa.PrimaryKeyConstraint('id'),
@@ -76,6 +104,19 @@ def upgrade():
     sa.Column('created_at', sa.DateTime(), server_default=sa.text("TIMEZONE('utc', CURRENT_TIMESTAMP)"), nullable=True),
     sa.ForeignKeyConstraint(['creator_id'], ['users.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['subscriber_id'], ['users.id'], ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('id')
+    )
+    op.create_table('brokerage_jobs',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('user_id', postgresql.UUID(as_uuid=True), nullable=False),
+    sa.Column('status', sa.Enum('pending', 'running', 'succeeded', 'failed', name='brokeragejobsstatus'), nullable=False),
+    sa.Column('retries', sa.Integer(), nullable=False),
+    sa.Column('params', sa.String(), nullable=True),
+    sa.Column('started_at', sa.DateTime(), nullable=True),
+    sa.Column('ended_at', sa.DateTime(), nullable=True),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text("TIMEZONE('utc', CURRENT_TIMESTAMP)"), nullable=False),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('id')
     )
@@ -101,37 +142,7 @@ def upgrade():
     sa.UniqueConstraint('id'),
     sa.UniqueConstraint('plaid_id')
     )
-    op.create_table('historical_jobs',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('user_id', postgresql.UUID(as_uuid=True), nullable=False),
-    sa.Column('status', sa.Enum('pending', 'running', 'succeeded', 'failed', name='historicaljobsstatus'), nullable=False),
-    sa.Column('retries', sa.Integer(), nullable=False),
-    sa.Column('params', sa.String(), nullable=True),
-    sa.Column('started_at', sa.DateTime(), nullable=True),
-    sa.Column('ended_at', sa.DateTime(), nullable=True),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text("TIMEZONE('utc', CURRENT_TIMESTAMP)"), nullable=False),
-    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('id')
-    )
-    op.create_table('posts',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('creator_id', postgresql.UUID(as_uuid=True), nullable=True),
-    sa.Column('platform', sa.String(), nullable=True),
-    sa.Column('platform_user_id', sa.String(), nullable=True),
-    sa.Column('platform_post_id', sa.String(), nullable=True),
-    sa.Column('profile_img_url', sa.String(), nullable=True),
-    sa.Column('text', sa.String(), nullable=True),
-    sa.Column('html', sa.String(), nullable=True),
-    sa.Column('title', sa.String(), nullable=True),
-    sa.Column('profile_url', sa.String(), nullable=True),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text("TIMEZONE('utc', CURRENT_TIMESTAMP)"), nullable=True),
-    sa.Column('updated_at', sa.DateTime(), server_default=sa.text("TIMEZONE('utc', CURRENT_TIMESTAMP)"), nullable=True),
-    sa.ForeignKeyConstraint(['creator_id'], ['users.id'], ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('id')
-    )
-    op.create_table('securities',
+    op.create_table('plaid_securities',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('plaid_security_id', sa.String(), nullable=True),
     sa.Column('name', sa.String(), nullable=False),
@@ -154,6 +165,36 @@ def upgrade():
     sa.UniqueConstraint('id'),
     sa.UniqueConstraint('plaid_security_id'),
     sa.UniqueConstraint('ticker_symbol')
+    )
+    op.create_table('posts',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('creator_id', postgresql.UUID(as_uuid=True), nullable=True),
+    sa.Column('platform', sa.String(), nullable=True),
+    sa.Column('platform_user_id', sa.String(), nullable=True),
+    sa.Column('platform_post_id', sa.String(), nullable=True),
+    sa.Column('profile_img_url', sa.String(), nullable=True),
+    sa.Column('text', sa.String(), nullable=True),
+    sa.Column('html', sa.String(), nullable=True),
+    sa.Column('title', sa.String(), nullable=True),
+    sa.Column('profile_url', sa.String(), nullable=True),
+    sa.Column('photos', sa.ARRAY(sa.String()), nullable=True),
+    sa.Column('chip_labels', sa.ARRAY(sa.String()), nullable=True),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text("TIMEZONE('utc', CURRENT_TIMESTAMP)"), nullable=True),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text("TIMEZONE('utc', CURRENT_TIMESTAMP)"), nullable=True),
+    sa.ForeignKeyConstraint(['creator_id'], ['users.id'], ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('id')
+    )
+    op.create_table('security_prices',
+    sa.Column('id', sa.BigInteger(), nullable=False),
+    sa.Column('securities_id', sa.Integer(), nullable=False),
+    sa.Column('price', sa.DECIMAL(precision=19, scale=4), nullable=False),
+    sa.Column('price_time', sa.DateTime(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text("TIMEZONE('utc', CURRENT_TIMESTAMP)"), nullable=True),
+    sa.ForeignKeyConstraint(['securities_id'], ['securities.id'], ),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('id'),
+    sa.UniqueConstraint('price_time', 'securities_id')
     )
     op.create_table('substack_users',
     sa.Column('username', sa.String(), nullable=False),
@@ -232,20 +273,23 @@ def upgrade():
     )
     op.create_table('financial_account_current_holdings',
     sa.Column('id', sa.BigInteger(), nullable=False),
+    sa.Column('user_id', postgresql.UUID(as_uuid=True), nullable=False),
     sa.Column('account_id', sa.Integer(), nullable=False),
     sa.Column('security_id', sa.Integer(), nullable=False),
     sa.Column('latest_price', sa.DECIMAL(precision=19, scale=4), nullable=False),
     sa.Column('latest_price_date', sa.DateTime(), nullable=True),
     sa.Column('institution_value', sa.DECIMAL(precision=19, scale=4), nullable=False),
     sa.Column('cost_basis', sa.DECIMAL(precision=19, scale=4), nullable=True),
-    sa.Column('updated_at', sa.DateTime(), server_default=sa.text("TIMEZONE('utc', CURRENT_TIMESTAMP)"), nullable=True),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text("TIMEZONE('utc', CURRENT_TIMESTAMP)"), nullable=True),
     sa.Column('quantity', sa.DECIMAL(precision=19, scale=4), nullable=False),
     sa.Column('iso_currency_code', sa.String(), nullable=True),
     sa.Column('unofficial_currency_code', sa.String(), nullable=True),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text("TIMEZONE('utc', CURRENT_TIMESTAMP)"), nullable=True),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text("TIMEZONE('utc', CURRENT_TIMESTAMP)"), nullable=True),
     sa.ForeignKeyConstraint(['account_id'], ['financial_accounts.id'], ),
     sa.ForeignKeyConstraint(['security_id'], ['securities.id'], ),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('account_id', 'security_id'),
     sa.UniqueConstraint('id')
     )
     op.create_table('financial_account_transactions',
@@ -267,9 +311,19 @@ def upgrade():
     sa.ForeignKeyConstraint(['account_id'], ['financial_accounts.id'], ),
     sa.ForeignKeyConstraint(['security_id'], ['securities.id'], ),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('account_id', 'security_id', 'posting_date'),
     sa.UniqueConstraint('id'),
     sa.UniqueConstraint('plaid_investment_transaction_id')
+    )
+    op.create_table('plaid_security_prices',
+    sa.Column('id', sa.BigInteger(), nullable=False),
+    sa.Column('plaid_securities_id', sa.Integer(), nullable=False),
+    sa.Column('price', sa.DECIMAL(precision=19, scale=4), nullable=False),
+    sa.Column('price_time', sa.DateTime(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text("TIMEZONE('utc', CURRENT_TIMESTAMP)"), nullable=True),
+    sa.ForeignKeyConstraint(['plaid_securities_id'], ['plaid_securities.id'], ),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('id'),
+    sa.UniqueConstraint('price_time', 'plaid_securities_id')
     )
     op.create_table('post_comments',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -301,17 +355,6 @@ def upgrade():
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('id')
-    )
-    op.create_table('security_prices',
-    sa.Column('id', sa.BigInteger(), nullable=False),
-    sa.Column('securities_id', sa.Integer(), nullable=False),
-    sa.Column('price', sa.DECIMAL(precision=19, scale=4), nullable=False),
-    sa.Column('price_time', sa.DateTime(), nullable=False),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text("TIMEZONE('utc', CURRENT_TIMESTAMP)"), nullable=True),
-    sa.ForeignKeyConstraint(['securities_id'], ['securities.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('id'),
-    sa.UniqueConstraint('price_time', 'securities_id')
     )
     op.create_table('substack_articles',
     sa.Column('article_id', sa.String(), nullable=False),
@@ -432,10 +475,10 @@ def downgrade():
     op.drop_table('youtube_videos')
     op.drop_table('tweets')
     op.drop_table('substack_articles')
-    op.drop_table('security_prices')
     op.drop_table('post_reads')
     op.drop_table('post_likes')
     op.drop_table('post_comments')
+    op.drop_table('plaid_security_prices')
     op.drop_table('financial_account_transactions')
     op.drop_table('financial_account_current_holdings')
     op.drop_table('bookmarks')
@@ -444,12 +487,14 @@ def downgrade():
     op.drop_table('user_media_errors')
     op.drop_table('twitter_users')
     op.drop_table('substack_users')
-    op.drop_table('securities')
+    op.drop_table('security_prices')
     op.drop_table('posts')
-    op.drop_table('historical_jobs')
+    op.drop_table('plaid_securities')
     op.drop_table('financial_accounts')
+    op.drop_table('brokerage_jobs')
     op.drop_table('broadcast_requests')
     op.drop_table('users')
+    op.drop_table('securities')
     op.drop_table('husk_requests')
     op.drop_table('financial_institutions')
     # ### end Alembic commands ###

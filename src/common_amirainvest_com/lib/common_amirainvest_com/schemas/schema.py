@@ -62,12 +62,9 @@ class Users(Base, ToDict):
     personal_site_url = Column(String)
     linkedin_profile = Column(String)
     email_verified = Column(Boolean, default=False)
-    interests_value = Column(Boolean)
-    interests_growth = Column(Boolean)
-    interests_long_term = Column(Boolean)
-    interests_short_term = Column(Boolean)
     interests_diversification_rating = Column(Integer)
     benchmark = Column(String)
+    trading_strategy = Column(String)
     chip_labels = Column(ARRAY(String))
     public_profile = Column(Boolean)
     public_performance = Column(Boolean)
@@ -92,12 +89,9 @@ class UsersModel(BaseModel):
     personal_site_url: Optional[str]
     linkedin_profile: Optional[str]
     email_verified: bool
-    interests_value: Optional[bool]
-    interests_growth: Optional[bool]
-    interests_long_term: Optional[bool]
-    interests_short_term: Optional[bool]
     interests_diversification_rating: Optional[int]
     benchmark: Optional[str]
+    trading_strategy: Optional[str]
     chip_labels: Optional[List[str]]
     public_profile: Optional[bool]
     public_performance: Optional[bool]
@@ -109,6 +103,24 @@ class UsersModel(BaseModel):
     deleted_at: Optional[datetime.datetime]
     created_at: Optional[datetime.datetime]
     updated_at: Optional[datetime.datetime]
+
+
+class Benchmarks(Base):
+    __tablename__ = "benchmarks"
+    id = Column(Integer, primary_key=True, unique=True)
+    name = Column(String)
+
+
+class TradingStrategies(Base):
+    __tablename__ = "trading_strategies"
+    id = Column(Integer, primary_key=True, unique=True)
+    name = Column(String)
+
+
+class ChipLabels(Base):
+    __tablename__ = "chip_labels"
+    id = Column(Integer, primary_key=True, unique=True)
+    name = Column(String)
 
 
 class BroadcastRequests(Base, ToDict):

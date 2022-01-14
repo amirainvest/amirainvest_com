@@ -440,7 +440,7 @@ class BookmarkModel(BaseModel):
     is_deleted: bool
 
 
-class Platforms(enum.Enum):
+class HuskPlatforms(enum.Enum):
     youtube = "YouTube"
     substack = "Substack"
     twitter = "Twitter"
@@ -449,15 +449,17 @@ class Platforms(enum.Enum):
 class HuskRequests(Base, ToDict):
     __tablename__ = "husk_requests"
     id = Column(Integer, primary_key=True, unique=True)
+    provided_name = Column(String, nullable=False)
     platform_id = Column(String, nullable=False)
-    platform = Column(Enum(Platforms), nullable=False)
+    platform = Column(Enum(HuskPlatforms), nullable=False)
     created_at = Column(DateTime, server_default=UTCNow())
     fulfilled = Column(Boolean)
 
 
 class HuskRequestsModel(BaseModel):
     id: int
-    platform: Platforms
+    provided_name: str
+    platform: HuskPlatforms
     platform_id: str
     created_at: Optional[datetime.datetime]
     fulfilled: Optional[bool]

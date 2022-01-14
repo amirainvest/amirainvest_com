@@ -26,12 +26,8 @@ async def get_like_content(search_term: str):
 async def search_users():
     all_users = await search.get_all_users()
     return [
-        {
-            "name": user.name,
-            "user_id": user.id,
-            "benchmark": user.benchmark,
-            "chip_labels": user.chip_labels
-        } for user in all_users
+        {"name": user.name, "user_id": user.id, "benchmark": user.benchmark, "chip_labels": user.chip_labels}
+        for user in all_users
     ]
 
 
@@ -39,10 +35,6 @@ async def search_users():
 async def get_like_creator(search_term: str):
     matching_users = await search.get_like_creator(search_term=search_term)
     return [
-        {
-            "name": user.name,
-            "user_id": user.id,
-            "benchmark": user.benchmark,
-            "chip_labels": user.chip_labels
-        } for user in matching_users
+        {"name": user.name, "user_id": user.id, "benchmark": user.benchmark, "chip_labels": user.chip_labels}
+        for user in matching_users
     ]

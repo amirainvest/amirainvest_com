@@ -3,8 +3,13 @@ from typing import Optional
 
 from pydantic import BaseModel
 
+from common_amirainvest_com.schemas.schema import HuskRequestsModel as GetModel
 
-class CreateHuskRequestModel(BaseModel):
+
+assert GetModel
+
+
+class CreateModel(BaseModel):
     twitter_user_id: Optional[str]
     youtube_channel_id: Optional[str]
     substack_username: Optional[str]

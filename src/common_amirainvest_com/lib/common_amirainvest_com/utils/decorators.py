@@ -13,6 +13,11 @@ _async_session: Optional[AsyncSession] = None  # NOTE: This is monkeypatched by 
 _async_session_maker = async_session_maker  # NOTE: This is monkeypatched by a test fixture!
 
 
+# TODO add typing for session decorator
+#   Waiting on : https://github.com/python/mypy/pull/11847
+#   and https://github.com/python/mypy/issues/11833
+
+
 def get_async_session() -> Optional[AsyncSession]:
     """
     Used by the test factories to get the session at factory run time.

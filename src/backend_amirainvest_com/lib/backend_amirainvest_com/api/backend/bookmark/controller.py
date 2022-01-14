@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import aliased
 
+from backend_amirainvest_com.api.backend.bookmark.model import CreateModel
 from common_amirainvest_com.schemas.schema import Bookmarks
 from common_amirainvest_com.utils.decorators import Session
 
@@ -17,9 +18,10 @@ async def list_controller(session: AsyncSession, user_id: uuid.UUID) -> t.List[B
 
 
 @Session
-async def create_controller(session: AsyncSession, user_id: uuid.UUID, bookmark_data: dict) -> Bookmarks:
-    bookmark_data["user_id"] = user_id
-    bookmark = Bookmarks(**bookmark_data)
+async def create_controller(session: AsyncSession, user_id: uuid.UUID, bookmark_data: CreateModel) -> Bookmarks:
+    bookmark_data_dict = bookmark_data.dict(exclude_none=True)
+    bookmark_data_dict["user_id"] = user_id
+    bookmark = Bookmarks(**bookmark_data_dict)
     session.add(bookmark)
     return bookmark
 

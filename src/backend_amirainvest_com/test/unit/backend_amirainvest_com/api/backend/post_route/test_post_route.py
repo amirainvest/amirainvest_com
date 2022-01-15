@@ -42,7 +42,9 @@ async def test_not_authenticated():
 
 
 @pytest.mark.asyncio
-async def test_create():
+async def test_create(async_session_maker_test):
+    session_test: AsyncSession = async_session_maker_test()
+
     post_creator = await UsersFactory()
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(
@@ -62,7 +64,15 @@ async def test_create():
             ),
             params={"user_id": post_creator.id},
         )
+
     assert response.status_code == 200
+    result = response.json()
+
+    assert result["text"] == "test"
+
+    db_result = (await session_test.execute(select(Posts))).scalars().one()
+
+    assert db_result.platform_user_id == "test"
 
 
 @pytest.mark.asyncio
@@ -92,6 +102,9 @@ async def test_update(async_session_maker_test):
             params={"user_id": post_creator.id},
         )
     assert response.status_code == 200
+    result = response.json()
+
+    assert result["platform_user_id"] == "updated"
 
     db_result = (await session_test.execute(select(Posts))).scalars().one()
 

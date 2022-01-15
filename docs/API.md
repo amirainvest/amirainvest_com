@@ -14,6 +14,7 @@
     * Check all route input/output types
     * Change any `__dict__` to `.dict()`
     * Move any `.dict()` being passed to controllers into the controller and pass entire pydantic object
+    * `list` route should return `{"results": []}`
 * app.py
     * Import new router
     * Change in app.include_router

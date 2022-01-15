@@ -1,4 +1,5 @@
-FROM python@sha256:dbbfcbf95f6b596d2be1d8f3b368016619f78f829facf6f2e361bea1151794e5 as base
+# python:3.10-slim
+FROM python@sha256:dd3016f846b8f88d8f6c28b43f1da899f07259121aff403091e6f89a703c3d36 as base
 
 WORKDIR /opt
 

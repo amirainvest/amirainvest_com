@@ -1,5 +1,5 @@
-# Latest python 3.9
-FROM python@sha256:c0dcc146710fed0a6d62cb55b92f00bfbfc3b931fff6218f4958bab58333c37b as base
+# Latest python 3.9-slim
+FROM python@sha256:f4efbe5d1eb52c221fded79ddf18e4baa0606e7766afe2f07b0b330a9e79564a as base
 
 WORKDIR /function
 

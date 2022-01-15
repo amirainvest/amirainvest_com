@@ -1,5 +1,3 @@
-from typing import List
-
 from fastapi import APIRouter, Security, status
 
 from backend_amirainvest_com.api.backend.user_feedback.controller import create_controller

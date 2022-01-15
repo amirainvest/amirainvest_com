@@ -22,4 +22,4 @@ class CreateModel(BaseModel):
 
 class UpdateModel(CreateModel):
     id: int
-    platform: Optional[str]
+    platform: Optional[str]  # type: ignore

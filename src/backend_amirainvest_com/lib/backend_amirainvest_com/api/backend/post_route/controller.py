@@ -23,10 +23,10 @@ async def update_controller(session: AsyncSession, user_id: uuid.UUID, update_da
         await (
             session.execute(
                 update(Posts)
-                    .where(Posts.creator_id == user_id)
-                    .where(Posts.id == update_data.id)
-                    .values(**update_data.dict(exclude_none=True))
-                    .returning(Posts)
+                .where(Posts.creator_id == user_id)
+                .where(Posts.id == update_data.id)
+                .values(**update_data.dict(exclude_none=True))
+                .returning(Posts)
             )
         )
     ).one()

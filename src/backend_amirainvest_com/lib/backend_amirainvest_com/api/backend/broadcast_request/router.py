@@ -18,7 +18,7 @@ router = APIRouter(
 async def list_route(creator_id: uuid.UUID):
     broadcast_request = await get_controller(creator_id)
     broadcast_request_data = [x.dict() for x in broadcast_request]
-    return {"results": broadcast_request_data}
+    return {"results": broadcast_request_data, "result_count": len(broadcast_request_data)}
 
 
 @router.post("/create", status_code=status.HTTP_200_OK, response_model=GetModel)

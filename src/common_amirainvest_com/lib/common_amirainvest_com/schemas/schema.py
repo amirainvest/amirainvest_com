@@ -133,11 +133,17 @@ class BroadcastRequestsModel(BaseModel):
     created_at: Optional[datetime.datetime]
 
 
+class SubscriptionLevel(enum.Enum):
+    standard = "standard"
+    premium = "premium"
+
+
 class UserSubscriptions(Base, ToDict):
     __tablename__ = "user_subscriptions"
     id = Column(Integer, primary_key=True, unique=True)
     subscriber_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     creator_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    subscription_level = Column(Enum(SubscriptionLevel), default=SubscriptionLevel.standard.value, nullable=False)
     created_at = Column(DateTime, server_default=UTCNow())
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
     is_deleted = Column(Boolean, nullable=False)
@@ -154,6 +160,7 @@ class UserSubscriptionsModel(BaseModel):
     id: int
     subscriber_id: uuid.UUID
     creator_id: uuid.UUID
+    subscription_level: SubscriptionLevel
     created_at: Optional[datetime.datetime]
     updated_at: Optional[datetime.datetime]
     is_deleted: bool

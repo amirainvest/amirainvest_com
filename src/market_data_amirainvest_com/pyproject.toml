@@ -1,0 +1,19 @@
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "market_data_amirainvest_com"
+version = "0.1.0"
+description = ""
+authors = ["Peter Hoburg <peterHoburg@users.noreply.github.com>"]
+packages = [
+    { include = "market_data_amirainvest_com", from = "lib" }
+]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+common_amirainvest_com = { path = "../common_amirainvest_com", develop = true }
+
+[tool.poetry.dev-dependencies]
+

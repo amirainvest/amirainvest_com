@@ -36,6 +36,10 @@ COPY --chown=default:default ./src/data_imports_amirainvest_com/pyproject.toml .
 COPY --chown=default:default ./src/data_imports_amirainvest_com/lib/data_imports_amirainvest_com/__init__.py \
 ./src/data_imports_amirainvest_com/lib/data_imports_amirainvest_com/
 
+COPY --chown=default:default ./src/market_data_amirainvest_com/pyproject.toml ./src/market_data_amirainvest_com/
+COPY --chown=default:default ./src/market_data_amirainvest_com/lib/market_data_amirainvest_com/__init__.py \
+./src/market_data_amirainvest_com/lib/market_data_amirainvest_com/
+
 
 RUN . $VIRTUALENV_PATH/bin/activate && poetry install --remove-untracked --no-dev
 

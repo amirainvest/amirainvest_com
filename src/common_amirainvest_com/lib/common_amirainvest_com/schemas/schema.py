@@ -345,6 +345,7 @@ class Posts(Base, ToDict):
     created_at = Column(DateTime, server_default=UTCNow())
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
+    # TODO I think some of these relationships are not defined correctly.
     creator: Users = relationship(
         "Users", backref="post_creator", passive_deletes=True, cascade="all,delete", foreign_keys=[creator_id]
     )

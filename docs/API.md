@@ -32,6 +32,8 @@
     * Change all requests to `.post(`
     * Change routes called
     * Change test function names
+    * Move to correct dir structure under `/test`
+    * Use fastapi status
 
 * Run `make test`
 * Run `pytest` inside of `make interactive`

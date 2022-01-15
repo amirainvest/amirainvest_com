@@ -1,12 +1,14 @@
-import datetime
-import uuid
 from typing import List, Optional
 
 from pydantic import BaseModel
 
+from common_amirainvest_com.schemas.schema import PostsModel as GetModel
 
-class PostCreate(BaseModel):
-    creator_id: uuid.UUID
+
+assert GetModel
+
+
+class CreateModel(BaseModel):
     platform: str
     platform_user_id: Optional[str]
     platform_post_id: Optional[str]
@@ -16,5 +18,8 @@ class PostCreate(BaseModel):
     title: Optional[str]
     chip_labels: Optional[List[str]]
     profile_url: Optional[str]
-    created_at: Optional[datetime.datetime]
-    updated_at: Optional[datetime.datetime]
+
+
+class UpdateModel(CreateModel):
+    id: int
+    platform: Optional[str]

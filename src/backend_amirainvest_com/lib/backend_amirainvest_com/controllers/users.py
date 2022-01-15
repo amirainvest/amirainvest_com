@@ -1,4 +1,5 @@
 from sqlalchemy import update
+from sqlalchemy.engine import Row
 from sqlalchemy.future import select
 
 from backend_amirainvest_com.controllers.data_imports import add_data_import_data_to_sqs_queue
@@ -20,7 +21,7 @@ async def create_user(session, user_data: dict) -> Users:
 
 
 @Session
-async def update_user(session, user_id: str, user_data: dict) -> Users:
+async def update_user(session, user_id: str, user_data: dict) -> Row:
     return (
         await (session.execute(update(Users).where(Users.id == user_id).values(**user_data).returning(Users)))
     ).one()

@@ -12,7 +12,8 @@ from backend_amirainvest_com.api.backend.broadcast_request.router import router 
 from backend_amirainvest_com.api.backend.code_challenge.router import router as code_challenge_router
 from backend_amirainvest_com.api.backend.husk_request.router import router as hust_request_router
 from backend_amirainvest_com.api.backend.plaid_route.router import router as plaid_router
-from backend_amirainvest_com.api.routers import feed, posts, search, user_subscriptions, users
+from backend_amirainvest_com.api.backend.post_route.router import router as post_router
+from backend_amirainvest_com.api.routers import feed, search, user_subscriptions, users
 from backend_amirainvest_com.api.webhooks.app import app as webhooks_app
 
 
@@ -22,7 +23,7 @@ app.include_router(admin_router)
 app.include_router(users.router)
 app.include_router(user_subscriptions.router)
 app.include_router(feed.router)
-app.include_router(posts.router)
+app.include_router(post_router)
 app.include_router(bookmark_router)
 app.include_router(hust_request_router)
 app.include_router(broadcast_router)

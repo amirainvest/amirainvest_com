@@ -5,6 +5,7 @@ from fastapi import FastAPI
 # from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 from starlette.responses import RedirectResponse
 
+from backend_amirainvest_com.api.backend.user_feedback.router import router as user_feedback_router
 from backend_amirainvest_com.api.backend.admin.router import router as admin_router
 from backend_amirainvest_com.api.backend.application.router import router as application_router
 from backend_amirainvest_com.api.backend.bookmark.router import router as bookmark_router
@@ -30,6 +31,7 @@ app.include_router(code_challenge_router)
 app.include_router(search.router)
 app.include_router(plaid_router)
 app.include_router(application_router)
+app.include_router(user_feedback_router)
 
 app.mount("/webhooks", webhooks_app)
 

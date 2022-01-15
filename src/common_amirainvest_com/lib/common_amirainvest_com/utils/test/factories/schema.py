@@ -18,6 +18,7 @@ from common_amirainvest_com.schemas.schema import (
     UserSubscriptions,
     YouTubers,
     YouTubeVideos,
+    UserFeedback,
 )
 from common_amirainvest_com.utils.test.factories.base import FactoryBase
 
@@ -33,6 +34,13 @@ class UsersFactory(FactoryBase):
     email = "test@test.com"
     email_verified = True
     is_deleted = False
+
+
+class UserFeedbackFactory(FactoryBase):
+    class Meta:
+        model = UserFeedback
+
+    user_id = ""
 
 
 class HuskRequestsFactory(FactoryBase):

@@ -170,6 +170,23 @@ class UserMediaErrors(Base, ToDict):
     creator: Users = relationship("Users", backref="user_media_errors", passive_deletes=True, cascade="all,delete")
 
 
+class UserFeedback(Base, ToDict):
+    __tablename__ = "user_feedback"
+    id = Column(Integer, primary_key=True, unique=True)
+    user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    text = Column(String, nullable=False)
+    created_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
+
+    user: Users = relationship("Users", backref="user_feedback", passive_deletes=True, cascade="all,delete")
+
+
+class UserFeedbackModel(BaseModel):
+    id: int
+    user_id: uuid.UUID
+    text: str
+    created_at: Optional[datetime.datetime]
+
+
 class SubstackUsers(Base, ToDict):
     __tablename__ = "substack_users"
     username = Column(String, primary_key=True, unique=True)

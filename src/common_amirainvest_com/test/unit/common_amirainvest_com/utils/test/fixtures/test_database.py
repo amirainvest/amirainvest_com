@@ -10,10 +10,12 @@ from common_amirainvest_com.utils.consts import WEBCACHE
 
 
 @pytest.mark.asyncio
-async def test_database_fixture(session_test: AsyncSession):
+async def test_database_fixture(async_session_maker_test):
     """
     Test to make sure the session is working correctly
     """
+    session_test: AsyncSession = async_session_maker_test()
+
     user_1 = Users(sub="", name="", username="", picture_url="", email="", email_verified=True)
     session_test.add(user_1)
     await session_test.commit()
@@ -24,11 +26,13 @@ async def test_database_fixture(session_test: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_database_fixture_data_deleted_between_tests(session_test: AsyncSession):
+async def test_database_fixture_data_deleted_between_tests(async_session_maker_test):
     """
     Test to make sure the test rollback is working correctly and data from other tests is not persisting past function
     run.
     """
+    session_test: AsyncSession = async_session_maker_test()
+
     users = (await session_test.execute(select(Users))).all()
     assert len(users) == 0
 

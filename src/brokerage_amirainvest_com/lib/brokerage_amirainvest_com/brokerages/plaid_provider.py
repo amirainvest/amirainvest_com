@@ -44,7 +44,7 @@ from common_amirainvest_com.schemas.schema import (
     FinancialAccounts,
     FinancialAccountTransactions,
     FinancialInstitutions,
-    Securities,
+    PlaidSecurities,
 )
 from common_amirainvest_com.utils.consts import PLAID_ENVIRONMENT
 from common_amirainvest_com.utils.decorators import Session  # type: ignore
@@ -108,7 +108,7 @@ class PlaidRepository:
             if sec.security_id in existing_securities_dict:
                 continue
 
-            security_dao = Securities(
+            security_dao = PlaidSecurities(
                 plaid_security_id=sec.security_id,
                 name=sec.name,
                 ticker_symbol=sec.ticker_symbol,

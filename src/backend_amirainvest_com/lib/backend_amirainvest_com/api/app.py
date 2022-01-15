@@ -5,35 +5,31 @@ from fastapi import FastAPI
 # from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 from starlette.responses import RedirectResponse
 
-from backend_amirainvest_com.api.routers import (
-    admin,
-    bookmarks,
-    broadcast_requests,
-    code_challenge,
-    feed,
-    husk_requests,
-    plaid,
-    posts,
-    search,
-    user_subscriptions,
-    users,
-)
+from backend_amirainvest_com.api.backend.admin.router import router as admin_router
+from backend_amirainvest_com.api.backend.application.router import router as application_router
+from backend_amirainvest_com.api.backend.bookmark.router import router as bookmark_router
+from backend_amirainvest_com.api.backend.broadcast_request.router import router as broadcast_router
+from backend_amirainvest_com.api.backend.code_challenge.router import router as code_challenge_router
+from backend_amirainvest_com.api.backend.husk_request.router import router as hust_request_router
+from backend_amirainvest_com.api.backend.plaid_route.router import router as plaid_router
+from backend_amirainvest_com.api.routers import feed, posts, search, user_subscriptions, users
 from backend_amirainvest_com.api.webhooks.app import app as webhooks_app
 
 
 app = FastAPI(title="Backend", version="0.1")
 
-app.include_router(admin.router)
+app.include_router(admin_router)
 app.include_router(users.router)
 app.include_router(user_subscriptions.router)
 app.include_router(feed.router)
 app.include_router(posts.router)
-app.include_router(bookmarks.router)
-app.include_router(husk_requests.router)
-app.include_router(broadcast_requests.router)
-app.include_router(code_challenge.router)
+app.include_router(bookmark_router)
+app.include_router(hust_request_router)
+app.include_router(broadcast_router)
+app.include_router(code_challenge_router)
 app.include_router(search.router)
-app.include_router(plaid.router)
+app.include_router(plaid_router)
+app.include_router(application_router)
 
 app.mount("/webhooks", webhooks_app)
 

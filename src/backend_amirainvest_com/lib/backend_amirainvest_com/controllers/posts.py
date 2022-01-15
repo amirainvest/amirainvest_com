@@ -1,19 +1,31 @@
-from sqlalchemy import func
+from sqlalchemy import func, update
 from sqlalchemy.future import select
 
 from common_amirainvest_com.schemas.schema import Posts, UserSubscriptions
-from common_amirainvest_com.utils.database_utils import update
 from common_amirainvest_com.utils.decorators import Session
 from common_amirainvest_com.utils.generic_utils import get_past_datetime
 
 
-async def update_amira_post(amira_post_data: dict):
-    return await update(Posts, amira_post_data)
+@Session
+async def get_post(session, post_id: int):
+    return (await session.execute(select(Posts).where(Posts.id == post_id))).scalars().first()
 
 
 @Session
-async def create_amira_post(session, amira_post_data: dict):
-    post = Posts(**amira_post_data)
+async def update_post(session, amira_post_data: dict):
+    await (
+        session.execute(
+            update(Posts)
+            .where(Posts.id == amira_post_data["id"])
+            .values(**{k: v for k, v in amira_post_data.items() if k in Posts.__dict__})
+        )
+    )
+    return (await session.execute(select(Posts).where(Posts.id == amira_post_data["id"]))).scalars().first()
+
+
+@Session
+async def create_post(session, post_data: dict):
+    post = Posts(**post_data)
     session.add(post)
     return post
 

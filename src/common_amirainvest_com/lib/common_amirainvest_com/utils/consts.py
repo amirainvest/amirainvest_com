@@ -15,7 +15,7 @@ __all__ = [
     "DEBUG",
     "Environments",
     "ENVIRONMENT",
-    "async_session",
+    "async_session_maker",
     "COMMON_ROOT_DIR",
     "AWS_REGION",
     "MAX_FEED_SIZE",
@@ -108,14 +108,14 @@ COMMON_ROOT_DIR = os.path.dirname(os.path.abspath(__file__)).split("src/common_a
 if "asyncpg" not in POSTGRES_DATABASE_URL:
     POSTGRES_DATABASE_URL = POSTGRES_DATABASE_URL.replace("://", "+asyncpg://")
 
-engine = create_async_engine(
+async_engine = create_async_engine(
     POSTGRES_DATABASE_URL,
     future=True,
     echo=True,
 )
 
-async_session = sessionmaker(
-    engine,
+async_session_maker = sessionmaker(
+    async_engine,
     autoflush=False,
     autocommit=False,
     class_=AsyncSession,

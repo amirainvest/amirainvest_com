@@ -12,7 +12,7 @@ def add_data_import_data_to_sqs_queue(data_import: List[dict], expedited: bool =
             message = MediaPlatformDataLoadQueueModel(
                 **{
                     "platform": data["platform"],
-                    "platform_unique_id": data["unique_platform_id"],
+                    "unique_platform_id": data["unique_platform_id"],
                     "creator_id": data["creator_id"],
                 }
             )

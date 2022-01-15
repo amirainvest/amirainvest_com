@@ -9,7 +9,7 @@ from httpx import AsyncClient
 
 from backend_amirainvest_com.api.app import app
 
-from .config import AUTH_HEADERS, FAKE_AUTH_HEADER
+from ..config import AUTH_HEADERS, FAKE_AUTH_HEADER
 
 
 routes_with_no_auth_required_path = [
@@ -18,8 +18,9 @@ routes_with_no_auth_required_path = [
     "/docs/oauth2-redirect",
     "/redoc",
     "/admin/health_check",
-    "/code_challenge/",
+    "/code_challenge",
     "/",
+    "/application/config",
 ]
 
 mounts_auth_bypass = [

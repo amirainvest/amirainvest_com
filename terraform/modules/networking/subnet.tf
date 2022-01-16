@@ -1,6 +1,6 @@
 resource "aws_subnet" "private-1" {
   assign_ipv6_address_on_creation = "false"
-  availability_zone = "${var.region}-1a"
+  availability_zone = "${var.region}a"
   cidr_block                      = "${var.vpc_cidr_block_base}.1.0/24"
 
 
@@ -19,7 +19,7 @@ resource "aws_subnet" "private-1" {
 
 resource "aws_subnet" "private-2" {
   assign_ipv6_address_on_creation = "false"
-  availability_zone = "${var.region}-1b"
+  availability_zone = "${var.region}b"
   cidr_block                      = "${var.vpc_cidr_block_base}.2.0/24"
 
 
@@ -38,7 +38,7 @@ resource "aws_subnet" "private-2" {
 
 resource "aws_subnet" "private-3" {
   assign_ipv6_address_on_creation = "false"
-  availability_zone = "${var.region}-1c"
+  availability_zone = "${var.region}c"
   cidr_block                      = "${var.vpc_cidr_block_base}.3.0/24"
 
 
@@ -56,7 +56,7 @@ resource "aws_subnet" "private-3" {
 }
 resource "aws_subnet" "public-1" {
   assign_ipv6_address_on_creation = "false"
-availability_zone = "${var.region}-1a"
+availability_zone = "${var.region}a"
   cidr_block                      = "${var.vpc_cidr_block_base}.0.0/24"
 
 
@@ -75,7 +75,7 @@ availability_zone = "${var.region}-1a"
 
 resource "aws_subnet" "public-2" {
   assign_ipv6_address_on_creation = "false"
-availability_zone = "${var.region}-1b"
+availability_zone = "${var.region}b"
   cidr_block                      = "${var.vpc_cidr_block_base}.10.0/24"
 
 
@@ -94,7 +94,7 @@ availability_zone = "${var.region}-1b"
 
 resource "aws_subnet" "public-3" {
   assign_ipv6_address_on_creation = "false"
-availability_zone = "${var.region}-1d"
+availability_zone = "${var.region}d"
   cidr_block                      = "${var.vpc_cidr_block_base}.11.0/24"
 
 

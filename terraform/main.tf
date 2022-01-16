@@ -10,12 +10,17 @@ module "brokerage_data_lambda" {
   environment = var.environment
 }
 
+module "networking" {
+  source      = "./modules/networking"
+  region      = var.region
+  environment = var.environment
+}
+
 terraform {
   cloud {
     organization = "Amirainvest"
     workspaces {
       name = "Production"
-
     }
   }
 }

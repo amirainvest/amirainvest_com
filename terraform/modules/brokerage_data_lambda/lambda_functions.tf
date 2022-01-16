@@ -13,7 +13,7 @@ resource "aws_lambda_function" "brokerage-data-sqs-consumer" {
   memory_size                    = "256"
   package_type                   = "Image"
   reserved_concurrent_executions = "-1"
-  role                           = "arn:aws:iam::903791206266:role/${var.environment}-lambda"
+  role                           = aws_iam_role.lambda.arn
 
   tags = {
     env = var.environment

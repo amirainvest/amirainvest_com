@@ -11,7 +11,7 @@ variable "private_subnets" {
 }
 
 variable "project" {
-  type    = string
+  type = string
 }
 
 variable "vpc_id" {

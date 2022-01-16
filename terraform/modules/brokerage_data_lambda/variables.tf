@@ -12,7 +12,6 @@ variable "private_subnets" {
 
 variable "project" {
   type    = string
-  default = "brokerage"
 }
 
 variable "vpc_id" {

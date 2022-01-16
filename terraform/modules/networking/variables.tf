@@ -6,7 +6,7 @@ variable "environment" {
   type = string
 }
 
-variable "vpc_cidr_block" {
+variable "vpc_cidr_block_base" {
   type    = string
-  default = "10.0.0.0/16"
+  default = "10.0"
 }

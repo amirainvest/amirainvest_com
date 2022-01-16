@@ -17,7 +17,7 @@ resource "aws_iam_policy" "lambda" {
       ],
       "Effect": "Allow",
       "Resource": [
-        "arn:aws:logs:us-east-1:903791206266:log-group:/aws/lambda/testing_stuff_and_things:*"
+        "${aws_cloudwatch_log_group.lambda.arn}:*"
       ]
     }
   ],

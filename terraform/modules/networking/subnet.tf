@@ -1,8 +1,8 @@
 resource "aws_subnet" "private-1" {
   assign_ipv6_address_on_creation = "false"
+  availability_zone = "${var.region}-1a"
   cidr_block                      = "${var.vpc_cidr_block_base}.1.0/24"
-  map_customer_owned_ip_on_launch = "false"
-  map_public_ip_on_launch         = "false"
+
 
   tags = {
     env  = var.environment
@@ -19,9 +19,9 @@ resource "aws_subnet" "private-1" {
 
 resource "aws_subnet" "private-2" {
   assign_ipv6_address_on_creation = "false"
+  availability_zone = "${var.region}-1b"
   cidr_block                      = "${var.vpc_cidr_block_base}.2.0/24"
-  map_customer_owned_ip_on_launch = "false"
-  map_public_ip_on_launch         = "false"
+
 
   tags = {
     env  = var.environment
@@ -38,9 +38,9 @@ resource "aws_subnet" "private-2" {
 
 resource "aws_subnet" "private-3" {
   assign_ipv6_address_on_creation = "false"
+  availability_zone = "${var.region}-1c"
   cidr_block                      = "${var.vpc_cidr_block_base}.3.0/24"
-  map_customer_owned_ip_on_launch = "false"
-  map_public_ip_on_launch         = "false"
+
 
   tags = {
     env  = var.environment
@@ -56,9 +56,9 @@ resource "aws_subnet" "private-3" {
 }
 resource "aws_subnet" "public-1" {
   assign_ipv6_address_on_creation = "false"
+availability_zone = "${var.region}-1a"
   cidr_block                      = "${var.vpc_cidr_block_base}.0.0/24"
-  map_customer_owned_ip_on_launch = "false"
-  map_public_ip_on_launch         = "false"
+
 
   tags = {
     env  = var.environment
@@ -75,9 +75,9 @@ resource "aws_subnet" "public-1" {
 
 resource "aws_subnet" "public-2" {
   assign_ipv6_address_on_creation = "false"
+availability_zone = "${var.region}-1b"
   cidr_block                      = "${var.vpc_cidr_block_base}.10.0/24"
-  map_customer_owned_ip_on_launch = "false"
-  map_public_ip_on_launch         = "false"
+
 
   tags = {
     env  = var.environment
@@ -94,9 +94,9 @@ resource "aws_subnet" "public-2" {
 
 resource "aws_subnet" "public-3" {
   assign_ipv6_address_on_creation = "false"
+availability_zone = "${var.region}-1d"
   cidr_block                      = "${var.vpc_cidr_block_base}.11.0/24"
-  map_customer_owned_ip_on_launch = "false"
-  map_public_ip_on_launch         = "false"
+
 
   tags = {
     env  = var.environment

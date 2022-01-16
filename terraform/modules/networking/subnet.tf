@@ -94,7 +94,7 @@ availability_zone = "${var.region}b"
 
 resource "aws_subnet" "public-3" {
   assign_ipv6_address_on_creation = "false"
-availability_zone = "${var.region}d"
+availability_zone = "${var.region}c"
   cidr_block                      = "${var.vpc_cidr_block_base}.11.0/24"
 
 

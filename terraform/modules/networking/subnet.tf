@@ -14,7 +14,7 @@ resource "aws_subnet" "private-1" {
     Name = "Private subnet"
   }
 
-  vpc_id = aws_vpc.public-private
+  vpc_id = aws_vpc.public-private.id
 }
 
 resource "aws_subnet" "private-2" {
@@ -33,7 +33,7 @@ resource "aws_subnet" "private-2" {
     Name = "Private 2 subnet"
   }
 
-  vpc_id = aws_vpc.public-private
+  vpc_id = aws_vpc.public-private.id
 }
 
 resource "aws_subnet" "private-3" {
@@ -52,7 +52,7 @@ resource "aws_subnet" "private-3" {
     Name = "Private 3 subnet"
   }
 
-  vpc_id = aws_vpc.public-private
+  vpc_id = aws_vpc.public-private.id
 }
 resource "aws_subnet" "public-1" {
   assign_ipv6_address_on_creation = "false"
@@ -70,7 +70,7 @@ availability_zone = "${var.region}-1a"
     Name = "Public subnet"
   }
 
-  vpc_id = aws_vpc.public-private
+  vpc_id = aws_vpc.public-private.id
 }
 
 resource "aws_subnet" "public-2" {
@@ -89,7 +89,7 @@ availability_zone = "${var.region}-1b"
     Name = "Public 2 subnet"
   }
 
-  vpc_id = aws_vpc.public-private
+  vpc_id = aws_vpc.public-private.id
 }
 
 resource "aws_subnet" "public-3" {
@@ -108,6 +108,6 @@ availability_zone = "${var.region}-1d"
     Name = "Public 3 subnet"
   }
 
-  vpc_id = aws_vpc.public-private
+  vpc_id = aws_vpc.public-private.id
 }
 

@@ -34,7 +34,7 @@ resource "aws_ecs_service" "api-public-service" {
   network_configuration {
     assign_public_ip = "false"
     security_groups  = ["sg-04c6dcf097a53b73c"]
-    subnets          = ["subnet-031bdf1a786694a68", "subnet-05a45c47337ce649e", "subnet-0bb4370ccc2df1e3e"]
+    subnets          = var.private_subnets
   }
 
   platform_version    = "LATEST"

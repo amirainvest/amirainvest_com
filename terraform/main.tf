@@ -7,6 +7,7 @@ module "backend_api" {
     module.networking.subnet-private-2-id,
     module.networking.subnet-private-3-id,
   ]
+  vpc_id = module.networking.aws_vpc_public_private_id
 }
 
 module "brokerage_data_lambda" {

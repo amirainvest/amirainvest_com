@@ -13,6 +13,11 @@ module "brokerage_data_lambda" {
   source      = "./modules/brokerage_data_lambda"
   region      = var.region
   environment = var.environment
+  private_subnets = [
+    module.networking.subnet-private-1-id,
+    module.networking.subnet-private-2-id,
+    module.networking.subnet-private-3-id,
+  ]
 }
 
 module "networking" {

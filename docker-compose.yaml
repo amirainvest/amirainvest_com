@@ -94,10 +94,10 @@ services:
     ports:
       - "5000:5000"
 
-  lambda:
+  brokerage.lambda:
     build:
       context: .
-      dockerfile: Dockerfiles/lambda.Dockerfile
+      dockerfile: Dockerfiles/brokerage.lambda.Dockerfile
     environment:
       ENVIRONMENT: "prod"
       AWS_CONTAINER_CREDENTIALS_RELATIVE_URI: "/creds"

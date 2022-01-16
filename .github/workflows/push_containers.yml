@@ -8,7 +8,7 @@ on:
     inputs:
       microservice_list:
         description: "List of microservice names"
-        default: "[\"backend_amirainvest_com\", \"lambda\"]"
+        default: "[\"backend_amirainvest_com\", \"brokerage.lambda\"]"
         required: true
         type: string
     secrets:

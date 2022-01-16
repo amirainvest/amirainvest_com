@@ -7,6 +7,6 @@ variable "environment" {
 }
 
 variable "project" {
-  type = string
+  type    = string
   default = "brokerage"
 }

@@ -1,5 +1,5 @@
 resource "aws_security_group" "api-public-service" {
-  description = "Security group for the prod-api-public ECS service "
+  description = "Security group for the api-public ECS service "
 
   egress {
     cidr_blocks = ["0.0.0.0/0"]

@@ -30,7 +30,7 @@ resource "aws_lambda_function" "brokerage-data-sqs-consumer" {
   }
 
   vpc_config {
-    security_group_ids = ["sg-05e6b9e1e61a849f4"]
+    security_group_ids = [aws_security_group.lambda.id]
     subnet_ids         = var.private_subnets
   }
 }

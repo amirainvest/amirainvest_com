@@ -9,7 +9,7 @@ resource "aws_ecr_repository" "lambda" {
   }
 
   image_tag_mutability = "MUTABLE"
-  name                 = "amirainvest_com/lambda"
+  name                 = "amirainvest_com/${var.project}.lambda"
 }
 
 data "aws_ecr_image" "lambda" {

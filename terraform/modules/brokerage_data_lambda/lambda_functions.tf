@@ -4,7 +4,7 @@ resource "aws_lambda_function" "brokerage-data-sqs-consumer" {
   environment {
     variables = {
       ENVIRONMENT = var.environment
-      PROJECT     = "brokerage"
+      PROJECT     = var.project
     }
   }
 

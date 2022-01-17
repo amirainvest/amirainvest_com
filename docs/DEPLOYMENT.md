@@ -28,4 +28,3 @@ We are using Terraform for deployment.
 
 [TF AWS Provider](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)
 [Terraform tutorials](https://learn.hashicorp.com/terraform)
-

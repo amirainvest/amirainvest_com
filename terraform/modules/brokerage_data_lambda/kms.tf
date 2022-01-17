@@ -31,7 +31,7 @@ resource "aws_kms_key" "logs" {
             "Resource": "*",
             "Condition": {
                 "ArnEquals": {
-                    "kms:EncryptionContext:aws:logs:arn": "arn:aws:logs:${var.region}:903791206266:log-group:*"
+                    "kms:EncryptionContext:aws:logs:arn": "arn:aws:logs:${var.region}:903791206266:*"
                 }
             }
         }

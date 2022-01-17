@@ -8,7 +8,7 @@ resource "aws_lambda_function" "brokerage-data-sqs-consumer" {
     }
   }
 
-  function_name                  = "${var.environment}-${project}-data-sqs-consumer"
+  function_name                  = "${var.environment}-${var.project}-data-sqs-consumer"
   image_uri                      = "${aws_ecr_repository.lambda.repository_url}@${data.aws_ecr_image.lambda.id}"
   memory_size                    = "256"
   package_type                   = "Image"

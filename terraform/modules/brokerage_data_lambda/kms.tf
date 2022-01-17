@@ -45,7 +45,7 @@ resource "aws_iam_policy" "kms-logs" {
             "Resource": "*",
             "Condition": {
                 "ArnEquals": {
-                    "kms:EncryptionContext:aws:logs:arn": "arn:aws:logs:${var.region}:903791206266:log-group:${aws_cloudwatch_log_group.lambda}"
+                    "kms:EncryptionContext:aws:logs:arn": "arn:aws:logs:${var.region}:903791206266:log-group:*"
                 }
             }
         }

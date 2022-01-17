@@ -1,5 +1,5 @@
 resource "aws_kms_key" "logs" {
-  description              = "KMS key for ${var.environment}-${var.project} lambda logs"
+  description              = "KMS key for ${local.lambda_name} lambda logs"
   key_usage                = "ENCRYPT_DECRYPT"
   customer_master_key_spec = "SYMMETRIC_DEFAULT"
   policy                   = <<EOT

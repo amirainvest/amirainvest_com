@@ -9,7 +9,7 @@ on:
       microservice_list:
         description: "List of microservice names"
         default: "[\"backend_amirainvest_com\", \"brokerage.lambda\", \"market_data.lambda\"]"
-        required: true
+        required: false
         type: string
       environment:
         description: "Environment being run in"

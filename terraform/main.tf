@@ -34,7 +34,7 @@ module "market_data_realtime_updates_lambda" {
   ]
   vpc_id      = module.networking.aws_vpc_public_private_id
   project     = "market_data"
-  lambda_name = "${var.environment}-market_data_realtime_updates"
+  lambda_name = "${var.environment}-market-data-realtime-updates"
 }
 
 

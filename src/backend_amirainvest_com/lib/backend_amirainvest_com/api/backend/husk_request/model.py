@@ -3,6 +3,7 @@ from typing import Optional
 
 from pydantic import BaseModel
 
+from backend_amirainvest_com.utils.model import ListModelBase
 from common_amirainvest_com.schemas.schema import HuskRequestsModel as GetModel
 
 
@@ -15,3 +16,7 @@ class CreateModel(BaseModel):
     substack_username: Optional[str]
     created_at: Optional[datetime.datetime]
     fulfilled: Optional[bool]
+
+
+class ListModel(ListModelBase[GetModel]):
+    pass

@@ -44,7 +44,6 @@ class PostsFactory(FactoryBase):
     class Meta:
         model = Posts
 
-    creator_id = ""
     platform = "twitter"
 
 

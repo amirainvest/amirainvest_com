@@ -1,10 +1,10 @@
-# Latest python 3.9
-FROM python@sha256:c0dcc146710fed0a6d62cb55b92f00bfbfc3b931fff6218f4958bab58333c37b as base
+# Latest python 3.9-slim
+FROM python@sha256:f4efbe5d1eb52c221fded79ddf18e4baa0606e7766afe2f07b0b330a9e79564a as base
 
 WORKDIR /function
 
-ENV PROJECT_NAME="brokerage_amirainvest_com"
-ENV PROJECT="brokerage"
+ENV PROJECT_NAME="market_data_amirainvest_com"
+ENV PROJECT="market_data"
 ENV AWS_DEFAULT_REGION="us-east-1"
 ENV POETRY_VIRTUALENVS_CREATE="false"
 
@@ -34,5 +34,5 @@ COPY ./src/common_amirainvest_com/ ./src/common_amirainvest_com/
 ENV AWS_LAMBDA_RUNTIME_API=python3.9
 
 # Set the CMD to your handler (could also be done as a parameter override outside of the Dockerfile)
-ENTRYPOINT ["/bin/bash", "./src/brokerage_amirainvest_com/entrypoint.sh"]
-CMD [ "brokerage_amirainvest_com.lambdas.app.handler" ]
+ENTRYPOINT ["/bin/bash", "./src/market_data_amirainvest_com/entrypoint.sh"]
+CMD [ "market_data_amirainvest_com.lambdas.app.handler" ]

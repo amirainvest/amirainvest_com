@@ -94,10 +94,10 @@ services:
     ports:
       - "5000:5000"
 
-  lambda:
+  brokerage.lambda:
     build:
       context: .
-      dockerfile: Dockerfiles/lambda.Dockerfile
+      dockerfile: Dockerfiles/brokerage.lambda.Dockerfile
     environment:
       ENVIRONMENT: "prod"
       AWS_CONTAINER_CREDENTIALS_RELATIVE_URI: "/creds"
@@ -109,6 +109,21 @@ services:
       credentials_network:
         ipv4_address: 169.254.170.6
 
+
+  market_data.lambda:
+    build:
+      context: .
+      dockerfile: Dockerfiles/market_data.lambda.Dockerfile
+    environment:
+      ENVIRONMENT: "prod"
+      AWS_CONTAINER_CREDENTIALS_RELATIVE_URI: "/creds"
+    depends_on:
+      ecs-local-endpoints:
+        condition: service_started
+    networks:
+      local:
+      credentials_network:
+        ipv4_address: 169.254.170.6
 
 
 ### Infrastructure containers

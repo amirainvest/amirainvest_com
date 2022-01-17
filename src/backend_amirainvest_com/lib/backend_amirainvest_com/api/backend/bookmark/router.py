@@ -20,7 +20,7 @@ async def list_route(
 ):
     user_bookmarks = await list_controller(user_id)
     user_bookmarks = [x.dict() for x in user_bookmarks]
-    return {"results": user_bookmarks}
+    return {"results": user_bookmarks, "result_count": len(user_bookmarks)}
 
 
 @router.post("/create", status_code=status.HTTP_201_CREATED, response_model=GetModel)

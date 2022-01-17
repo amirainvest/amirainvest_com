@@ -20,7 +20,7 @@ resource "aws_s3_bucket" "amira-user-profile-photos" {
   }
 
   tags = {
-    env = var.environment
+    env     = var.environment
     project = "backend_api"
   }
 }
@@ -47,7 +47,7 @@ resource "aws_s3_bucket" "amira-user-profile-photos-holding" {
   }
 
   tags = {
-    env = var.environment
+    env     = var.environment
     project = "backend_api"
   }
 }
@@ -74,7 +74,7 @@ resource "aws_s3_bucket" "amira-post-photos" {
   }
 
   tags = {
-    env = var.environment
+    env     = var.environment
     project = "backend_api"
   }
 }
@@ -101,7 +101,7 @@ resource "aws_s3_bucket" "amira-post-photos-holding" {
   }
 
   tags = {
-    env = var.environment
+    env     = var.environment
     project = "backend_api"
   }
 }

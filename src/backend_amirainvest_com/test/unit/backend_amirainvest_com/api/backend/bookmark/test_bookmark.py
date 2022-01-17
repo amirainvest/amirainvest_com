@@ -98,3 +98,8 @@ async def test_delete(async_session_maker_test):
     user_bookmarks = await session_test.execute(select(Bookmarks).where(Bookmarks.user_id == post_bookmarker.id))
     assert bookmark.id not in [x.id for x in user_bookmarks]
     assert len(list(user_bookmarks)) == 0
+
+
+@pytest.mark.asyncio
+async def test_update(async_session_maker_test):
+    pass

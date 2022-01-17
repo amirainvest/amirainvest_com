@@ -63,7 +63,7 @@ jobs:
       #        run: docker push 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:1
 
       - name: Tag container with environment
-        run: docker tag amirainvest_com_${{ matrix.microservice }}:"${{ inputs.environment }}" 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:"${{ inputs.environment }}"
+        run: docker tag amirainvest_com_${{ matrix.microservice }}:"latest" 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:"${{ inputs.environment }}"
 
       - name: Push to ECR
         run: docker push 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:"${{ inputs.environment }}"

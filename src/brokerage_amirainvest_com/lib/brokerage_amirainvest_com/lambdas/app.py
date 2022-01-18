@@ -8,6 +8,12 @@ from common_amirainvest_com.utils.async_utils import run_async_function_synchron
 from common_amirainvest_com.utils.consts import PLAID_CLIENT_ID, PLAID_SECRET
 
 
+async def holdings_change(provider_service: Providers, brokerage: Brokerage, user_id: str, token_identifier: str):
+    await provider_service.collect_current_holdings(
+        provider_key=brokerage.value, user_id=UUID(user_id), item_id=token_identifier
+    )
+
+
 async def investments_change(provider_service: Providers, brokerage: Brokerage, user_id: str, token_identifier: str):
     await provider_service.collect_investment_history(
         provider_key=brokerage.value, user_id=UUID(user_id), item_id=token_identifier
@@ -26,6 +32,7 @@ async def upsert_brokerage_account(
 
 
 options = {
+    BrokerageDataActions.holdings_change: holdings_change,
     BrokerageDataActions.investments_change: investments_change,
     BrokerageDataActions.upsert_brokerage_account: upsert_brokerage_account,
 }

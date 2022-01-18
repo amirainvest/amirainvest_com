@@ -1,13 +1,15 @@
 import datetime
 import uuid
 
+from fastapi import HTTPException, status
 from sqlalchemy import insert, update
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from backend_amirainvest_com.api.backend.user_route.model import InitPostModel, UserUpdate
+from backend_amirainvest_com.api.backend.user_route.model import Http400Enum, Http409Enum, InitPostModel, UserUpdate
 from backend_amirainvest_com.controllers.data_imports import add_data_import_data_to_sqs_queue
+from backend_amirainvest_com.utils import auth0_utils
 from common_amirainvest_com.schemas.schema import Users
 from common_amirainvest_com.utils.decorators import Session
 from common_amirainvest_com.utils.generic_utils import get_class_attrs
@@ -71,11 +73,32 @@ async def handle_user_create(user_data: dict):
 
 @Session
 async def create_controller(session: AsyncSession, user_data: InitPostModel, sub: str) -> uuid.UUID:
-    user_id = (await session.execute(select(Users.id).where(Users.sub == sub))).scalars().one_or_none()
-    if user_id is None:
+    result = (await session.execute(select(Users.id, Users.email).where(Users.sub == sub))).one_or_none()
+
+    if result is None:
         user = user_data.dict(exclude_none=True)
         user["sub"] = sub
         created_user = (await session.execute(insert(Users).values(**user).returning(Users))).one()
+
+        await session.commit()
         user_id = created_user.id
+    else:
+        user_id, email = result
+        if email != user_data.email:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=Http409Enum.user_sub_missmatch.value.dict(),
+            )
+
+    metadata = {"user_id": str(user_id)}
+    try:
+        await auth0_utils.update_user_app_metadata(sub, metadata)
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=Http400Enum.auth0_app_metadata_failed.value.dict(),
+        )
 
     return user_id

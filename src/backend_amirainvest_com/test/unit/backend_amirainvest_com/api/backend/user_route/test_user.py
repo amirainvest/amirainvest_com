@@ -11,7 +11,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend_amirainvest_com.api.app import app
 from common_amirainvest_com.schemas.schema import Users
 from common_amirainvest_com.utils.test.factories.schema import UsersFactory
-
 from ...config import AUTH_HEADERS
 
 
@@ -66,7 +65,14 @@ async def test_update(async_session_maker_test):
 
 
 @pytest.mark.asyncio
-async def test_create(async_session_maker_test):
+async def test_create(async_session_maker_test, monkeypatch):
+    from backend_amirainvest_com.utils import auth0_utils
+
+    async def update_user_app_metadata_mock(*args, **kwargs):
+        return
+
+    monkeypatch.setattr(auth0_utils, "update_user_app_metadata", update_user_app_metadata_mock)
+
     session_test: AsyncSession = async_session_maker_test()
 
     async with AsyncClient(app=app, base_url="http://test") as async_client:
@@ -84,14 +90,21 @@ async def test_create(async_session_maker_test):
 
     response_data = response.json()
 
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == status.HTTP_201_CREATED
 
     user_id = response_data["id"]
     assert (await session_test.execute(select(Users).where(Users.id == user_id))).one()
 
 
 @pytest.mark.asyncio
-async def test_create_multiple(async_session_maker_test):
+async def test_create_multiple(async_session_maker_test, monkeypatch: pytest.MonkeyPatch):
+    from backend_amirainvest_com.utils import auth0_utils
+
+    async def update_user_app_metadata_mock(*args, **kwargs):
+        return
+
+    monkeypatch.setattr(auth0_utils, "update_user_app_metadata", update_user_app_metadata_mock)
+
     session_test: AsyncSession = async_session_maker_test()
 
     async with AsyncClient(app=app, base_url="http://test") as async_client:
@@ -119,8 +132,8 @@ async def test_create_multiple(async_session_maker_test):
             ),
         )
 
-    assert response_1.status_code == status.HTTP_200_OK
-    assert response_2.status_code == status.HTTP_200_OK
+    assert response_1.status_code == status.HTTP_201_CREATED
+    assert response_2.status_code == status.HTTP_201_CREATED
 
     response_1_data = response_1.json()
     user_id_1 = response_1_data["id"]
@@ -130,3 +143,41 @@ async def test_create_multiple(async_session_maker_test):
 
     assert user_id_1 == user_id_2
     assert (await session_test.execute(select(Users).where(Users.id == user_id_2))).one()
+
+
+@pytest.mark.asyncio
+async def test_create_multiple_missmatch_email(monkeypatch):
+    from backend_amirainvest_com.utils import auth0_utils
+
+    async def update_user_app_metadata_mock(*args, **kwargs):
+        return
+
+    monkeypatch.setattr(auth0_utils, "update_user_app_metadata", update_user_app_metadata_mock)
+
+    async with AsyncClient(app=app, base_url="http://test") as async_client:
+        response_1 = await async_client.post(
+            "/user/create",
+            headers=AUTH_HEADERS,
+            data=json.dumps(
+                {
+                    "name": "test_name test_last_name",
+                    "username": "test_username",
+                    "email": "test@gmail.com",
+                }
+            ),
+        )
+
+        response_2 = await async_client.post(
+            "/user/create",
+            headers=AUTH_HEADERS,
+            data=json.dumps(
+                {
+                    "name": "test_name test_last_name",
+                    "username": "test_username",
+                    "email": "test_bad@gmail.com",
+                }
+            ),
+        )
+
+    assert response_1.status_code == status.HTTP_201_CREATED
+    assert response_2.status_code == status.HTTP_403_FORBIDDEN

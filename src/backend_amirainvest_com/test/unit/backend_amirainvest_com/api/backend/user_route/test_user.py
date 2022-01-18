@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend_amirainvest_com.api.app import app
 from common_amirainvest_com.schemas.schema import Users
 from common_amirainvest_com.utils.test.factories.schema import UsersFactory
+
 from ...config import AUTH_HEADERS
 
 
@@ -117,7 +118,7 @@ async def test_create_multiple(async_session_maker_test, monkeypatch: pytest.Mon
                     "username": "test_username",
                     "email": "test@gmail.com",
                 }
-            ),
+            ),  # type: ignore
         )
 
         response_2 = await async_client.post(
@@ -129,7 +130,7 @@ async def test_create_multiple(async_session_maker_test, monkeypatch: pytest.Mon
                     "username": "test_username",
                     "email": "test@gmail.com",
                 }
-            ),
+            ),  # type: ignore
         )
 
     assert response_1.status_code == status.HTTP_201_CREATED

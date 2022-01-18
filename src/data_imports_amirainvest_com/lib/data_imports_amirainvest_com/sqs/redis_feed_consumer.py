@@ -18,3 +18,7 @@ def add_post_to_redis_feed(user_id: str, post: dict, feed_type: str, max_feed_si
 
 def consume_redis_feed_sqs_queue():
     consume_queue(REDIS_FEED_FANOUT_SQS_QUEUE, add_post_to_redis_feed)
+
+
+if __name__ == '__main__':
+    consume_redis_feed_sqs_queue()

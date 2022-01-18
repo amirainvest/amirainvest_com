@@ -11,3 +11,9 @@ def consume_data_load_sqs_queue(expedited=False):
             consume_queue(EXPEDITED_MEDIA_PLATFORM_DATA_LOAD_QUEUE, load_platform_user_data)
         else:
             consume_queue(MEDIA_PLATFORM_DATA_LOAD_QUEUE, load_platform_user_data)
+
+
+if __name__ == '__main__':
+    print(EXPEDITED_MEDIA_PLATFORM_DATA_LOAD_QUEUE)
+    print(MEDIA_PLATFORM_DATA_LOAD_QUEUE)
+    # consume_data_load_sqs_queue()

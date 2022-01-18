@@ -52,33 +52,33 @@ DEBUG = os.environ.get("DEBUG", "true").strip().lower()
 ENVIRONMENT = Environments[os.environ.get("ENVIRONMENT", "local").strip().lower()].value
 PROJECT = Projects[os.environ.get("PROJECT", "mono").strip().lower()].value
 
-try:
-    import sentry_sdk
-    from sentry_sdk.integrations.redis import RedisIntegration
-    from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
-    from sentry_sdk.utils import BadDsn
-
-    integrations = [SqlalchemyIntegration(), RedisIntegration()]
-
-    if PROJECT == "brokerage":
-        from sentry_sdk.integrations.aws_lambda import AwsLambdaIntegration
-
-        integrations.append(AwsLambdaIntegration(timeout_warning=True))
-
-    SENTRY_URL = "https://{public_key}@{domain}/{project_id}".format(**decode_env_var("sentry"))
-
-    sentry_sdk.init(
-        SENTRY_URL,
-        environment=ENVIRONMENT,
-        sample_rate=1.0,
-        traces_sample_rate=1.0,
-        request_bodies="always",
-        integrations=integrations,
-        debug=True if DEBUG == "true" else False,
-    )
-except (BadDsn, JSONDecodeError):
-    if ENVIRONMENT != Environments.local.value:
-        raise EnvironmentError("Sentry URL not set for non local env")
+# try:
+#     import sentry_sdk
+#     from sentry_sdk.integrations.redis import RedisIntegration
+#     from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+#     from sentry_sdk.utils import BadDsn
+#
+#     integrations = [SqlalchemyIntegration(), RedisIntegration()]
+#
+#     if PROJECT == "brokerage":
+#         from sentry_sdk.integrations.aws_lambda import AwsLambdaIntegration
+#
+#         integrations.append(AwsLambdaIntegration(timeout_warning=True))
+#
+#     SENTRY_URL = "https://{public_key}@{domain}/{project_id}".format(**decode_env_var("sentry"))
+#
+#     sentry_sdk.init(
+#         SENTRY_URL,
+#         environment=ENVIRONMENT,
+#         sample_rate=1.0,
+#         traces_sample_rate=1.0,
+#         request_bodies="always",
+#         integrations=integrations,
+#         debug=True if DEBUG == "true" else False,
+#     )
+# except (BadDsn, JSONDecodeError):
+#     if ENVIRONMENT != Environments.local.value:
+#         raise EnvironmentError("Sentry URL not set for non local env")
 
 POSTGRES_DATABASE_URL = "postgresql://{username}:{password}@{host}/{database}".format(**decode_env_var("postgres"))
 
@@ -93,6 +93,11 @@ AUTH0_API_AUDIENCE = _auth0_dict["api_audience"]
 AUTH0_CLIENT_ID = _auth0_dict["client_id"]
 AUTH0_CLIENT_SECRET = _auth0_dict["client_secret"]
 AUTH0_DOMAIN = _auth0_dict["domain"]
+
+
+_sqs_dict = decode_env_var("sqs")
+from pprint import pprint
+pprint(_sqs_dict)
 
 _plaid_dict = decode_env_var("plaid")
 PLAID_CLIENT_ID = _plaid_dict["client_id"]

@@ -1,10 +1,7 @@
-import starlette.routing
-
-
 pytest_plugins = ["common_amirainvest_com.utils.test.fixtures.database"]
 
 import pytest
-from fastapi.security import HTTPBearer
+import starlette.routing
 from httpx import AsyncClient
 
 from backend_amirainvest_com.api.app import app
@@ -37,34 +34,24 @@ async def test_not_authenticated_get_user(route):
             assert route.path in mounts_auth_bypass
             return
 
-        dependant = route.dependant
-        dependencies = dependant.dependencies
-
-        if len(dependencies) == 0:
-            assert route.path in routes_with_no_auth_required_path
         for method in route.methods:
-            for dep in dependencies:
-                try:
-                    sub_dep = dep.dependencies[0]
-                    if sub_dep.name == "bearer_auth_creds":
-                        assert type(sub_dep.call) == HTTPBearer
-                        async with AsyncClient(app=app, base_url="http://test") as async_client:
-                            client_attr = getattr(async_client, method.lower())
+            try:
+                async with AsyncClient(app=app, base_url="http://test") as async_client:
+                    client_attr = getattr(async_client, method.lower())
 
-                            no_auth_response = await client_attr(route.path)
-                            assert no_auth_response.status_code == 403
-                            assert no_auth_response.json() == {"detail": "Not authenticated"}
+                    no_auth_response = await client_attr(route.path)
+                    assert no_auth_response.status_code == 403
+                    assert no_auth_response.json() == {"detail": "Not authenticated"}
 
-                            fake_auth_header_response = await client_attr(route.path, headers=FAKE_AUTH_HEADER)
-                            assert fake_auth_header_response.status_code == 403
-                            assert fake_auth_header_response.json() == {"detail": "Not authenticated"}
+                    fake_auth_header_response = await client_attr(route.path, headers=FAKE_AUTH_HEADER)
+                    assert fake_auth_header_response.status_code == 403
+                    assert fake_auth_header_response.json() == {"detail": "Not authenticated"}
 
-                            auth_response = await client_attr(route.path, headers=AUTH_HEADERS)
-                            assert auth_response.status_code in {200, 422}
-                        break
-                except IndexError:
-                    pass
-            else:
+                    auth_response = await client_attr(route.path, headers=AUTH_HEADERS)
+                    assert auth_response.status_code in {200, 422}
+            except IndexError:
+                pass
+            except Exception:
                 assert route.path in routes_with_no_auth_required_path
     except (AttributeError, IndexError):
         assert route.path in routes_with_no_auth_required_path

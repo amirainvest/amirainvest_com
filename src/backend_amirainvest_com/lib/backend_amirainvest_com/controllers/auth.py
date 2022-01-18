@@ -5,7 +5,7 @@ import time
 
 import jwt
 import requests
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Security, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, SecurityScopes
 from jose import jwt as j_jwt  # type: ignore
 from pydantic import BaseModel
@@ -39,6 +39,10 @@ async def auth_dep(
     except Exception:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authenticated")
     return payload
+
+
+async def auth_depends(data=Security(auth_dep, scopes=[])):
+    return data
 
 
 def get_application_token():

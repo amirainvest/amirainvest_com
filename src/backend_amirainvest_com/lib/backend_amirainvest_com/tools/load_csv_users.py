@@ -2,7 +2,7 @@ from datetime import datetime
 
 import pandas  # type: ignore
 
-from backend_amirainvest_com.controllers.users import handle_user_create
+from backend_amirainvest_com.api.backend.user_route.controller import handle_user_create
 
 
 def load_users_from_csv(csv_filename):

@@ -16,7 +16,7 @@ jobs:
         id: docker-image
         uses: actions/cache@v2
         with:
-          path: ${{github.workspace}}/var/lib/docker/overlay2
+          path: ${{github.workspace}}/var/lib/docker
           key: docker-base
 
       - name: Run checks

@@ -86,11 +86,11 @@ async def create_controller(session: AsyncSession, user_data: InitPostModel, sub
         user_id, email = result
         if email != user_data.email:
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
+                status_code=status.HTTP_409_CONFLICT,
                 detail=Http409Enum.user_sub_missmatch.value.dict(),
             )
 
-    metadata = {"user_id": str(user_id)}
+    metadata = {"UserId": str(user_id)}
     try:
         await auth0_utils.update_user_app_metadata(sub, metadata)
     except HTTPException:

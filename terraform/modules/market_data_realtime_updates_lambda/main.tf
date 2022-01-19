@@ -8,3 +8,8 @@ module "market_data_realtime_updates_lambda" {
   lambda_name                 = "${var.environment}-market-data-realtime-updates"
   lambda_image_config_command = ["market_data_amirainvest_com.lambdas.app.handler"]
 }
+
+moved {
+  from = aws_cloudwatch_log_group.lambda
+  to = module.market_data_realtime_updates_lambda.aws_cloudwatch_log_group.lambda
+}

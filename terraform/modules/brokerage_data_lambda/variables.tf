@@ -10,10 +10,10 @@ variable "private_subnets" {
   type = list(string)
 }
 
-variable "project" {
+variable "vpc_id" {
   type = string
 }
 
-variable "vpc_id" {
-  type = string
+locals {
+  project = "brokerage"
 }

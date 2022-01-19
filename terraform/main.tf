@@ -20,7 +20,6 @@ module "brokerage_data_lambda" {
     module.networking.subnet-private-3-id,
   ]
   vpc_id  = module.networking.aws_vpc_public_private_id
-  project = "brokerage"
 }
 
 module "market_data_realtime_updates_lambda" {

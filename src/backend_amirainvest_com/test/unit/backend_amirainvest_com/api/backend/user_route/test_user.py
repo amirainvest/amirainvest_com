@@ -181,7 +181,7 @@ async def test_create_multiple_missmatch_email(monkeypatch):
         )
 
     assert response_1.status_code == status.HTTP_201_CREATED
-    assert response_2.status_code == status.HTTP_403_FORBIDDEN
+    assert response_2.status_code == status.HTTP_409_CONFLICT
 
 
 @pytest.mark.asyncio

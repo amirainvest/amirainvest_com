@@ -5,7 +5,7 @@ module "market_data_realtime_updates_lambda" {
   private_subnets             = var.private_subnets
   vpc_id                      = var.vpc_id
   project                     = local.project
-  lambda_name                 = "${var.environment}-market-data-realtime-updates"
+  lambda_name                 = local.lambda_name
   lambda_image_config_command = ["market_data_amirainvest_com.lambdas.app.handler"]
 }
 

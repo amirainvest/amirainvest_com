@@ -16,4 +16,5 @@ variable "vpc_id" {
 
 locals {
   project = "market_data"
+  lambda_name = "${var.environment}-market-data-realtime-updates"
 }

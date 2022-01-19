@@ -41,6 +41,7 @@ async def test_list():
     assert results[0]["post_id"] == post.id
     assert results[0]["is_deleted"] is False
 
+
 async def test_create(async_session_maker_test):
     session_test: AsyncSession = async_session_maker_test()
 

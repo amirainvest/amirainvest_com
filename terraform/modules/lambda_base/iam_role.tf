@@ -14,12 +14,8 @@ resource "aws_iam_role" "lambda" {
 }
 POLICY
 
-  description = "${local.lambda_name}-lambda"
-  managed_policy_arns = [
-    aws_iam_policy.log-writing.arn,
-    "arn:aws:iam::aws:policy/SecretsManagerReadWrite",
-    "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
-  ]
+  description         = "${local.lambda_name}-lambda"
+  managed_policy_arns = concat(var.lambda_managed_policy_arns, local.default_policies)
 
   max_session_duration = "3600"
   name                 = "${local.lambda_name}-lambda"

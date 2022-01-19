@@ -35,4 +35,3 @@ ENV AWS_LAMBDA_RUNTIME_API=python3.9
 
 # Set the CMD to your handler (could also be done as a parameter override outside of the Dockerfile)
 ENTRYPOINT ["/bin/bash", "./src/market_data_amirainvest_com/entrypoint.sh"]
-CMD [ "market_data_amirainvest_com.lambdas.app.handler" ]

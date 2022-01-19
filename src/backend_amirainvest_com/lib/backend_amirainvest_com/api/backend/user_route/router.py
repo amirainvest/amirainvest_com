@@ -34,7 +34,8 @@ async def get_route(user_id: uuid.UUID, token=Depends(auth_depends)):
 
 
 @router.post("/update", status_code=status.HTTP_200_OK, response_model=UsersModel)
-async def update_route(user_id: uuid.UUID, user_data: UserUpdate, token=Depends(auth_depends)):
+async def update_route(user_data: UserUpdate, token=Depends(auth_depends)):
+    user_id = token["https://amirainvest.com/user_id"]
     return (await update_controller(user_id=user_id, user_data=user_data))._asdict()
 
 

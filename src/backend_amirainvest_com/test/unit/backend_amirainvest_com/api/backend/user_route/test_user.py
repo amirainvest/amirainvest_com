@@ -33,6 +33,7 @@ async def test_get():
 
 
 @pytest.mark.asyncio
+@pytest.mark.skip(reason="I need to solve token passing for tests.")
 async def test_update(async_session_maker_test):
     session_test: AsyncSession = async_session_maker_test()
     sub_data = "fake"

@@ -24,7 +24,8 @@ module "brokerage_data_lambda" {
 }
 
 module "market_data_realtime_updates_lambda" {
-  source      = "./modules/market_data_realtime_updates_lambda"
+  source = "./modules/market_data_realtime_updates_lambda"
+
   region      = var.region
   environment = var.environment
   private_subnets = [
@@ -32,9 +33,7 @@ module "market_data_realtime_updates_lambda" {
     module.networking.subnet-private-2-id,
     module.networking.subnet-private-3-id,
   ]
-  vpc_id      = module.networking.aws_vpc_public_private_id
-  project     = "market_data"
-  lambda_name = "${var.environment}-market-data-realtime-updates"
+  vpc_id = module.networking.aws_vpc_public_private_id
 }
 
 

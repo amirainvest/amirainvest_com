@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, status, UploadFile
 
 from backend_amirainvest_com.api.backend.user_route.controller import (
     create_controller,
+    delete_controller,
     get_controller,
     update_controller,
 )
@@ -70,3 +71,9 @@ async def create_route(user_data: InitPostModel, token=Depends(auth_depends)):
         sub,
     )
     return InitReturnModel(id=user_id)
+
+
+@router.post("/delete", status_code=status.HTTP_200_OK)
+async def delete_route(user_id: uuid.UUID, token=Depends(auth_depends)):
+    sub = token["sub"]
+    await delete_controller(user_id, sub)

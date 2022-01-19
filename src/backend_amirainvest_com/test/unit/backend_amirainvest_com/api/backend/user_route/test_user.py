@@ -182,3 +182,35 @@ async def test_create_multiple_missmatch_email(monkeypatch):
 
     assert response_1.status_code == status.HTTP_201_CREATED
     assert response_2.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.asyncio
+async def test_delete(async_session_maker_test, monkeypatch):
+    from backend_amirainvest_com.utils import auth0_utils
+
+    async def update_user_app_metadata_mock(*args, **kwargs):
+        return
+
+    monkeypatch.setattr(auth0_utils, "update_user_app_metadata", update_user_app_metadata_mock)
+
+    session_test: AsyncSession = async_session_maker_test()
+
+    async with AsyncClient(app=app, base_url="http://test") as async_client:
+        response_1 = await async_client.post(
+            "/user/create",
+            headers=AUTH_HEADERS,
+            data=json.dumps(
+                {
+                    "name": "test_name test_last_name",
+                    "username": "test_username",
+                    "email": "test@gmail.com",
+                }
+            ),
+        )
+        await async_client.post(
+            "/user/delete",
+            headers=AUTH_HEADERS,
+            params={"user_id": response_1.json()["id"]},
+        )
+
+    assert len((await session_test.execute(select(Users))).all()) == 0

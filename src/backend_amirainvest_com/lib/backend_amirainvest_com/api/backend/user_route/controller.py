@@ -2,7 +2,7 @@ import datetime
 import uuid
 
 from fastapi import HTTPException, status
-from sqlalchemy import insert, update
+from sqlalchemy import delete, insert, update
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -102,3 +102,8 @@ async def create_controller(session: AsyncSession, user_data: InitPostModel, sub
         )
 
     return user_id
+
+
+@Session
+async def delete_controller(session: AsyncSession, user_id: uuid.UUID, sub: str):
+    await session.execute(delete(Users).where(Users.id == user_id).where(Users.sub == sub))

@@ -1,11 +1,9 @@
 import time
-from datetime import datetime
 
-import arrow
 import feedparser
 from bs4 import BeautifulSoup
+from dateutil.parser import parse
 
-from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
 from common_amirainvest_com.utils.logger import log
 from data_imports_amirainvest_com.controllers import posts
 from data_imports_amirainvest_com.controllers.substack_articles import (
@@ -24,7 +22,6 @@ class SubstackUser(PlatformUser):
         self.user_url = f"https://{self.username}.substack.com/feed"
         self.creator_id = creator_id
         self.is_deleted = False
-        self.created_at = datetime.utcnow()
 
     def get_unique_id(self):
         return self.username
@@ -37,7 +34,11 @@ class SubstackUser(PlatformUser):
         for article in feedparser.parse(self.user_url).entries:
             if article["id"] not in [x.article_id for x in existing_articles]:
                 summary = BeautifulSoup(article["summary"], features="html.parser").get_text()
-                created_at = arrow.get(time.strftime("%Y-%m-%dT%H:%M:%S", article["published_parsed"])).datetime
+                created_at = parse(
+                    str(time.strftime("%Y-%m-%d %H:%M:%S", article["published_parsed"]))
+                    .replace("T", "")
+                    .replace("Z", "")
+                )
                 articles.append(
                     {
                         "summary": summary,
@@ -85,8 +86,3 @@ class SubstackUser(PlatformUser):
 async def load_user_data(username, creator_id):
     substack_user = SubstackUser(username, creator_id)
     await substack_user.load_platform_data()
-    await posts.create_post()
-
-
-if __name__ == "__main__":
-    run_async_function_synchronously(load_user_data, "jonahlupton", "52e99fe8-26e4-4844-b9ca-9b171d08e2b6")

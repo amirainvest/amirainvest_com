@@ -20,5 +20,5 @@ def consume_redis_feed_sqs_queue():
     consume_queue(REDIS_FEED_FANOUT_SQS_QUEUE, add_post_to_redis_feed)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     consume_redis_feed_sqs_queue()

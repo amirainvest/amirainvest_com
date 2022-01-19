@@ -1,8 +1,8 @@
 from typing import Optional
 
 import requests
+from dateutil.parser import parse
 
-from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
 from common_amirainvest_com.utils.logger import log
 from data_imports_amirainvest_com.consts import YOUTUBE_API_KEY_ENV, YOUTUBE_API_URL
 from data_imports_amirainvest_com.controllers import posts
@@ -130,12 +130,13 @@ class YouTuber(PlatformUser):
             if next_token:
                 params["pageToken"] = playlist_data["nextPageToken"]
             for video_data in playlist_data["items"]:
-                if video_data["contentDetails"]["videoId"] not in [x.id for x in stored_videos]:
+                created_at = parse(video_data["contentDetails"]["videoPublishedAt"].replace("T", " ").replace("Z", ""))
+                if video_data["contentDetails"]["videoId"] not in [x.video_id for x in stored_videos]:
                     videos.append(
                         YouTubeVideo(
                             channel_id=self.channel_id,
                             title=video_data["snippet"]["title"],
-                            published_at=video_data["contentDetails"]["videoPublishedAt"],
+                            published_at=created_at,
                             video_id=video_data["contentDetails"]["videoId"],
                             video_url=f"https://www.youtube.com/{video_data['contentDetails']['videoId']}",
                             embed_url=f"https://www.youtube.com/embed/{video_data['contentDetails']['videoId']}",
@@ -153,8 +154,8 @@ class YouTuber(PlatformUser):
                             "title": video_data["snippet"]["title"],
                             "profile_url": "",
                             "chip_labels": user.chip_labels,
-                            "created_at": video_data["contentDetails"]["videoPublishedAt"],
-                            "updated_at": video_data["contentDetails"]["videoPublishedAt"],
+                            "created_at": created_at,
+                            "updated_at": created_at,
                         }
                     )
                 else:
@@ -202,13 +203,8 @@ class YouTubeVideo:
 
     async def store_video_data(self):
         await create_youtube_video(self.__dict__)
-        await posts.create_post()
 
 
 async def load_user_data(channel_id, creator_id):
     youtuber = YouTuber(_id=channel_id, creator_id=creator_id)
     await youtuber.store_user_data()
-
-
-if __name__ == "__main__":
-    run_async_function_synchronously(load_user_data, "UCS4ITAOQlFP9_ny2Zl5b0ig", "2bedf591-5944-4c1d-b586-c56be7b7459f")

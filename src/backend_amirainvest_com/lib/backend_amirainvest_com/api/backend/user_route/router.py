@@ -1,13 +1,20 @@
 import uuid
 
-from fastapi import APIRouter, Depends, File, status, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, status, UploadFile
 
 from backend_amirainvest_com.api.backend.user_route.controller import (
     create_controller,
     get_controller,
     update_controller,
 )
-from backend_amirainvest_com.api.backend.user_route.model import InitPostModel, InitReturnModel, UserUpdate
+from backend_amirainvest_com.api.backend.user_route.model import (
+    Http400Model,
+    Http409Enum,
+    Http409Model,
+    InitPostModel,
+    InitReturnModel,
+    UserUpdate,
+)
 from backend_amirainvest_com.controllers import uploads
 from backend_amirainvest_com.controllers.auth import auth_depends
 from common_amirainvest_com.schemas.schema import UsersModel
@@ -40,12 +47,26 @@ async def upload_profile_picture_route(user_id: uuid.UUID, image: UploadFile = F
     return (await update_controller(user.__dict__))._asdict()
 
 
-@router.post("/create", status_code=status.HTTP_200_OK, response_model=InitReturnModel)
+@router.post(
+    "/create",
+    status_code=status.HTTP_201_CREATED,
+    response_model=InitReturnModel,
+    responses={
+        status.HTTP_400_BAD_REQUEST: {"model": Http400Model, "description": "Request failed"},
+        status.HTTP_409_CONFLICT: {"model": Http409Model, "description": "Data conflict"},
+    },
+)
 async def create_route(user_data: InitPostModel, token=Depends(auth_depends)):
     sub = token["sub"]
+    app_metadata = token.get("app_metadata", {})
+    if app_metadata.get("user_id") is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=Http409Enum.app_metadata_includes_user_id.value.dict(),
+        )
+
     user_id = await create_controller(
         user_data,
         sub,
     )
-    # TODO change the user_sub in Auth0
     return InitReturnModel(id=user_id)

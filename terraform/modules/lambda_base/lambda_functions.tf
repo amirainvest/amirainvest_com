@@ -1,4 +1,4 @@
-resource "aws_lambda_function" "brokerage-data-sqs-consumer" {
+resource "aws_lambda_function" "main" {
   architectures = ["x86_64"]
 
   environment {
@@ -8,12 +8,17 @@ resource "aws_lambda_function" "brokerage-data-sqs-consumer" {
     }
   }
 
-  function_name                  = "${var.environment}-${var.project}-data-sqs-consumer"
+  function_name                  = local.lambda_name
   image_uri                      = "${aws_ecr_repository.lambda.repository_url}@${data.aws_ecr_image.lambda.id}"
   memory_size                    = "256"
   package_type                   = "Image"
-  reserved_concurrent_executions = "-1"
+  reserved_concurrent_executions = var.lambda_reserved_concurrent_executions
   role                           = aws_iam_role.lambda.arn
+
+
+  image_config {
+    command = var.lambda_image_config_command
+  }
 
   tags = {
     env = var.environment

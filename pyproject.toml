@@ -80,4 +80,6 @@ testpaths = [
     "src/backend_amirainvest_com/test",
     "src/brokerage_amirainvest_com/test",
     "src/data_imports_amirainvest_com/test",
+    "src/market_data_amirainvest_com/test",
 ]
+asyncio_mode = "auto"

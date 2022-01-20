@@ -2,11 +2,13 @@ import json
 from typing import List
 
 import redis  # noqa: F401
+from sqlalchemy import func
+from sqlalchemy.future import select
 
-from backend_amirainvest_com.controllers import posts
-from common_amirainvest_com.schemas.schema import Posts
+from common_amirainvest_com.schemas.schema import Posts, UserSubscriptions
 from common_amirainvest_com.utils.consts import WEBCACHE
-from common_amirainvest_com.utils.generic_utils import get_class_attrs
+from common_amirainvest_com.utils.decorators import Session
+from common_amirainvest_com.utils.generic_utils import get_class_attrs, get_past_datetime
 
 
 PAGE_SIZE = 30
@@ -18,7 +20,7 @@ async def get_subscriber_feed(subscriber_id: str, page: int = 0, page_size: int 
     feed_type = "subscriber"
     feed = get_redis_feed(subscriber_id, feed_type, page, page_size)
     if not feed:
-        feed = await posts.get_subscriber_posts(subscriber_id, hours_ago=MAX_HOURS_AGO)
+        feed = await get_subscriber_posts(subscriber_id, hours_ago=MAX_HOURS_AGO)
         if feed:
             update_redis_feed(subscriber_id, configure_feed(feed), feed_type)
     if not feed:
@@ -31,7 +33,7 @@ async def get_creator_feed(creator_id: str, page: int = 0, page_size: int = PAGE
     feed_type = "creator"
     feed = get_redis_feed(creator_id, feed_type, page, page_size)
     if not feed:
-        feed = await posts.get_creator_posts(creator_id, hours_ago=MAX_HOURS_AGO)
+        feed = await get_creator_posts(creator_id, hours_ago=MAX_HOURS_AGO)
         if feed:
             update_redis_feed(creator_id, configure_feed(feed), feed_type)
     if not feed:
@@ -44,7 +46,7 @@ async def get_discovery_feed(user_id: str, page: int = 0, page_size: int = PAGE_
     feed_type = "discovery"
     feed = get_redis_feed("", feed_type, page, page_size)
     if not feed:
-        feed = await posts.get_discovery_posts(hours_ago=MAX_HOURS_AGO, limit=MAX_FEED_SIZE * 5)
+        feed = await get_discovery_posts(hours_ago=MAX_HOURS_AGO, limit=MAX_FEED_SIZE * 5)
         if feed:
             update_redis_feed("discovery", configure_feed(feed), feed_type)
     return [x for x in feed if x.id not in [x.id for x in get_redis_feed(user_id, "subscriber")]]
@@ -81,3 +83,50 @@ def update_redis_feed(user_id: str, feed: List[dict], feed_type: str, max_feed_s
     key = f"{user_id}-{feed_type}"
     WEBCACHE.lpush(key, *[json.dumps(post) for post in feed])
     WEBCACHE.ltrim(key, 0, max_feed_size)
+
+
+@Session
+async def get_subscriber_posts(session, subscriber_id: str, hours_ago: int = 168, limit=200):
+    data = await session.execute(
+        select(Posts)
+        .filter(
+            Posts.creator_id.in_(
+                select(UserSubscriptions.creator_id).where(UserSubscriptions.subscriber_id == subscriber_id)
+            )
+        )
+        .where(Posts.created_at > get_past_datetime(hours=hours_ago))
+        .order_by(Posts.created_at.desc())
+        .limit(limit)
+    )
+    return data.scalars().all()
+
+
+@Session
+async def get_creator_posts(session, creator_id: str, hours_ago: int = 168, limit=200):
+    data = await session.execute(
+        select(Posts)
+        .where(Posts.creator_id == creator_id)
+        .where(Posts.created_at > get_past_datetime(hours=hours_ago))
+        .order_by(Posts.created_at.desc())
+        .limit(limit)
+    )
+    return data.scalars().all()
+
+
+@Session
+async def get_discovery_posts(session, hours_ago, limit=200):
+    data = await session.execute(
+        select(Posts)
+        .where(
+            Posts.creator_id.in_(
+                select(UserSubscriptions.creator_id)
+                .group_by(UserSubscriptions.creator_id)
+                .order_by(func.count(UserSubscriptions.creator_id))
+                .limit(10)
+            )
+        )
+        .where(Posts.created_at > get_past_datetime(hours=hours_ago))
+        .order_by(Posts.created_at.desc())
+        .limit(limit)
+    )
+    return data.scalars().all()

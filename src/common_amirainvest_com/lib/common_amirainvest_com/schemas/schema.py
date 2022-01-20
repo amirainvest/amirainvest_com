@@ -604,8 +604,7 @@ class Securities(Base, ToDict):
     open_price = Column(DECIMAL(19, 4), nullable=False)
     close_price = Column(DECIMAL(19, 4), nullable=False)
     type = Column(String)
-    iso_currency_code = Column(String)
-    unofficial_currency_code = Column(String)
+    currency = Column(String)
     last_updated = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
     created_at = Column(DateTime, server_default=UTCNow())
 
@@ -614,7 +613,7 @@ class SecurityPrices(Base, ToDict):
     __tablename__ = "security_prices"
     __table_args__ = (UniqueConstraint("price_time", "securities_id"),)
     id = Column(BigInteger, primary_key=True, unique=True, nullable=False)
-    securities_id = Column(Integer, ForeignKey("securities.id"), nullable=False)
+    security_id = Column(Integer, ForeignKey("securities.id"), nullable=False)
     price = Column(DECIMAL(19, 4), nullable=False)
     price_time = Column(DateTime, nullable=False)
     created_at = Column(DateTime, server_default=UTCNow())

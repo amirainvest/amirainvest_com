@@ -28,9 +28,9 @@ async def get_historical_prices(symbol: str, range: Union[HistoricalPriceEnum, s
     if type(range) == HistoricalPriceEnum:
         range_value = range.value
 
-    request_url = f"{IEX_URL}/stock/{symbol}/chart/{range_value}"
+    request_url = f"{IEX_URL}/stock/{symbol}/chart/{range_value}?token={IEX_SECRET}"
     async with httpx.AsyncClient() as client:
-        r = await client.get(request_url)
+        r = await client.get(request_url, timeout=20)
         validate_response(r.status_code, r.text)
         response = r.json()
         arr = []
@@ -40,9 +40,9 @@ async def get_historical_prices(symbol: str, range: Union[HistoricalPriceEnum, s
 
 
 async def get_stock_quote(symbol: str) -> StockQuote:
-    request_url = f"{IEX_URL}/stock/{symbol}/quote"
+    request_url = f"{IEX_URL}/stock/{symbol}/quote?token={IEX_SECRET}"
     async with httpx.AsyncClient() as client:
-        r = await client.get(request_url)
+        r = await client.get(request_url, timeout=20.0)
         validate_response(r.status_code, r.text)
         response = r.json()
         return StockQuote(**response)
@@ -52,7 +52,7 @@ async def get_stock_quote_prices(symbols: list[str]) -> list[StockQuote]:
     symbol_list = ",".join(symbols)
     request_url = f"{IEX_URL}/stock/market/batch?symbols={symbol_list}&types=quote&token={IEX_SECRET}"
     async with httpx.AsyncClient() as client:
-        r = await client.get(request_url)
+        r = await client.get(request_url, timeout=20.0)
         validate_response(r.status_code, r.text)
         response = r.json()
         arr = []
@@ -65,7 +65,7 @@ async def get_stock_quote_prices(symbols: list[str]) -> list[StockQuote]:
 async def get_company_info(symbol: str) -> Company:
     request_url = f"{IEX_URL}/stock/{symbol}/company?token={IEX_SECRET}"
     async with httpx.AsyncClient() as client:
-        r = await client.get(request_url)
+        r = await client.get(request_url, timeout=20.0)
         validate_response(r.status_code, r.text)
         response = r.json()
         return Company(**response)
@@ -74,7 +74,7 @@ async def get_company_info(symbol: str) -> Company:
 async def get_supported_securities_list() -> list[Symbol]:
     request_url = f"{IEX_URL}/ref-data/symbols?token={IEX_SECRET}"
     async with httpx.AsyncClient() as client:
-        r = await client.get(request_url)
+        r = await client.get(request_url, timeout=20.0)
         validate_response(r.status_code, r.text)
         response = r.json()
         arr = []

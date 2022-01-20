@@ -114,7 +114,7 @@ class StockQuote(BaseModel):
     latestUpdate: Optional[int]
     latestVolume: Optional[decimal.Decimal]
     low: Optional[decimal.Decimal]
-    lowSource: Optional[decimal.Decimal]
+    lowSource: Optional[str]
     lowTime: Optional[int]
     marketCap: Optional[decimal.Decimal]
     oddLotDelayedPrice: Optional[decimal.Decimal]

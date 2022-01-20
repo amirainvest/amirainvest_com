@@ -25,7 +25,6 @@ mounts_auth_bypass = [
 ]
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize("route", app.routes)
 async def test_not_authenticated_get_user(route):
     print(route.name)
@@ -57,7 +56,6 @@ async def test_not_authenticated_get_user(route):
         assert route.path in routes_with_no_auth_required_path
 
 
-@pytest.mark.asyncio
 async def test_webhooks_auth():
     for route in app.routes:
         if type(route) == starlette.routing.Mount and route.path == "/webhooks":

@@ -7,7 +7,6 @@ pytest_plugins = ["common_amirainvest_com.utils.test.fixtures.database"]
 
 import json
 
-import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,7 +16,6 @@ from common_amirainvest_com.utils.test.factories.schema import PostsFactory, Use
 from ...config import AUTH_HEADERS
 
 
-@pytest.mark.asyncio
 async def test_not_authenticated():
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         post_creator = await UsersFactory()
@@ -41,7 +39,6 @@ async def test_not_authenticated():
     assert response.json() == {"detail": "Not authenticated"}
 
 
-@pytest.mark.asyncio
 async def test_create(async_session_maker_test):
     session_test: AsyncSession = async_session_maker_test()
 
@@ -75,7 +72,6 @@ async def test_create(async_session_maker_test):
     assert db_result.platform_user_id == "test"
 
 
-@pytest.mark.asyncio
 async def test_update(async_session_maker_test):
     session_test: AsyncSession = async_session_maker_test()
 

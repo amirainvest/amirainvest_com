@@ -11,7 +11,6 @@ from common_amirainvest_com.utils.test.factories.schema import PostsFactory, Use
 from ..config import AUTH_HEADERS
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize("number_of_posts", [0, 10])
 async def test_get_subscriber_feed(number_of_posts):
     creator = await UsersFactory()
@@ -36,7 +35,6 @@ async def test_get_subscriber_feed(number_of_posts):
     assert all([response["creator_id"] == str(creator.id) for response in response_data["posts"]])
 
 
-@pytest.mark.asyncio
 async def test_get_empty_subscriber_feed():
     creator = await UsersFactory()
     subscriber = await UsersFactory()
@@ -54,7 +52,6 @@ async def test_get_empty_subscriber_feed():
     assert response_data["feed_type"] == "discovery"
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize("number_of_posts", [0, 10])
 async def test_get_creator_feed(number_of_posts):
     creator = await UsersFactory()
@@ -77,7 +74,6 @@ async def test_get_creator_feed(number_of_posts):
     assert all([response["creator_id"] == str(creator.id) for response in response_data["posts"]])
 
 
-@pytest.mark.asyncio
 async def test_get_empty_creator_feed():
     creator = await UsersFactory()
     subscriber = await UsersFactory()
@@ -93,7 +89,6 @@ async def test_get_empty_creator_feed():
     assert all([response["creator_id"] == str(creator.id) for response in response_data["posts"]])
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize("number_of_posts", [0, 10])
 async def test_get_discovery_feed(number_of_posts: int):
     creator = await UsersFactory()

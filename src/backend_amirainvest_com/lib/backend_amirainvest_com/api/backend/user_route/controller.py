@@ -2,7 +2,7 @@ import datetime
 import uuid
 
 from fastapi import HTTPException, status
-from sqlalchemy import insert, update
+from sqlalchemy import delete, insert, update
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -86,11 +86,11 @@ async def create_controller(session: AsyncSession, user_data: InitPostModel, sub
         user_id, email = result
         if email != user_data.email:
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
+                status_code=status.HTTP_409_CONFLICT,
                 detail=Http409Enum.user_sub_missmatch.value.dict(),
             )
 
-    metadata = {"user_id": str(user_id)}
+    metadata = {"UserId": str(user_id)}
     try:
         await auth0_utils.update_user_app_metadata(sub, metadata)
     except HTTPException:
@@ -102,3 +102,8 @@ async def create_controller(session: AsyncSession, user_data: InitPostModel, sub
         )
 
     return user_id
+
+
+@Session
+async def delete_controller(session: AsyncSession, user_id: uuid.UUID, sub: str):
+    await session.execute(delete(Users).where(Users.id == user_id).where(Users.sub == sub))

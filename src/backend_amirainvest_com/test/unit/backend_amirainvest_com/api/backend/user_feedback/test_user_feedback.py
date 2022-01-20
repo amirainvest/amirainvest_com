@@ -2,7 +2,6 @@ pytest_plugins = ["common_amirainvest_com.utils.test.fixtures.database"]
 
 import json
 
-import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -14,13 +13,12 @@ from common_amirainvest_com.utils.test.factories.schema import UsersFactory
 from ...config import AUTH_HEADERS
 
 
-@pytest.mark.asyncio
 async def test_create_user_feedback(async_session_maker_test):
     session_test: AsyncSession = async_session_maker_test()
     user = await UsersFactory()
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(
-            "/user_feedback",
+            "/user_feedback/create",
             headers=AUTH_HEADERS,
             data=json.dumps({"text": "I love your app.", "user_id": str(user.id)}),
         )

@@ -8,7 +8,7 @@ from backend_amirainvest_com.controllers.auth import auth_dep
 router = APIRouter(prefix="/user_feedback", tags=["User Feedback"], dependencies=[Security(auth_dep, scopes=[])])
 
 
-@router.post("", status_code=status.HTTP_200_OK, response_model=GetModel)
+@router.post("/create", status_code=status.HTTP_200_OK, response_model=GetModel)
 async def create_route(feedback_data: CreateModel):
     user_feedback = await create_controller(feedback_data)
     user_feedback = user_feedback.dict()

@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 from common_amirainvest_com.schemas.schema import HuskPlatforms, HuskRequestsModel as GetModel
 
+
 assert GetModel
 
 
@@ -14,3 +15,7 @@ class CreateModel(BaseModel):
     platform_id: str
     created_at: Optional[datetime.datetime]
     fulfilled: Optional[bool]
+
+
+class ListModel(BaseModel):
+    pass

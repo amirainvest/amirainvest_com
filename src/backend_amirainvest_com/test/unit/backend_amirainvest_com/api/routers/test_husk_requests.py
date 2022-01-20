@@ -26,14 +26,7 @@ async def test_create(async_session_maker_test):
         response = await async_client.post(
             "/husk_request/create",
             headers=AUTH_HEADERS,
-            data=json.dumps(
-                {
-                    "twitter_user_id": "Test",
-                    "youtube_channel_id": "Test",
-                    "substack_username": "Test",
-                    "fulfilled": False,
-                }
-            ),
+            data=json.dumps({"provided_name": "Elon Musk", "platform": "Twitter", "platform_id": "elonmusk"}),
         )
     assert response.status_code == 201
     response_data = response.json()

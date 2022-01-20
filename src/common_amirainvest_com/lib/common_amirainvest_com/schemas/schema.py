@@ -55,10 +55,11 @@ class Users(Base, ToDict):
     id: uuid.UUID = Column(UUID(as_uuid=True), primary_key=True, unique=True, default=uuid.uuid4)
     sub = Column(String, nullable=False)
     name = Column(String, nullable=False)
-    bio = Column(String)
     username = Column(String, nullable=False)
-    picture_url = Column(String, nullable=False)
-    email = Column(String, nullable=False)
+    email = Column(String, nullable=False, unique=True)
+
+    picture_url = Column(String)
+    bio = Column(String)
     personal_site_url = Column(String)
     linkedin_profile = Column(String)
     email_verified = Column(Boolean, default=False)
@@ -357,6 +358,7 @@ class Posts(Base, ToDict):
     created_at = Column(DateTime, server_default=UTCNow())
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
+    # TODO I think some of these relationships are not defined correctly.
     creator: Users = relationship(
         "Users", backref="post_creator", passive_deletes=True, cascade="all,delete", foreign_keys=[creator_id]
     )

@@ -1,11 +1,9 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-
-
 pytest_plugins = ["common_amirainvest_com.utils.test.fixtures.database"]
+
 import json
 
-import pytest
 from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from backend_amirainvest_com.api.app import app
@@ -15,14 +13,12 @@ from common_amirainvest_com.utils.test.factories.schema import HuskRequestsFacto
 from ..config import AUTH_HEADERS
 
 
-@pytest.mark.asyncio
 async def test_list():
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post("/husk_request/list", headers=AUTH_HEADERS)
     assert response.status_code == 200
 
 
-@pytest.mark.asyncio
 async def test_create(async_session_maker_test):
     session_test: AsyncSession = async_session_maker_test()
 
@@ -48,7 +44,6 @@ async def test_create(async_session_maker_test):
     assert response_data["id"] == husk_requests.id
 
 
-@pytest.mark.asyncio
 async def test_delete(async_session_maker_test):
     session_test: AsyncSession = async_session_maker_test()
 

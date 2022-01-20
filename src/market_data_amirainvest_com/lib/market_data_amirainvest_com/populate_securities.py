@@ -24,16 +24,24 @@ async def run(session: AsyncSession):
     # Populate DB with Records
     result = await session.execute(select(Securities).where(Securities.ticker_symbol.in_(supported_security_symbols)))
     current_internal_securities = result.scalars().all()
-    current_security_dict = {}
+    current_security_dict: dict[str, None] = {}
     for c_sec in current_internal_securities:
         current_security_dict[c_sec.ticker_symbol] = None
 
     insertable_securities = []
     for s in supported_securities:
-        if s.symbol in current_security_dict:
+        if s.symbol is None or s.symbol in current_security_dict:
             continue
         company = await get_company_info(s.symbol)
+        if company is None:
+            # TODO: log something here..
+            continue
+
         quote = await get_stock_quote(s.symbol)
+        if quote is None:
+            # TODO: log something here...
+            continue
+
         insertable_securities.append(
             Securities(
                 name=s.name,

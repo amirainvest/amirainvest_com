@@ -31,7 +31,7 @@ class UsersFactory(FactoryBase):
     name = "Test Name"
     username = "Test Username"
     picture_url = "https://test.com"
-    email = "test@test.com"
+    email = factory.Faker("email")
     email_verified = True
     is_deleted = False
 
@@ -52,7 +52,6 @@ class PostsFactory(FactoryBase):
     class Meta:
         model = Posts
 
-    creator_id = ""
     platform = "twitter"
 
 

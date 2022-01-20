@@ -8,8 +8,13 @@ on:
     inputs:
       microservice_list:
         description: "List of microservice names"
-        default: "[\"backend_amirainvest_com\", \"lambda\"]"
-        required: true
+        default: "[\"backend_amirainvest_com\", \"brokerage.lambda\", \"market_data.lambda\"]"
+        required: false
+        type: string
+      environment:
+        description: "Environment being run in"
+        default: "prod"
+        required: false
         type: string
     secrets:
       AWS_ACCESS_KEY_ID:
@@ -52,20 +57,20 @@ jobs:
       #        run: docker-compose run ${{ matrix.microservice }} pytest # TODO test the container right before pushing
 
       #      - name: Tag container version
-      #        run: docker tag amirainvest_com_${{ matrix.microservice }}:latest 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:1
+      #        run: docker tag amirainvest_com_${{ matrix.microservice }}:${{ inputs.environment }} 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:1
 
       #      - name: Push to ECR
       #        run: docker push 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:1
 
-      - name: Tag container latest
-        run: docker tag amirainvest_com_${{ matrix.microservice }}:"latest" 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:"latest"
+      - name: Tag container with environment
+        run: docker tag amirainvest_com_${{ matrix.microservice }}:"latest" 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:"${{ inputs.environment }}"
 
       - name: Push to ECR
-        run: docker push 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:"latest"
+        run: docker push 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:"${{ inputs.environment }}"
 
 
 
 
 # docker-compose build --build-arg INSTALL_DEV_DEPS="false" backend_amirainvest_com
-# docker tag amirainvest_com_backend_amirainvest_com:"latest" 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/backend_amirainvest_com:"latest"
-# docker push 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/backend_amirainvest_com:"latest"
+# docker tag amirainvest_com_backend_amirainvest_com:"${{ inputs.environment }}" 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/backend_amirainvest_com:"${{ inputs.environment }}"
+# docker push 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/backend_amirainvest_com:"${{ inputs.environment }}"

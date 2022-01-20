@@ -15,7 +15,7 @@ resource "aws_ecr_repository" "backend_amirainvest_com" {
 
 data "aws_ecr_image" "backend_amirainvest_com" {
   repository_name = aws_ecr_repository.backend_amirainvest_com.name
-  image_tag       = "latest"
+  image_tag       = var.environment
 }
 
 

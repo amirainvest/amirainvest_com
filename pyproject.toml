@@ -14,6 +14,7 @@ common_amirainvest_com = {path = "./src/common_amirainvest_com", develop = true}
 backend_amirainvest_com = {path = "./src/backend_amirainvest_com", develop = true}
 brokerage_amirainvest_com = {path = "./src/brokerage_amirainvest_com", develop = true}
 data_imports_amirainvest_com = {path = "./src/data_imports_amirainvest_com", develop = true}
+market_data_amirainvest_com = {path = "./src/market_data_amirainvest_com", develop = true}
 Jinja2 = "^3.0.3"
 
 [tool.poetry.dev-dependencies]
@@ -79,4 +80,6 @@ testpaths = [
     "src/backend_amirainvest_com/test",
     "src/brokerage_amirainvest_com/test",
     "src/data_imports_amirainvest_com/test",
+    "src/market_data_amirainvest_com/test",
 ]
+asyncio_mode = "auto"

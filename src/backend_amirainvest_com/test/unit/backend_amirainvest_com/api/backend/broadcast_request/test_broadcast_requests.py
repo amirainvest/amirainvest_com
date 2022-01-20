@@ -1,5 +1,4 @@
 pytest_plugins = ["common_amirainvest_com.utils.test.fixtures.database"]
-import pytest
 from fastapi import status
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,7 +11,6 @@ from common_amirainvest_com.utils.test.factories.schema import BroadcastRequests
 from ...config import AUTH_HEADERS
 
 
-@pytest.mark.asyncio
 async def test_auth():
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post("/broadcast_request/list")
@@ -21,7 +19,6 @@ async def test_auth():
     assert response.json() == {"detail": "Not authenticated"}
 
 
-@pytest.mark.asyncio
 async def test_list():
     creator = await UsersFactory()
     subscriber = await UsersFactory()
@@ -45,7 +42,6 @@ async def test_list():
     assert str(response_broadcast_request["subscriber_id"]) == str(subscriber.id)
 
 
-@pytest.mark.asyncio
 async def test_create(async_session_maker_test):
     session_test: AsyncSession = async_session_maker_test()
 

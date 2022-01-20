@@ -1,6 +1,7 @@
 name: "Python Analysis"
 
 on:
+  workflow_dispatch:
   pull_request:
     branches: [ main, staging ]
 
@@ -10,6 +11,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+
+#      - name: Cache docker image
+#        id: docker-image
+#        uses: actions/cache@v2
+#        with:
+#          path: ${{github.workspace}}/var/lib/docker/overlay2
+#          key: docker-base
 
       - name: Run checks
         run: make check_docker

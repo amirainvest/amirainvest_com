@@ -1,6 +1,7 @@
 name: Deploy
 
 on:
+  workflow_dispatch:
   pull_request:
     branches:
       - main
@@ -21,8 +22,6 @@ jobs:
   ecr_images:
     needs: tests
     uses: amirainvest/amirainvest_com/.github/workflows/push_containers.yml@main
-    with:
-      microservice_list: "[\"backend_amirainvest_com\", \"lambda\"]"
     secrets:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

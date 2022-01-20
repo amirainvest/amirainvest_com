@@ -14,6 +14,7 @@
     * Check all route input/output types
     * Change any `__dict__` to `.dict()`
     * Move any `.dict()` being passed to controllers into the controller and pass entire pydantic object
+    * `list` route should return `{"results": []}`
 * app.py
     * Import new router
     * Change in app.include_router
@@ -32,6 +33,8 @@
     * Change all requests to `.post(`
     * Change routes called
     * Change test function names
+    * Move to correct dir structure under `/test`
+    * Use fastapi status
 
 * Run `make test`
 * Run `pytest` inside of `make interactive`

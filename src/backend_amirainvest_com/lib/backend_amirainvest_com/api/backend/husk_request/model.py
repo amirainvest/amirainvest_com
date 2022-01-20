@@ -5,7 +5,6 @@ from pydantic import BaseModel
 
 from common_amirainvest_com.schemas.schema import HuskPlatforms, HuskRequestsModel as GetModel
 
-
 assert GetModel
 
 

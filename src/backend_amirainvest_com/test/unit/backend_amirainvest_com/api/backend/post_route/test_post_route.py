@@ -1,26 +1,28 @@
+from sqlalchemy.future import select
+
+from common_amirainvest_com.schemas.schema import Posts
+
+
 pytest_plugins = ["common_amirainvest_com.utils.test.fixtures.database"]
 
 import json
-from datetime import datetime
 
-import pytest
 from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend_amirainvest_com.api.app import app
 from common_amirainvest_com.utils.test.factories.schema import PostsFactory, UsersFactory
 
-from ..config import AUTH_HEADERS
+from ...config import AUTH_HEADERS
 
 
-@pytest.mark.asyncio
-async def test_not_authenticated_get_post():
+async def test_not_authenticated():
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         post_creator = await UsersFactory()
         response = await async_client.post(
-            "/posts",
+            "/post/create",
             data=json.dumps(
                 {
-                    "creator_id": str(post_creator.id),
                     "platform": "amira",
                     "platform_user_id": "test",
                     "platform_post_id": "test",
@@ -29,25 +31,24 @@ async def test_not_authenticated_get_post():
                     "html": "test",
                     "title": "test",
                     "profile_url": "test",
-                    "created_at": str(datetime.utcnow()),
-                    "updated_at": str(datetime.utcnow()),
                 }
             ),
+            params={"user_id": post_creator.id},
         )
     assert response.status_code == 403
     assert response.json() == {"detail": "Not authenticated"}
 
 
-@pytest.mark.asyncio
-async def test_create_amira_post():
+async def test_create(async_session_maker_test):
+    session_test: AsyncSession = async_session_maker_test()
+
     post_creator = await UsersFactory()
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(
-            "/posts",
+            "/post/create",
             headers=AUTH_HEADERS,
             data=json.dumps(
                 {
-                    "creator_id": str(post_creator.id),
                     "platform": "amira",
                     "platform_user_id": "test",
                     "platform_post_id": "test",
@@ -56,26 +57,34 @@ async def test_create_amira_post():
                     "html": "test",
                     "title": "test",
                     "profile_url": "test",
-                    "created_at": str(datetime.utcnow()),
-                    "updated_at": str(datetime.utcnow()),
                 }
             ),
+            params={"user_id": post_creator.id},
         )
+
     assert response.status_code == 200
+    result = response.json()
+
+    assert result["text"] == "test"
+
+    db_result = (await session_test.execute(select(Posts))).scalars().one()
+
+    assert db_result.platform_user_id == "test"
 
 
-@pytest.mark.asyncio
-async def test_update_post():
+async def test_update(async_session_maker_test):
+    session_test: AsyncSession = async_session_maker_test()
+
     post_creator = await UsersFactory()
     post = await PostsFactory(creator_id=post_creator.id, platform="amira")
+
     async with AsyncClient(app=app, base_url="http://test") as async_client:
-        response = await async_client.put(
-            "/posts",
+        response = await async_client.post(
+            "/post/update",
             headers=AUTH_HEADERS,
             data=json.dumps(
                 {
                     "id": post.id,
-                    "creator_id": str(post_creator.id),
                     "platform": "amira",
                     "platform_user_id": "updated",
                     "platform_post_id": "updated",
@@ -84,9 +93,15 @@ async def test_update_post():
                     "html": "updated",
                     "title": "updated",
                     "profile_url": "updated",
-                    "created_at": str(datetime.utcnow()),
-                    "updated_at": str(datetime.utcnow()),
                 }
             ),
+            params={"user_id": post_creator.id},
         )
     assert response.status_code == 200
+    result = response.json()
+
+    assert result["platform_user_id"] == "updated"
+
+    db_result = (await session_test.execute(select(Posts))).scalars().one()
+
+    assert db_result.platform_user_id == "updated"

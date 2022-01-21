@@ -1,5 +1,5 @@
-import datetime
 import asyncio
+import datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -41,12 +41,8 @@ async def run(session: AsyncSession):
         await asyncio.sleep(1)
 
 
-def round_time_to_minute_floor(tm: datetime) -> datetime:
-    return tm - datetime.timedelta(
-        minutes=tm.minute % 1,
-        seconds=tm.second,
-        microseconds=tm.microsecond
-    )
+def round_time_to_minute_floor(tm: datetime.datetime) -> datetime.datetime:
+    return tm - datetime.timedelta(minutes=tm.minute % 1, seconds=tm.second, microseconds=tm.microsecond)
 
 
 def get_security_id(securities: list[Securities], symbol: str) -> int:

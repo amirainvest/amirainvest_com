@@ -31,8 +31,10 @@ async def test_get():
 async def test_update(async_session_maker_test, mock_auth):
     session_test: AsyncSession = async_session_maker_test()
     sub_data = "fake"
+
     user = await UsersFactory()
     await mock_auth(user.id)
+
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(
             "/user/update",

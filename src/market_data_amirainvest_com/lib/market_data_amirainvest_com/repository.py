@@ -81,12 +81,12 @@ async def add_to_s3(historical_prices: list[HistoricalPrice], symbol: str, year:
     await s3.upload_file(file_name, AMIRA_SECURITIES_HISTORICAL_PRICES_BUCKET, file_name)
 
 
-def group_securities(securities: list[Securities]) -> list[list[Securities]]:
+def group_securities(securities: list[Securities], num_group: int) -> list[list[Securities]]:
     group = []
     sub_group = []
     for sec in securities:
         sub_group.append(sec)
-        if len(sub_group) >= 100:
+        if len(sub_group) >= num_group:
             group.append(sub_group)
             sub_group = []
     if len(sub_group) > 0:
@@ -119,3 +119,8 @@ async def add_to_db(session: AsyncSession, security_id: int, historical_prices: 
 async def get_securities(session: AsyncSession) -> list[Securities]:
     response = await session.execute(select(Securities))
     return response.scalars().all()
+
+
+@Session
+async def add_securities_prices(session: AsyncSession, security_prices: list[SecurityPrices]):
+    session.add_all(security_prices)

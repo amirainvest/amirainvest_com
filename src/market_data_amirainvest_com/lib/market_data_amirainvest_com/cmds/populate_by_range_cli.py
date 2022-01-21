@@ -33,7 +33,7 @@ async def work(security: Securities, year: int):
 
 async def run(year: int):
     securities = await get_securities()
-    grouped_securities = group_securities(securities)
+    grouped_securities = group_securities(securities, 100)
 
     for group in grouped_securities:
         await asyncio.gather(*(work(params, year) for params in group))

@@ -1,6 +1,5 @@
 import argparse
 import asyncio
-import time
 
 from common_amirainvest_com.s3.client import S3
 from common_amirainvest_com.s3.consts import AMIRA_SECURITIES_HISTORICAL_PRICES_BUCKET
@@ -37,7 +36,7 @@ async def run(year: int):
 
     for group in grouped_securities:
         await asyncio.gather(*(work(params, year) for params in group))
-        time.sleep(1)
+        await asyncio.sleep(1)
 
 
 if __name__ == "__main__":

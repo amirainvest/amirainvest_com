@@ -1,4 +1,4 @@
-import time
+import asyncio
 
 # from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
 # from market_data_amirainvest_com.iex import get_stock_quote_prices
@@ -20,7 +20,7 @@ async def run():
         # Insert prices
         # Update open/close on security open for security....
         # Run once in the AM / Once in the PM
-        time.sleep(1)
+        await asyncio.sleep(1)
 
 
 def handler(event, context):

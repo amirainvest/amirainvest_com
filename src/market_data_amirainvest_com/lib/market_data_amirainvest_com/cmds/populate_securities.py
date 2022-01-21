@@ -1,5 +1,4 @@
 import asyncio
-import time
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -35,7 +34,7 @@ async def insert_securities(
         print(f"Processing {counter}/{total_groups}")
         await asyncio.gather(*(work(params) for params in group))
         print(f"Finished Processing {counter}/{total_groups}")
-        time.sleep(1)
+        await asyncio.sleep(1)
         counter = counter + 1
         await session.commit()
 

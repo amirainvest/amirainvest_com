@@ -122,5 +122,11 @@ async def get_securities(session: AsyncSession) -> list[Securities]:
 
 
 @Session
+async def get_securities_collect_true(session: AsyncSession) -> list[Securities]:
+    response = await session.execute(select(Securities).where(Securities.collect == True))  # noqa: E712
+    return response.scalars().all()
+
+
+@Session
 async def add_securities_prices(session: AsyncSession, security_prices: list[SecurityPrices]):
     session.add_all(security_prices)

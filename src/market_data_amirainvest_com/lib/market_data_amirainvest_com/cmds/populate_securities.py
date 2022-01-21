@@ -42,6 +42,9 @@ async def insert_securities(
 
 @Session
 async def work(session: AsyncSession, s: Symbol):
+    if s.symbol is None or s.symbol == "":
+        return
+
     company = await get_company_info(s.symbol)
     if company is None:
         logger.log.info(f"could not fetch company information for {s.symbol}")

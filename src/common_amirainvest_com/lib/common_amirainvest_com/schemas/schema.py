@@ -588,9 +588,9 @@ class BrokerageJobs(Base, ToDict):
 class Securities(Base, ToDict):
     __tablename__ = "securities"
     id = Column(Integer, primary_key=True, unique=True, nullable=False)
-    collect = Column(Boolean, server_default=False, index=True, nullable=False)
+    collect = Column(Boolean, default=False, index=True, nullable=False)
     name = Column(String, nullable=False)
-    ticker_symbol = Column(String, unique=True)
+    ticker_symbol = Column(String, unique=True, nullable=False)
     exchange = Column(String)
     description = Column(String)
     website = Column(String)

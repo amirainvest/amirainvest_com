@@ -30,8 +30,11 @@ pycharm: _down
 	docker-compose build --build-arg USER_UID=$(UID) --progress plain amirainvest_com_pycharm
 
 test: initialize_pg _down
-	docker-compose build --build-arg USER_UID=$(UID) --progress plain test_amirainvest_com
-	docker-compose  -f docker-compose.yaml run -e AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID) -e AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY) --service-ports --rm test_amirainvest_com
+	docker-compose build --build-arg USER_UID=$(UID) --progress plain unit_test_amirainvest_com
+	docker-compose  -f docker-compose.yaml run --rm unit_test_amirainvest_com
+
+	docker-compose build --build-arg USER_UID=$(UID) --progress plain integration_test_amirainvest_com
+	docker-compose  -f docker-compose.yaml run -e AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID) -e AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY) --service-ports --rm integration_test_amirainvest_com
 
 # Just starts the postgres DB.
 db_only: _down

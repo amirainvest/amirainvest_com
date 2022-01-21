@@ -590,7 +590,7 @@ class Securities(Base, ToDict):
     id = Column(Integer, primary_key=True, unique=True, nullable=False)
     collect = Column(Boolean, default=False, index=True, nullable=False)
     name = Column(String, nullable=False)
-    ticker_symbol = Column(String, unique=True, nullable=False)
+    ticker_symbol: str = Column(String, unique=True, nullable=False)
     exchange = Column(String)
     description = Column(String)
     website = Column(String)

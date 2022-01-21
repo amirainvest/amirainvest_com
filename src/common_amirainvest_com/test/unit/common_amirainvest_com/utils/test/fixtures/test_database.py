@@ -1,4 +1,4 @@
-pytest_plugins = ["common_amirainvest_com.utils.test.fixtures.database"]
+
 import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession

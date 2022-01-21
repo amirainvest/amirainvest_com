@@ -1,5 +1,3 @@
-pytest_plugins = ["common_amirainvest_com.utils.test.fixtures.database"]
-
 import json
 
 import pytest
@@ -11,7 +9,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend_amirainvest_com.api.app import app
 from common_amirainvest_com.schemas.schema import Users
 from common_amirainvest_com.utils.test.factories.schema import UsersFactory
-
 from ...config import AUTH_HEADERS
 
 
@@ -30,11 +27,11 @@ async def test_get():
         print(response_data)
 
 
-@pytest.mark.skip(reason="I need to solve token passing for tests.")
-async def test_update(async_session_maker_test):
+async def test_update(async_session_maker_test, mock_auth):
     session_test: AsyncSession = async_session_maker_test()
     sub_data = "fake"
     user = await UsersFactory()
+    await mock_auth(user.id)
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(
             "/user/update",

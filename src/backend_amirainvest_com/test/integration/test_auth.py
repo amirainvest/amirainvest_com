@@ -1,13 +1,12 @@
-pytest_plugins = ["common_amirainvest_com.utils.test.fixtures.database"]
-
 import pytest
 import starlette.routing
 from httpx import AsyncClient
 
 from backend_amirainvest_com.api.app import app
 
-from ..config import AUTH_HEADERS, FAKE_AUTH_HEADER
 
+AUTH_HEADERS = {"Authorization": f"Bearer FAKE TOKEN"}
+FAKE_AUTH_HEADER = {"Authorization": "Bearer FAKE"}
 
 routes_with_no_auth_required_path = [
     "/openapi.json",
@@ -26,7 +25,7 @@ mounts_auth_bypass = [
 
 
 @pytest.mark.parametrize("route", app.routes)
-async def test_not_authenticated_get_user(route):
+async def test_backend_auth(route):
     print(route.name)
     try:
         if type(route) == starlette.routing.Mount:

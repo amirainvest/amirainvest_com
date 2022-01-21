@@ -3,7 +3,7 @@ from sqlalchemy.future import select
 from common_amirainvest_com.schemas.schema import Posts
 
 
-pytest_plugins = ["common_amirainvest_com.utils.test.fixtures.database"]
+
 
 import json
 

@@ -1,4 +1,4 @@
-import time
+import asyncio
 from datetime import datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -38,8 +38,7 @@ async def run(session: AsyncSession):
                 SecurityPrices(security_id=security_id, price=quote.latestPrice, price_time=price_time)
             )
         session.add_all(securities_prices)
-        securities_prices = []
-        time.sleep(1)
+        await asyncio.sleep(1)
 
 
 def get_security_id(securities: list[Securities], symbol: str) -> int:

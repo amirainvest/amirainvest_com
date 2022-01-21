@@ -18,9 +18,7 @@ http_bearer_scheme = HTTPBearer()
 jwks_client = jwt.PyJWKClient(f"https://{AUTH0_DOMAIN}/.well-known/jwks.json")
 
 
-# TODO add validating security scopes
-# TODO make all 403s return the same error
-async def auth_dep(
+async def auth_dep_test(
     security_scopes: SecurityScopes,
     bearer_auth_creds: HTTPAuthorizationCredentials = Depends(http_bearer_scheme),
 ):
@@ -39,6 +37,15 @@ async def auth_dep(
     except Exception:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authenticated")
     return payload
+
+
+# TODO add validating security scopes
+# TODO make all 403s return the same error
+async def auth_dep(
+    security_scopes: SecurityScopes,
+    bearer_auth_creds: HTTPAuthorizationCredentials = Depends(http_bearer_scheme),
+):
+    return await auth_dep_test(security_scopes, bearer_auth_creds)
 
 
 async def auth_depends(data=Security(auth_dep, scopes=[])):

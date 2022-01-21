@@ -1,5 +1,5 @@
 import time
-from datetime import datetime
+import datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -33,13 +33,21 @@ async def run(session: AsyncSession):
                 continue
             if quote.latestUpdate is None:
                 continue
-            price_time = datetime.fromtimestamp(quote.latestUpdate / 1000)
+            price_time = round_time_to_minute_floor(datetime.datetime.fromtimestamp(quote.latestUpdate / 1000))
             securities_prices.append(
                 SecurityPrices(security_id=security_id, price=quote.latestPrice, price_time=price_time)
             )
         session.add_all(securities_prices)
         securities_prices = []
         time.sleep(1)
+
+
+def round_time_to_minute_floor(tm: datetime) -> datetime:
+    return tm - datetime.timedelta(
+        minutes=tm.minute % 1,
+        seconds=tm.second,
+        microseconds=tm.microsecond
+    )
 
 
 def get_security_id(securities: list[Securities], symbol: str) -> int:

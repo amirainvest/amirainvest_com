@@ -13,6 +13,7 @@ from pydantic import BaseModel
 from backend_amirainvest_com.controllers import plaid_controller as plaid
 from common_amirainvest_com.utils.consts import AUTH0_API_AUDIENCE, AUTH0_CLIENT_ID, AUTH0_CLIENT_SECRET, AUTH0_DOMAIN
 
+
 http_bearer_scheme = HTTPBearer()
 jwks_client = jwt.PyJWKClient(f"https://{AUTH0_DOMAIN}/.well-known/jwks.json")
 

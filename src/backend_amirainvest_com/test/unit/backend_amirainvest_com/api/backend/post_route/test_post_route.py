@@ -1,16 +1,11 @@
-from sqlalchemy.future import select
-
-from common_amirainvest_com.schemas.schema import Posts
-
-
-
-
 import json
 
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
 from backend_amirainvest_com.api.app import app
+from common_amirainvest_com.schemas.schema import Posts
 from common_amirainvest_com.utils.test.factories.schema import PostsFactory, UsersFactory
 
 from ...config import AUTH_HEADERS

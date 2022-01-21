@@ -1,5 +1,3 @@
-
-
 from httpx import AsyncClient
 
 from backend_amirainvest_com.api.app import app

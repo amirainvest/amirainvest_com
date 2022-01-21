@@ -60,7 +60,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: [ "pytest", "-m", "unit_test" ]
+    command: [ "pytest", "-m", "not integration_test" ]
     environment:
       ENVIRONMENT: "local"
       DEBUG: "true"
@@ -77,7 +77,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: [ "pytest" ]
+    command: [ "pytest", "-m", "integration_test" ]
     environment:
       ENVIRONMENT: "local"
       DEBUG: "true"

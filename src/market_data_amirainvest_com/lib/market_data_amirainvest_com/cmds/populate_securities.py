@@ -1,5 +1,4 @@
 import asyncio
-import random
 import time
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,8 +6,8 @@ from sqlalchemy.future import select
 
 from common_amirainvest_com.schemas.schema import Securities
 from common_amirainvest_com.utils import logger
-from common_amirainvest_com.utils.decorators import Session
 from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
+from common_amirainvest_com.utils.decorators import Session
 from market_data_amirainvest_com.iex import get_company_info, get_stock_quote, get_supported_securities_list
 from market_data_amirainvest_com.models.iex import Symbol
 
@@ -18,16 +17,15 @@ from market_data_amirainvest_com.models.iex import Symbol
 async def insert_securities(
     session: AsyncSession, supported_securities: list[Symbol], current_securities: dict[str, None]
 ):
-    """
-    Building a half-baked semaphore like co-routine limiter(can only run 100 per second)....
-    """
     grouping = []
     sub_group = []
     for s in supported_securities:
         if s.symbol is None or s.symbol in current_securities:
             continue
         sub_group.append(s)
-        if len(sub_group) >= 100:
+        if (
+            len(sub_group) >= 50
+        ):  # We use groups of 50 since we make two api calls / security and we are limited to 100 a second
             grouping.append(sub_group)
             sub_group = []
 
@@ -71,7 +69,7 @@ async def work(session: AsyncSession, s: Symbol):
             open_price=quote.open,
             close_price=quote.close,
             type=s.type,
-            iso_currency_code=quote.currency,
+            currency=quote.currency,
         )
     )
 
@@ -88,13 +86,6 @@ async def fetch_existing_records(session: AsyncSession, securities: list[Symbol]
     for c_sec in current_internal_securities:
         cur_secs_dict[c_sec.ticker_symbol] = None
     return cur_secs_dict
-
-
-async def t(v):
-    r = random.randrange(0, 3)
-    print(f"Sleeping for {r} for routine {v}")
-    time.sleep(r)
-    print(f"Sleeping for {r} Finished for routine {v}")
 
 
 async def run():

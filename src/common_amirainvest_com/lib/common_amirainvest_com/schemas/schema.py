@@ -611,7 +611,7 @@ class Securities(Base, ToDict):
 
 class SecurityPrices(Base, ToDict):
     __tablename__ = "security_prices"
-    __table_args__ = (UniqueConstraint("price_time", "securities_id"),)
+    __table_args__ = (UniqueConstraint("price_time", "security_id"),)
     id = Column(BigInteger, primary_key=True, unique=True, nullable=False)
     security_id = Column(Integer, ForeignKey("securities.id"), nullable=False)
     price = Column(DECIMAL(19, 4), nullable=False)

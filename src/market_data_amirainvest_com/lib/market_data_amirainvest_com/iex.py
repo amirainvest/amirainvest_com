@@ -23,12 +23,15 @@ class HistoricalPriceEnum(enum.Enum):
 
 # Returns historical prices for last 15 years
 # Can pass in an enum or a specific date in YYYYMMDD format
-async def get_historical_prices(symbol: str, range: Union[HistoricalPriceEnum, str]) -> list[HistoricalPrice]:
+async def get_historical_prices(symbol: str, range: Union[HistoricalPriceEnum, str], date="") -> list[HistoricalPrice]:
     range_value = range
     if type(range) == HistoricalPriceEnum:
         range_value = range.value
 
     request_url = f"{IEX_URL}/stock/{symbol}/chart/{range_value}?token={IEX_SECRET}"
+    if date != "":
+        request_url = f"{request_url}&{date}"
+
     async with httpx.AsyncClient() as client:
         r = await client.get(request_url, timeout=20)
         validate_response(r.status_code, r.text)

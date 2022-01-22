@@ -22,7 +22,7 @@ async def test_create_user_feedback(async_session_maker_test, monkeypatch):
     async def auth_dep_mock(*args, **kwargs):
         return {"https://amirainvest.com/user_id": user.id}
 
-    monkeypatch.setattr(auth, "auth_dep_test", auth_dep_mock)
+    monkeypatch.setattr(auth, "_auth_dep", auth_dep_mock)
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(
             "/user_feedback/create",

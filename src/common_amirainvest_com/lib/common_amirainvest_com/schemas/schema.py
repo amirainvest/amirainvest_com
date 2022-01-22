@@ -619,17 +619,61 @@ class SecurityPrices(Base, ToDict):
     price_time = Column(DateTime, nullable=False)
     created_at = Column(DateTime, server_default=UTCNow())
 
+
 class NotificationTypes(enum.Enum):
     trade = "TRADE"
     creator_join = "CREATOR JOINED"
     amira_post = "AMIRA POST"
+    mention = "MENTION"
+    upvote = "UPVOTE"
+    shared_change = "SHARED WATCHLIST CHANGED"
+    watchlist_price = "WATCHLIST PRICE MOVEMENT"
+    shared_price = "SHARED WATCHLIST PRICE MOVEMENT"
+
 
 class Notifications(Base, ToDict):
     __tablename__ = 'notifications'
     id = Column(BigInteger, primary_key=True, unique=True, nullable=False)
     user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     notification_type = Column(Enum(NotificationTypes), nullable=False)
-    text = Column(String)
-    redirect_id = Column(String)
+    text = Column(String, nullable = False)
+    redirect_id = Column(String, nullable = False)
     mark_as_read = Column(Boolean, default=False, nullable=False)
+    is_deleted = Column(Boolean, default=False, nullable=False)
+    created_at = Column(DateTime, server_default=UTCNow())
+    updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
+
+class NotificationsModel(BaseModel):
+    id: int
+    user_id: uuid.UUID
+    notification_type: str
+    text : str
+    redirect_id : str
+    mark_as_read: Optional[bool]
+    is_deleted : Optional[bool]
+    created_at: Optional[datetime.datetime]
+    updated_at: Optional[datetime.datetime]
+
+
+class NotificationSettings(Base, ToDict):
+    __tablename__ = 'notification_settings'
+    id = Column(BigInteger, primary_key=True, unique=True, nullable=False)
+    user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    mention = Column(Boolean, default=True, nullable=False)
+    upvotes = Column(Boolean, default=True, nullable=False)
+    shared_change = Column(Boolean, default=True, nullable=False)
+    watchlist_price = Column(Boolean, default=True, nullable=False)
+    shared_price = Column(Boolean, default=True, nullable=False)
+    email_trades = Column(Boolean, default=True, nullable=False)
+
+
+class NotificationSettingsModel(BaseModel):
+    id : int
+    user_id: uuid.UUID
+    mention: Optional[bool]
+    upvotes: Optional[bool]
+    shared_change: Optional[bool]
+    watchlist_price: Optional[bool]
+    shared_price: Optional[bool]
+    email_trades: Optional[bool]

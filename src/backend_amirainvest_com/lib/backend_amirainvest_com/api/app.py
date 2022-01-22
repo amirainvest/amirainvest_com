@@ -11,6 +11,7 @@ from backend_amirainvest_com.api.backend.bookmark.router import router as bookma
 from backend_amirainvest_com.api.backend.broadcast_request.router import router as broadcast_router
 from backend_amirainvest_com.api.backend.code_challenge.router import router as code_challenge_router
 from backend_amirainvest_com.api.backend.husk_request.router import router as hust_request_router
+from backend_amirainvest_com.api.backend.notifications.router import router as notifications_router
 from backend_amirainvest_com.api.backend.plaid_route.router import router as plaid_router
 from backend_amirainvest_com.api.backend.post_route.router import router as post_router
 from backend_amirainvest_com.api.backend.user_route.router import router as user_router
@@ -22,6 +23,7 @@ app = FastAPI(title="Backend", version="0.1")
 
 app.include_router(admin_router)
 app.include_router(user_router)
+app.include_router(notifications_router)
 app.include_router(user_subscriptions.router)
 app.include_router(feed.router)
 app.include_router(post_router)

@@ -28,6 +28,9 @@ __all__ = [
     "PLAID_SECRET",
     "PLAID_APPLICATION_NAME",
     "PLAID_ENVIRONMENT",
+    "IEX_URL",
+    "IEX_PUBLISHABLE",
+    "IEX_SECRET",
 ]
 
 
@@ -107,6 +110,13 @@ PLAID_ENVIRONMENT = Environment.Sandbox
 # TODO This is a catch all for the time being -- we should change this once we get production credentials attached
 if ENVIRONMENT == Environments.prod.value or ENVIRONMENT == Environments.staging.value:
     PLAID_ENVIRONMENT = Environment.Development
+
+_iex_dict = decode_env_var("iex")
+IEX_PUBLISHABLE = _iex_dict["publishable"]
+IEX_SECRET = _iex_dict["secret"]
+IEX_URL = "https://sandbox.iexapis.com/stable"
+if ENVIRONMENT == Environments.staging.value or ENVIRONMENT == Environments.prod.value:
+    IEX_URL = "https://cloud.iexapis.com/stable"
 
 COMMON_ROOT_DIR = os.path.dirname(os.path.abspath(__file__)).split("src/common_amirainvest_com")[0]
 

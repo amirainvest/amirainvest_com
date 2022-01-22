@@ -1,5 +1,3 @@
-pytest_plugins = ["common_amirainvest_com.utils.test.fixtures.database"]
-
 from httpx import AsyncClient
 
 from backend_amirainvest_com.api.app import app

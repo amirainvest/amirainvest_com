@@ -65,7 +65,7 @@ class Users(Base, ToDict):
     email_verified = Column(Boolean, default=False)
     interests_diversification_rating = Column(Integer)
     benchmark = Column(String)
-    trading_strategy = Column(String)
+    trading_strategies = Column(ARRAY(String))
     chip_labels = Column(ARRAY(String))
     public_profile = Column(Boolean)
     public_performance = Column(Boolean)
@@ -92,7 +92,7 @@ class UsersModel(BaseModel):
     email_verified: bool
     interests_diversification_rating: Optional[int]
     benchmark: Optional[str]
-    trading_strategy: Optional[str]
+    trading_strategies: Optional[List[str]]
     chip_labels: Optional[List[str]]
     public_profile: Optional[bool]
     public_performance: Optional[bool]

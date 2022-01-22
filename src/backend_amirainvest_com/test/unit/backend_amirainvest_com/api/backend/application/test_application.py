@@ -3,7 +3,8 @@ from httpx import AsyncClient
 
 from backend_amirainvest_com.api.app import app
 from common_amirainvest_com.utils.test.factories.schema import (
-    BenchmarksFactory, ChipLabelsFactory,
+    BenchmarksFactory,
+    ChipLabelsFactory,
     TradingStrategiesFactory,
 )
 
@@ -24,4 +25,3 @@ async def test_config():
     assert response_data["chip_labels"][0] == "Test"
     assert response_data["benchmarks"][0] == "Test"
     assert response_data["trading_strategies"][0] == "Test"
-

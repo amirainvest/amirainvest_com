@@ -5,9 +5,21 @@ https://factoryboy.readthedocs.io/en/stable/index.html
 import factory
 
 from common_amirainvest_com.schemas.schema import (
-    Benchmarks, Bookmarks, BroadcastRequests, ChipLabels, HuskRequests,
-    Posts, SubstackArticles, SubstackUsers, TradingStrategies, Tweets,
-    TwitterUsers, UserMediaErrors, Users, UserSubscriptions, YouTubers,
+    Benchmarks,
+    Bookmarks,
+    BroadcastRequests,
+    ChipLabels,
+    HuskRequests,
+    Posts,
+    SubstackArticles,
+    SubstackUsers,
+    TradingStrategies,
+    Tweets,
+    TwitterUsers,
+    UserMediaErrors,
+    Users,
+    UserSubscriptions,
+    YouTubers,
     YouTubeVideos,
 )
 from common_amirainvest_com.utils.test.factories.base import FactoryBase

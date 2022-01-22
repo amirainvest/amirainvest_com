@@ -618,3 +618,18 @@ class SecurityPrices(Base, ToDict):
     price = Column(DECIMAL(19, 4), nullable=False)
     price_time = Column(DateTime, nullable=False)
     created_at = Column(DateTime, server_default=UTCNow())
+
+class NotificationTypes(enum.Enum):
+    trade = "TRADE"
+    creator_join = "CREATOR JOINED"
+    amira_post = "AMIRA POST"
+
+class Notifications(Base, ToDict):
+    __tablename__ = 'notifications'
+    id = Column(BigInteger, primary_key=True, unique=True, nullable=False)
+    user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    notification_type = Column(Enum(NotificationTypes), nullable=False)
+    text = Column(String)
+    redirect_id = Column(String)
+    mark_as_read = Column(Boolean, default=False, nullable=False)
+

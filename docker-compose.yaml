@@ -56,11 +56,28 @@ services:
         ipv4_address: 169.254.170.4
   # ^^^^^^^^ DO NOT CHANGE amirainvest_com_pycharm!! Not even the ENVIRONMENT.
 
-  test_amirainvest_com:
+  unit_test_amirainvest_com:
     build:
       context: .
       dockerfile: Dockerfile
-    command: [ "pytest" ]
+    command: [ "pytest", "-m", "not integration_test" ]
+    environment:
+      ENVIRONMENT: "local"
+      DEBUG: "true"
+      AWS_DEFAULT_REGION: "us-east-1"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      local:
+
+  integration_test_amirainvest_com:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: [ "pytest", "-m", "integration_test" ]
     environment:
       ENVIRONMENT: "local"
       DEBUG: "true"

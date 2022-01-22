@@ -1,5 +1,3 @@
-pytest_plugins = ["common_amirainvest_com.utils.test.fixtures.database"]
-
 import datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession

@@ -21,10 +21,6 @@ def print_env_vars():
     for key, value in values.items():
         values_dict[key] = value
 
-    values = dotenv_values(dotenv_path=".env")
-    for key, value in values.items():
-        values_dict[key] = value
-
     environment = os.environ.get("ENVIRONMENT", "local")
     project = os.environ.get("PROJECT", "mono")
     try:
@@ -33,6 +29,10 @@ def print_env_vars():
             values_dict[key] = value
     except (CredentialRetrievalError, NoCredentialsError):
         warnings.warn("Missing AWS creds", RuntimeWarning)
+
+    values = dotenv_values(dotenv_path=".env")
+    for key, value in values.items():
+        values_dict[key] = value
 
     final_values = []
     for key, value in values_dict.items():

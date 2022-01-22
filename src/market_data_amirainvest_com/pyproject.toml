@@ -14,6 +14,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.9"
 common_amirainvest_com = { path = "../common_amirainvest_com", develop = true }
+httpx = "^0.21.3"
 
 [tool.poetry.dev-dependencies]
 

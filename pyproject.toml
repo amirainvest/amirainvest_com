@@ -58,7 +58,6 @@ include = '\.pyi?$'
 #module = [
 #    "pytest",
 #]
-#ignore_missing_imports = true
 
 [tool.isort]
 profile = "black"
@@ -75,7 +74,16 @@ lines_after_imports = 2
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "--cov=src/common_amirainvest_com/lib --cov=src/backend_amirainvest_com/lib --cov=src/brokerage_amirainvest_com/lib --cov=src/data_imports_amirainvest_com/lib --cov-report term --cov-report html"
+addopts = """
+--strict-markers
+--cov=src/common_amirainvest_com/lib
+--cov=src/backend_amirainvest_com/lib
+--cov=src/brokerage_amirainvest_com/lib
+--cov=src/data_imports_amirainvest_com/lib
+--cov=src/market_data_amirainvest_com/lib
+--cov-report term
+--cov-report html
+"""
 testpaths = [
     "src/common_amirainvest_com/test",
     "src/backend_amirainvest_com/test",
@@ -84,3 +92,8 @@ testpaths = [
     "src/market_data_amirainvest_com/test",
 ]
 asyncio_mode = "auto"
+
+markers = [
+    "unit_test: Used to mark tests that do not use ANY outside resources",
+    "integration_test: Used to mark tests that DO call outside resorces",
+]

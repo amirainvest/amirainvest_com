@@ -134,11 +134,17 @@ class BroadcastRequestsModel(BaseModel):
     created_at: Optional[datetime.datetime]
 
 
+class SubscriptionLevel(enum.Enum):
+    standard = "standard"
+    premium = "premium"
+
+
 class UserSubscriptions(Base, ToDict):
     __tablename__ = "user_subscriptions"
     id = Column(Integer, primary_key=True, unique=True)
     subscriber_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     creator_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    subscription_level = Column(Enum(SubscriptionLevel), default=SubscriptionLevel.standard.value, nullable=False)
     created_at = Column(DateTime, server_default=UTCNow())
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
     is_deleted = Column(Boolean, nullable=False)
@@ -155,6 +161,7 @@ class UserSubscriptionsModel(BaseModel):
     id: int
     subscriber_id: uuid.UUID
     creator_id: uuid.UUID
+    subscription_level: SubscriptionLevel
     created_at: Optional[datetime.datetime]
     updated_at: Optional[datetime.datetime]
     is_deleted: bool
@@ -581,8 +588,9 @@ class BrokerageJobs(Base, ToDict):
 class Securities(Base, ToDict):
     __tablename__ = "securities"
     id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    collect = Column(Boolean, default=False, index=True, nullable=False)
     name = Column(String, nullable=False)
-    ticker_symbol = Column(String, unique=True)
+    ticker_symbol: str = Column(String, unique=True, nullable=False)
     exchange = Column(String)
     description = Column(String)
     website = Column(String)
@@ -597,17 +605,16 @@ class Securities(Base, ToDict):
     open_price = Column(DECIMAL(19, 4), nullable=False)
     close_price = Column(DECIMAL(19, 4), nullable=False)
     type = Column(String)
-    iso_currency_code = Column(String)
-    unofficial_currency_code = Column(String)
+    currency = Column(String)
     last_updated = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
     created_at = Column(DateTime, server_default=UTCNow())
 
 
 class SecurityPrices(Base, ToDict):
     __tablename__ = "security_prices"
-    __table_args__ = (UniqueConstraint("price_time", "securities_id"),)
+    __table_args__ = (UniqueConstraint("price_time", "security_id"),)
     id = Column(BigInteger, primary_key=True, unique=True, nullable=False)
-    securities_id = Column(Integer, ForeignKey("securities.id"), nullable=False)
+    security_id = Column(Integer, ForeignKey("securities.id"), nullable=False)
     price = Column(DECIMAL(19, 4), nullable=False)
     price_time = Column(DateTime, nullable=False)
     created_at = Column(DateTime, server_default=UTCNow())

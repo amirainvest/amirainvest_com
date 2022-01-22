@@ -6,6 +6,7 @@ BUILDKIT_PROGRESS=plain
 .PHONY: check run interactive test db_only initialize_pg run_migrations kill_all_containers remove_all_docker_data _down _base _remove_all_pg_data _insert_pg_data
 
 check:
+	poetry install
 	poetry run isort src/
 	poetry run black src/
 	poetry run flake8 src/
@@ -30,8 +31,11 @@ pycharm: _down
 	docker-compose build --build-arg USER_UID=$(UID) --progress plain amirainvest_com_pycharm
 
 test: initialize_pg _down
-	docker-compose build --build-arg USER_UID=$(UID) --progress plain test_amirainvest_com
-	docker-compose  -f docker-compose.yaml run -e AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID) -e AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY) --service-ports --rm test_amirainvest_com
+	docker-compose build --build-arg USER_UID=$(UID) --progress plain unit_test_amirainvest_com
+	docker-compose  -f docker-compose.yaml run --rm unit_test_amirainvest_com
+
+	docker-compose build --build-arg USER_UID=$(UID) --progress plain integration_test_amirainvest_com
+	docker-compose  -f docker-compose.yaml run -e AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID) -e AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY) --service-ports --rm integration_test_amirainvest_com
 
 # Just starts the postgres DB.
 db_only: _down

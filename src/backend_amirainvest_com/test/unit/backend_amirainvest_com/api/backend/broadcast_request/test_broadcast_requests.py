@@ -1,4 +1,3 @@
-pytest_plugins = ["common_amirainvest_com.utils.test.fixtures.database"]
 from fastapi import status
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession

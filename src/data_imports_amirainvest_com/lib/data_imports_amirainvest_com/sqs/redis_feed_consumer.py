@@ -16,8 +16,8 @@ def add_post_to_redis_feed(user_id: str, post: dict, feed_type: str, max_feed_si
     WEBCACHE.ltrim(key, 0, max_feed_size)
 
 
-def consume_redis_feed_sqs_queue():
-    consume_queue(REDIS_FEED_FANOUT_SQS_QUEUE, add_post_to_redis_feed)
+async def consume_redis_feed_sqs_queue():
+    await consume_queue(REDIS_FEED_FANOUT_SQS_QUEUE, add_post_to_redis_feed)
 
 
 if __name__ == "__main__":

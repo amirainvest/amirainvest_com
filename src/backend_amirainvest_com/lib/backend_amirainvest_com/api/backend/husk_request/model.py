@@ -15,7 +15,3 @@ class CreateModel(BaseModel):
     platform_id: str
     created_at: Optional[datetime.datetime]
     fulfilled: Optional[bool]
-
-
-class ListModel(BaseModel):
-    pass

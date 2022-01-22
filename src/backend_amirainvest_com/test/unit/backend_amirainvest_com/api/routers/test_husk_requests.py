@@ -11,12 +11,6 @@ from common_amirainvest_com.utils.test.factories.schema import HuskRequestsFacto
 from ..config import AUTH_HEADERS
 
 
-async def test_list():
-    async with AsyncClient(app=app, base_url="http://test") as async_client:
-        response = await async_client.post("/husk_request/list", headers=AUTH_HEADERS)
-    assert response.status_code == 200
-
-
 async def test_create(async_session_maker_test):
     session_test: AsyncSession = async_session_maker_test()
 

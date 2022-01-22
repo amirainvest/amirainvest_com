@@ -23,7 +23,7 @@ async def get_config():
     chip_labels = get_chip_labels()
     benchmarks = get_benchmarks()
     trading_strategies = get_trading_strategies()
-    await chip_labels
-    await benchmarks
-    await trading_strategies
+    chip_labels = await chip_labels
+    benchmarks = await benchmarks
+    trading_strategies = await trading_strategies
     return {"chip_labels": chip_labels, "benchmarks": benchmarks, "trading_strategies": trading_strategies}

@@ -8,4 +8,4 @@ router = APIRouter(prefix="/application", tags=["Application"])
 
 @router.get("/config", status_code=status.HTTP_200_OK)
 async def config_route():
-    return get_config()
+    return await get_config()

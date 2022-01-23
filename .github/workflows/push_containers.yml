@@ -21,21 +21,26 @@ on:
       AWS_SECRET_ACCESS_KEY:
         required: true
 
+
 jobs:
   set_env_vars:
     runs-on: ubuntu-20.04
+    outputs:
+      environment: ${{ steps.set_environment.outputs.environment }}
+      microservice_list: ${{ steps.set_microservice_list.outputs.microservice_list }}
     steps:
-      - name: Set environment
-        run: echo "environment=prod" >> $GITHUB_ENV
+      - name: set_environment
+        run: echo "::set-output name=environment::prod"
 
-      - name: Set microservice_list
-        run: echo "microservice_list=\"[\"backend_amirainvest_com\", \"brokerage.lambda\", \"market_data.lambda\"]\"" >> $GITHUB_ENV
+      - name: set_microservice_list
+        run: echo "::set-output name=microservice_list::\"[\"backend_amirainvest_com\", \"brokerage.lambda\", \"market_data.lambda\"]\""
+
 
   build_and_push_container:
     needs: set_env_vars
     strategy:
       matrix:
-        microservice: ${{fromJson(${{env.microservice_list}})}}
+        microservice: ${{fromJson(needs.set_env_vars.outputs.microservice_list)}}
 
     runs-on: ubuntu-20.04
     steps:

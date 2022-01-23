@@ -1,5 +1,8 @@
 name: Push container
 
+env:
+  AWS_REGION: us-east-1
+
 on:
   workflow_dispatch:
   workflow_call:
@@ -18,17 +21,31 @@ on:
       AWS_SECRET_ACCESS_KEY:
         required: true
 
-env:
-  AWS_REGION: us-east-1
-  environment: "prod"
-  microservice_list: "[\"backend_amirainvest_com\", \"brokerage.lambda\", \"market_data.lambda\"]"
-
-
+# https://github.com/actions/runner/issues/480#issuecomment-982710103
 jobs:
+  Params:
+    runs-on: ubuntu-20.04
+    outputs:
+      environment: ${{ steps.params.outputs.environment }}
+      microservice_list: ${{ steps.params.outputs.microservice_list }}
+    steps:
+      - name: Generate params
+        id: params
+        shell: python
+        run: |
+          print_base = "::set-output name="
+          environment = "prod"
+          microservice_list = ["backend_amirainvest_com", "brokerage.lambda", "market_data.lambda"]
+
+          print(f"{print_base}environment::{environment}")
+          print(f"{print_base}microservice_list::{microservice_list!s}")
+
+
   build_and_push_container:
+    needs: Params
     strategy:
       matrix:
-        microservice: ${{fromJson(env.microservice_list)}}
+        microservice: ${{ fromJson(needs.Params.outputs.microservice_list) }}
 
     runs-on: ubuntu-20.04
     steps:

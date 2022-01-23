@@ -4,6 +4,23 @@ env:
   AWS_REGION: us-east-1
 
 on:
+  workflow_dispatch:
+    inputs:
+      microservice_list:
+        description: "List of microservice names"
+        default: "[\"backend_amirainvest_com\", \"brokerage.lambda\", \"market_data.lambda\"]"
+        required: false
+        type: string
+      environment:
+        description: "Environment being run in"
+        default: "prod"
+        required: false
+        type: string
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
   workflow_call:
     inputs:
       microservice_list:

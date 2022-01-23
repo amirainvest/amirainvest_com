@@ -5,32 +5,14 @@ env:
 
 on:
   workflow_dispatch:
-    inputs:
-      microservice_list:
-        description: "List of microservice names"
-        default: "[\"backend_amirainvest_com\", \"brokerage.lambda\", \"market_data.lambda\"]"
-        required: false
-        type: string
-      environment:
-        description: "Environment being run in"
-        default: "prod"
-        required: false
-        type: string
-    secrets:
-      AWS_ACCESS_KEY_ID:
-        required: true
-      AWS_SECRET_ACCESS_KEY:
-        required: true
   workflow_call:
     inputs:
       microservice_list:
         description: "List of microservice names"
-        default: "[\"backend_amirainvest_com\", \"brokerage.lambda\", \"market_data.lambda\"]"
         required: false
         type: string
       environment:
         description: "Environment being run in"
-        default: "prod"
         required: false
         type: string
     secrets:
@@ -39,12 +21,23 @@ on:
       AWS_SECRET_ACCESS_KEY:
         required: true
 
+
 jobs:
+  set_env_vars:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Set environment
+        run: echo "environment=prod" >> $GITHUB_ENV
+
+      - name: Set microservice_list
+        run: |
+        echo "microservice_list=\"[\"backend_amirainvest_com\", \"brokerage.lambda\", \"market_data.lambda\"]\"" >> $GITHUB_ENV
   build_and_push_container:
 
     strategy:
       matrix:
-        microservice: ${{fromJson(inputs.microservice_list)}}
+        microservice: ${{fromJson(env.microservice_list)}}
 
     runs-on: ubuntu-20.04
     steps:
@@ -74,20 +67,20 @@ jobs:
       #        run: docker-compose run ${{ matrix.microservice }} pytest # TODO test the container right before pushing
 
       #      - name: Tag container version
-      #        run: docker tag amirainvest_com_${{ matrix.microservice }}:${{ inputs.environment }} 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:1
+      #        run: docker tag amirainvest_com_${{ matrix.microservice }}:${{ env.environment }} 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:1
 
       #      - name: Push to ECR
       #        run: docker push 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:1
 
       - name: Tag container with environment
-        run: docker tag amirainvest_com_${{ matrix.microservice }}:"latest" 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:"${{ inputs.environment }}"
+        run: docker tag amirainvest_com_${{ matrix.microservice }}:"latest" 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:"${{ env.environment }}"
 
       - name: Push to ECR
-        run: docker push 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:"${{ inputs.environment }}"
+        run: docker push 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:"${{ env.environment }}"
 
 
 
 
 # docker-compose build --build-arg INSTALL_DEV_DEPS="false" backend_amirainvest_com
-# docker tag amirainvest_com_backend_amirainvest_com:"${{ inputs.environment }}" 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/backend_amirainvest_com:"${{ inputs.environment }}"
-# docker push 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/backend_amirainvest_com:"${{ inputs.environment }}"
+# docker tag amirainvest_com_backend_amirainvest_com:"${{ env.environment }}" 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/backend_amirainvest_com:"${{ env.environment }}"
+# docker push 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/backend_amirainvest_com:"${{ env.environment }}"

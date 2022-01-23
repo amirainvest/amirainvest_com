@@ -37,7 +37,7 @@ async def get_route(user_id: uuid.UUID, token=Depends(auth_depends)):
 
 
 # TODO add test
-@router.get("/list", status_code=200, response_model=List[ListModel])
+@router.post("/list", status_code=200, response_model=List[ListModel])
 async def search_users(token=Depends(auth_depends)):
     all_users = await list_controller()
     return [

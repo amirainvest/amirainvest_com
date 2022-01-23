@@ -36,8 +36,15 @@ jobs:
         run: echo '::set-output name=microservice_list::"[\"backend_amirainvest_com\", \"brokerage.lambda\", \"market_data.lambda\"]"'
 
 
-  build_and_push_container:
+  test:
     needs: set_env_vars
+    runs-on: ubuntu-20.04
+    steps:
+      - name: test
+        run: 'echo ${{needs.set_env_vars.outputs.microservice_list}}'
+
+  build_and_push_container:
+    needs: test
     strategy:
       matrix:
         microservice: ${{fromJson(needs.set_env_vars.outputs.microservice_list)}}

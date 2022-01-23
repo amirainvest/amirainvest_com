@@ -1,8 +1,5 @@
 name: Push container
 
-env:
-  AWS_REGION: us-east-1
-
 on:
   workflow_dispatch:
   workflow_call:
@@ -21,33 +18,17 @@ on:
       AWS_SECRET_ACCESS_KEY:
         required: true
 
+env:
+  AWS_REGION: us-east-1
+  environment: "prod"
+  microservice_list: "[\"backend_amirainvest_com\", \"brokerage.lambda\", \"market_data.lambda\"]"
+
 
 jobs:
-  set_env_vars:
-    runs-on: ubuntu-20.04
-    outputs:
-      environment: ${{ steps.set_environment.outputs.environment }}
-      microservice_list: ${{ steps.set_microservice_list.outputs.microservice_list }}
-    steps:
-      - name: set_environment
-        run: echo "::set-output name=environment::prod"
-
-      - name: set_microservice_list
-        run: echo '::set-output name=microservice_list::"[\"backend_amirainvest_com\", \"brokerage.lambda\", \"market_data.lambda\"]"'
-
-
-  test:
-    needs: set_env_vars
-    runs-on: ubuntu-20.04
-    steps:
-      - name: test
-        run: 'echo ${{needs.set_env_vars.outputs.microservice_list}}'
-
   build_and_push_container:
-    needs: test
     strategy:
       matrix:
-        microservice: ${{fromJson(needs.set_env_vars.outputs.microservice_list)}}
+        microservice: ${{fromJson(env.microservice_list)}}
 
     runs-on: ubuntu-20.04
     steps:

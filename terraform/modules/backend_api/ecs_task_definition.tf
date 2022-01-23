@@ -41,7 +41,7 @@ resource "aws_ecs_task_definition" "api-public-ecs-task-definition" {
   cpu                      = "1 vCPU"
   execution_role_arn       = "arn:aws:iam::903791206266:role/ecsTaskExecutionRole"
   family                   = "${var.environment}-api-public-ecs-task-definition"
-  memory                   = "1GB"
+  memory                   = "2GB"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
 

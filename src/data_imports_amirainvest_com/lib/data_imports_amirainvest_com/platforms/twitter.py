@@ -5,7 +5,7 @@ from typing import Optional
 import arrow
 import requests
 from bs4 import BeautifulSoup
-from dateutil.parser import parse
+from common_amirainvest_com.utils.datetime_utils import parse_iso_8601_from_string
 
 from common_amirainvest_com.schemas.schema import Tweets
 from common_amirainvest_com.utils.logger import log
@@ -114,7 +114,7 @@ class TwitterUser(PlatformUser):
         for raw_tweet in raw_tweets:
             if raw_tweet["id"] not in stored_tweet_ids:
                 created_at = (
-                    parse(raw_tweet.get("created_at").replace("T", " ").replace("Z", ""))
+                    parse_iso_8601_from_string(raw_tweet.get("created_at"))
                     if raw_tweet.get("created_at")
                     else None
                 )

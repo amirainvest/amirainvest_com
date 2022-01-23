@@ -1,7 +1,7 @@
 from typing import Optional
 
 import requests
-from dateutil.parser import parse
+from common_amirainvest_com.utils.datetime_utils import parse_iso_8601_from_string
 
 from common_amirainvest_com.utils.logger import log
 from data_imports_amirainvest_com.consts import YOUTUBE_API_KEY_ENV, YOUTUBE_API_URL
@@ -130,7 +130,7 @@ class YouTuber(PlatformUser):
             if next_token:
                 params["pageToken"] = playlist_data["nextPageToken"]
             for video_data in playlist_data["items"]:
-                created_at = parse(video_data["contentDetails"]["videoPublishedAt"].replace("T", " ").replace("Z", ""))
+                created_at = parse_iso_8601_from_string(video_data["contentDetails"]["videoPublishedAt"])
                 if video_data["contentDetails"]["videoId"] not in [x.video_id for x in stored_videos]:
                     videos.append(
                         YouTubeVideo(

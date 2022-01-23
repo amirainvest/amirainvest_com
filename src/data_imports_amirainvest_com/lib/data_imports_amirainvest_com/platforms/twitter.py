@@ -5,9 +5,9 @@ from typing import Optional
 import arrow
 import requests
 from bs4 import BeautifulSoup
-from common_amirainvest_com.utils.datetime_utils import parse_iso_8601_from_string
 
 from common_amirainvest_com.schemas.schema import Tweets
+from common_amirainvest_com.utils.datetime_utils import parse_iso_8601_from_string
 from common_amirainvest_com.utils.logger import log
 from data_imports_amirainvest_com.consts import TWITTER_API_TOKEN_ENV, TWITTER_API_URL
 from data_imports_amirainvest_com.controllers import posts
@@ -114,9 +114,7 @@ class TwitterUser(PlatformUser):
         for raw_tweet in raw_tweets:
             if raw_tweet["id"] not in stored_tweet_ids:
                 created_at = (
-                    parse_iso_8601_from_string(raw_tweet.get("created_at"))
-                    if raw_tweet.get("created_at")
-                    else None
+                    parse_iso_8601_from_string(raw_tweet.get("created_at")) if raw_tweet.get("created_at") else None
                 )
                 tweets.append(
                     Tweet(

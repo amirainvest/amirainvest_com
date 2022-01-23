@@ -1,8 +1,8 @@
 from typing import Optional
 
 import requests
-from common_amirainvest_com.utils.datetime_utils import parse_iso_8601_from_string
 
+from common_amirainvest_com.utils.datetime_utils import parse_iso_8601_from_string
 from common_amirainvest_com.utils.logger import log
 from data_imports_amirainvest_com.consts import YOUTUBE_API_KEY_ENV, YOUTUBE_API_URL
 from data_imports_amirainvest_com.controllers import posts

@@ -35,9 +35,7 @@ class SubstackUser(PlatformUser):
         for article in feedparser.parse(self.user_url).entries:
             if article["id"] not in [x.article_id for x in existing_articles]:
                 summary = BeautifulSoup(article["summary"], features="html.parser").get_text()
-                created_at = parse_iso_8601_from_string(
-                    time.strftime("%Y-%m-%d %H:%M:%S", article["published_parsed"])
-                )
+                created_at = parse_iso_8601_from_string(time.strftime("%Y-%m-%d %H:%M:%S", article["published_parsed"]))
                 articles.append(
                     {
                         "summary": summary,
@@ -87,25 +85,17 @@ async def load_user_data(username, creator_id):
     await substack_user.load_platform_data()
 
 
+from sqlalchemy import insert
+
 from common_amirainvest_com.schemas.schema import Users
 from common_amirainvest_com.utils.decorators import Session
-from sqlalchemy import insert
 
 
 @Session
 async def create_user(session):
-    await session.execute(
-        insert(Users).values(
-            {
-                "sub": "",
-                "name": "",
-                "username": "",
-                "email": ""
-            }
-        )
-    )
+    await session.execute(insert(Users).values({"sub": "", "name": "", "username": "", "email": ""}))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # run_async_function_synchronously(create_user)
     run_async_function_synchronously(load_user_data, "saeedjones", "1a243f2c-53fd-41ad-a049-92fd732fe169")

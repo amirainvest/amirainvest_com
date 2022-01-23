@@ -35,7 +35,7 @@ jobs:
     needs: set_env_vars
     strategy:
       matrix:
-        microservice: ${{fromJson(env.microservice_list)}}
+        microservice: ${{fromJson(${{env.microservice_list}})}}
 
     runs-on: ubuntu-20.04
     steps:

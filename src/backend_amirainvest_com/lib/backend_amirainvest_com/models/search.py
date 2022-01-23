@@ -1,13 +1,14 @@
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel
 
 
 class UserSearch(BaseModel):
-    name: str
     user_id: str
-    benchmark: str
-    chip_labels: List[str]
+
+    name: Optional[str]
+    benchmark: Optional[str]
+    chip_labels: Optional[List[str]]
 
 
 class ContentSearch(BaseModel):

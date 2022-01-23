@@ -1,4 +1,5 @@
 import uuid
+from typing import List
 
 from fastapi import APIRouter, Depends, File, HTTPException, status, UploadFile
 
@@ -6,6 +7,7 @@ from backend_amirainvest_com.api.backend.user_route.controller import (
     create_controller,
     delete_controller,
     get_controller,
+    list_controller,
     update_controller,
 )
 from backend_amirainvest_com.api.backend.user_route.model import (
@@ -14,6 +16,7 @@ from backend_amirainvest_com.api.backend.user_route.model import (
     Http409Model,
     InitPostModel,
     InitReturnModel,
+    ListModel,
     UserUpdate,
 )
 from backend_amirainvest_com.controllers import uploads
@@ -31,6 +34,16 @@ async def get_route(user_id: uuid.UUID, token=Depends(auth_depends)):
             user_id,
         )
     ).__dict__
+
+
+# TODO add test
+@router.get("/list", status_code=200, response_model=List[ListModel])
+async def search_users(token=Depends(auth_depends)):
+    all_users = await list_controller()
+    return [
+        {"name": user.name, "user_id": user.id, "benchmark": user.benchmark, "chip_labels": user.chip_labels}
+        for user in all_users
+    ]
 
 
 @router.post("/update", status_code=status.HTTP_200_OK, response_model=UsersModel)

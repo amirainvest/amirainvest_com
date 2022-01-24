@@ -6,6 +6,10 @@ from json import JSONDecodeError
 
 import plaid  # type: ignore
 import redis
+import sentry_sdk
+from sentry_sdk.integrations.redis import RedisIntegration
+from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+from sentry_sdk.utils import BadDsn
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -57,11 +61,6 @@ ENVIRONMENT = Environments[os.environ.get("ENVIRONMENT", "local").strip().lower(
 PROJECT = Projects[os.environ.get("PROJECT", "mono").strip().lower()].value
 
 try:
-    import sentry_sdk
-    from sentry_sdk.integrations.redis import RedisIntegration
-    from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
-    from sentry_sdk.utils import BadDsn
-
     integrations = [SqlalchemyIntegration(), RedisIntegration()]
 
     if PROJECT == "brokerage" or PROJECT == "market_data":

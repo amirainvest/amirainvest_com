@@ -24,6 +24,7 @@ pydantic-sqlalchemy = ">= 0.0.9 < 1"
 python-dotenv = ">= 0.19.2 < 1"
 redis = "^4.0.2"
 SQLAlchemy = "^1.4.27"
+plaid-python = "^8.9.0"
 
 [tool.poetry.dev-dependencies]
 

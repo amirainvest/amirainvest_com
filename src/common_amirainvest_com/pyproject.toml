@@ -17,7 +17,7 @@ python = "^3.9"
 arrow = "^1.2.1"
 asyncpg = ">= 0.25.0 < 1"
 boto3 = "^1.20.24"
-boto3-stubs = { extras = ["sqs", "dynamo", "secretsmanager", "s3"], version = "^1.20.24" }
+boto3-stubs = { extras = ["sqs", "dynamodb", "secretsmanager", "s3"], version = "^1.20.24" }
 plaid-python = "^8.9.0"
 pydantic = "^1.8.2"
 python-dotenv = ">= 0.19.2 < 1"

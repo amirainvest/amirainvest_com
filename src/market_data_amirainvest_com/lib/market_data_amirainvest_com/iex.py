@@ -29,7 +29,7 @@ async def get_historical_prices(symbol: str, range_: Union[HistoricalPriceEnum, 
         range_value = range_.value
 
     # TODO the token should be query param in client.get()
-    request_url = f"{IEX_URL}/stock/{symbol}/chart/{range_value}?token={IEX_SECRET}"
+    request_url = f"{IEX_URL}/stock/{symbol}/chart/{range_value}?token={IEX_SECRET}&chartCloseOnly=true"
     if date != "":
         request_url = f"{request_url}&{date}"
 

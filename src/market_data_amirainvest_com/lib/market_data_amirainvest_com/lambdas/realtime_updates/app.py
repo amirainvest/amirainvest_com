@@ -9,8 +9,7 @@ from market_data_amirainvest_com.iex import get_stock_quote_prices
 from market_data_amirainvest_com.repository import get_securities_collect_true, group_securities
 
 
-@Session
-async def run(session: AsyncSession):
+async def run():
     securities = await get_securities_collect_true()
     grouped_securities = group_securities(securities, 100)
     for group in grouped_securities:
@@ -36,8 +35,13 @@ async def run(session: AsyncSession):
             securities_prices.append(
                 SecurityPrices(security_id=security_id, price=quote.latestPrice, price_time=price_time)
             )
-        session.add_all(securities_prices)
+        await _add_securities_prices(securities_prices)
         await asyncio.sleep(1)
+
+
+@Session
+async def _add_securities_prices(session: AsyncSession, securities_prices: list) -> None:
+    session.add_all(securities_prices)
 
 
 def round_time_to_minute_floor(tm: datetime.datetime) -> datetime.datetime:
@@ -51,5 +55,9 @@ def get_security_id(securities: list[Securities], symbol: str) -> int:
     return -1
 
 
+async def main():
+    await run()
+
+
 def handler(event, context):
-    asyncio.run(run())
+    asyncio.run(main())

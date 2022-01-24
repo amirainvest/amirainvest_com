@@ -44,6 +44,7 @@ class Projects(Enum):
     mono = "mono"
     backend = "backend"
     brokerage = "brokerage"
+    market_data = "market_data"
 
 
 def decode_env_var(env_var_name: str) -> dict:
@@ -63,7 +64,7 @@ try:
 
     integrations = [SqlalchemyIntegration(), RedisIntegration()]
 
-    if PROJECT == "brokerage":
+    if PROJECT == "brokerage" or PROJECT == "market_data":
         from sentry_sdk.integrations.aws_lambda import AwsLambdaIntegration
 
         integrations.append(AwsLambdaIntegration(timeout_warning=True))

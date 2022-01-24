@@ -4,7 +4,6 @@ import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from common_amirainvest_com.schemas.schema import Securities, SecurityPrices
-from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
 from common_amirainvest_com.utils.decorators import Session
 from market_data_amirainvest_com.iex import get_stock_quote_prices
 from market_data_amirainvest_com.repository import get_securities_collect_true, group_securities
@@ -53,4 +52,4 @@ def get_security_id(securities: list[Securities], symbol: str) -> int:
 
 
 def handler(event, context):
-    run_async_function_synchronously(run)
+    asyncio.run(run())

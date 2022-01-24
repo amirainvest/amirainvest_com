@@ -1,4 +1,5 @@
 import asyncio
+import decimal
 import pprint
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -27,7 +28,7 @@ async def insert_securities(
             continue
         sub_group.append(s)
         if (
-                len(sub_group) >= 33
+            len(sub_group) >= 33
         ):  # We use groups of 50 since we make two api calls / security and we are limited to 100 a second
             grouping.append(sub_group)
             sub_group = []
@@ -58,11 +59,11 @@ async def work(session: AsyncSession, s: Symbol):
         if quote is None:
             logger.log.info(f"could not fetch quote for {s.symbol}")
 
-        open_price = 0
+        open_price = decimal.Decimal(0)
         if quote.open is not None:
             open_price = quote.open
 
-        close_price = 0
+        close_price = decimal.Decimal(0)
         if quote.close is not None:
             close_price = quote.close
 
@@ -89,7 +90,7 @@ async def work(session: AsyncSession, s: Symbol):
         )
     except IEXError as err:
         global failed_things
-        failed_things.append({'symbol': s.symbol, 'error': err})
+        failed_things.append({"symbol": s.symbol, "error": err})
 
 
 @Session

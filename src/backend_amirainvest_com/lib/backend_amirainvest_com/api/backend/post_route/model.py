@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel, root_validator
 
-from common_amirainvest_com.schemas.schema import PostsModel as GetModel
+from common_amirainvest_com.schemas.schema import PostsModel, PostsModel as GetModel
 
 
 assert GetModel
@@ -47,7 +47,7 @@ class ListInputModel(BaseModel):
 
 
 class ListReturnModel(BaseModel):
-    posts: List[GetModel]
+    posts: List[PostsModel]
     feed_type: FeedType
 
     class Config:

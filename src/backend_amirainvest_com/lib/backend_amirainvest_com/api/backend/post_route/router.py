@@ -28,7 +28,11 @@ router = APIRouter(prefix="/post", tags=["Post"])
 
 @router.post("/list", status_code=status.HTTP_200_OK, response_model=ListReturnModel)
 async def list_route(feed_wanted: ListInputModel, token=Depends(auth_depends_user_id)):
-    return await list_controller(feed_wanted=feed_wanted, subscriber_id=token["https://amirainvest.com/user_id"])
+    return_feed, return_feed_type = await list_controller(
+        feed_wanted=feed_wanted,
+        subscriber_id=token["https://amirainvest.com/user_id"],
+    )
+    return ListReturnModel(posts=return_feed, feed_type=return_feed_type)
 
 
 @router.post("/create", status_code=status.HTTP_200_OK, response_model=GetModel)

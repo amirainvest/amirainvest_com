@@ -39,4 +39,4 @@ def root():
 
 
 if ENVIRONMENT != Environments.local.value:
-    app = SentryAsgiMiddleware(app)
+    app = SentryAsgiMiddleware(app)  # type: ignore

@@ -198,7 +198,7 @@ async def test_get_creator_feed():
 
     for _ in range(0, PAGE_SIZE):
         post = await PostsFactory(creator_id=creator.id)
-        posts_redis_factory(str(creator.id), FeedType.creator.value, PostsModel.parse_obj(**post.dict()))
+        posts_redis_factory(str(creator.id), FeedType.creator.value, PostsModel.parse_obj(post.dict()))
 
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(

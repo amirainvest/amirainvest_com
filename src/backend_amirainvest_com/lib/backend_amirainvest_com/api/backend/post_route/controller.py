@@ -61,7 +61,7 @@ async def list_controller(
     page_size: int = PAGE_SIZE,
 ) -> Tuple[List[PostsModel], FeedType]:
     wanted_feed_type = feed_wanted.feed_type
-    wanted_feed_user_id = subscriber_id
+    wanted_feed_user_id = subscriber_id if wanted_feed_type == FeedType.subscriber else feed_wanted.creator_id
 
     feed_start = page * page_size
     feed_end = feed_start + page_size

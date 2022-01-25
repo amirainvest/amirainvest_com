@@ -20,7 +20,7 @@ from backend_amirainvest_com.api.backend.user_route.model import (
     UserUpdate,
 )
 from backend_amirainvest_com.controllers import uploads
-from backend_amirainvest_com.controllers.auth import auth_depends
+from backend_amirainvest_com.controllers.auth import auth_depends, auth_depends_user_id
 from common_amirainvest_com.schemas.schema import UsersModel
 
 
@@ -28,7 +28,7 @@ router = APIRouter(prefix="/user", tags=["User"])
 
 
 @router.post("/get", status_code=status.HTTP_200_OK, response_model=UsersModel)
-async def get_route(user_id: uuid.UUID, token=Depends(auth_depends)):
+async def get_route(user_id: uuid.UUID, token=Depends(auth_depends_user_id)):
     return (
         await get_controller(
             user_id,
@@ -38,7 +38,7 @@ async def get_route(user_id: uuid.UUID, token=Depends(auth_depends)):
 
 # TODO add test
 @router.post("/list", status_code=200, response_model=List[ListModel])
-async def search_users(token=Depends(auth_depends)):
+async def search_users(token=Depends(auth_depends_user_id)):
     all_users = await list_controller()
     return [
         {"name": user.name, "user_id": user.id, "benchmark": user.benchmark, "chip_labels": user.chip_labels}
@@ -47,13 +47,15 @@ async def search_users(token=Depends(auth_depends)):
 
 
 @router.post("/update", status_code=status.HTTP_200_OK, response_model=UsersModel)
-async def update_route(user_data: UserUpdate, token=Depends(auth_depends)):
+async def update_route(user_data: UserUpdate, token=Depends(auth_depends_user_id)):
     user_id = token["https://amirainvest.com/user_id"]
     return (await update_controller(user_id=user_id, user_data=user_data))._asdict()
 
 
 @router.post("/upload/profile_picture", status_code=status.HTTP_200_OK, response_model=UsersModel)
-async def upload_profile_picture_route(user_id: uuid.UUID, image: UploadFile = File(...), token=Depends(auth_depends)):
+async def upload_profile_picture_route(
+    user_id: uuid.UUID, image: UploadFile = File(...), token=Depends(auth_depends_user_id)
+):
     s3_file_url = uploads.upload_profile_photo(image.file.read(), image.filename, user_id)
     user = await get_controller(
         user_id,
@@ -88,6 +90,6 @@ async def create_route(user_data: InitPostModel, token=Depends(auth_depends)):
 
 
 @router.post("/delete", status_code=status.HTTP_200_OK)
-async def delete_route(user_id: uuid.UUID, token=Depends(auth_depends)):
+async def delete_route(user_id: uuid.UUID, token=Depends(auth_depends_user_id)):
     sub = token["sub"]
     await delete_controller(user_id, sub)

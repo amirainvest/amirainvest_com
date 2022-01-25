@@ -1,15 +1,17 @@
 import asyncio
 import datetime
+from typing import List
 
 from common_amirainvest_com.schemas.schema import Securities, SecurityPrices
 from common_amirainvest_com.utils.logger import log
 from market_data_amirainvest_com.iex import get_stock_quote_prices
 from market_data_amirainvest_com.models.iex import StockQuote
 from market_data_amirainvest_com.repository import (
-    get_securities_collect_true, group_securities,
-    _add_securities_prices, _security_price_time_exists,
+    _add_securities_prices,
+    _security_price_time_exists,
+    get_securities_collect_true,
+    group_securities,
 )
-from typing import List
 
 
 def _group_just_symbols(securities: List[Securities]) -> List[str]:

@@ -74,6 +74,7 @@ async def upload_profile_picture_route(
     },
 )
 async def create_route(user_data: InitPostModel, token=Depends(auth_depends)):
+    print("starting create")
     sub = token["sub"]
     app_metadata = token.get("app_metadata", {})
     if app_metadata.get("user_id") is not None:
@@ -86,6 +87,7 @@ async def create_route(user_data: InitPostModel, token=Depends(auth_depends)):
         user_data,
         sub,
     )
+    print("finished create")
     return InitReturnModel(id=user_id)
 
 

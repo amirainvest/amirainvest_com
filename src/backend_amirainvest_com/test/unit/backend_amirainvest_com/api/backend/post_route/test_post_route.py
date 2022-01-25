@@ -1,6 +1,5 @@
 import json
 
-import pytest
 from fastapi import status
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -145,7 +144,7 @@ async def test_list_subscriber_feed_no_cache(mock_auth):
     for _ in range(0, PAGE_SIZE):
         await PostsFactory(creator_id=creator.id)
 
-    redis_feed = get_redis_feed(str(subscriber.id), FeedType.subscriber, 0, PAGE_SIZE)
+    redis_feed = get_redis_feed(str(subscriber.id), FeedType.subscriber)
     assert len(redis_feed) == 0
 
     async with AsyncClient(app=app, base_url="http://test") as async_client:
@@ -164,10 +163,11 @@ async def test_list_subscriber_feed_no_cache(mock_auth):
     assert len(response_data["posts"]) == PAGE_SIZE
     assert all([response["creator_id"] == str(creator.id) for response in response_data["posts"]])
 
-    redis_feed = get_redis_feed(str(subscriber.id), FeedType.subscriber, 0, PAGE_SIZE)
+    redis_feed = get_redis_feed(str(subscriber.id), FeedType.subscriber)
     assert len(redis_feed) == PAGE_SIZE
 
 
+# TODO make another test with second subscriber and creator to check sub query
 async def test_list_empty_subscriber_feed(mock_auth):
     creator = await UsersFactory()
     subscriber = await UsersFactory()
@@ -193,8 +193,6 @@ async def test_list_empty_subscriber_feed(mock_auth):
 
 async def test_get_creator_feed():
     creator = await UsersFactory()
-    subscriber = await UsersFactory()
-    await UserSubscriptionsFactory(creator_id=creator.id, subscriber_id=subscriber.id)
 
     for _ in range(0, PAGE_SIZE):
         post = await PostsFactory(creator_id=creator.id)
@@ -218,35 +216,77 @@ async def test_get_creator_feed():
     assert all([response["creator_id"] == str(creator.id) for response in response_data["posts"]])
 
 
+async def test_get_creator_feed_no_cache():
+    creator = await UsersFactory()
+
+    for _ in range(0, PAGE_SIZE):
+        await PostsFactory(creator_id=creator.id)
+
+    async with AsyncClient(app=app, base_url="http://test") as async_client:
+        response = await async_client.post(
+            "/post/list",
+            headers=AUTH_HEADERS,
+            data=json.dumps({"feed_type": FeedType.creator.value, "creator_id": str(creator.id)}),
+        )
+
+    response_data = response.json()
+    assert response.status_code == 200
+
+    assert type(response_data) == dict
+    assert type(response_data["posts"]) == list
+    assert response_data["feed_type"] == FeedType.creator.value
+
+    assert len(response_data["posts"]) == PAGE_SIZE
+    assert all([response["creator_id"] == str(creator.id) for response in response_data["posts"]])
+
+
+# TODO make another test with second creator to make sure the creator query is not pulling in extra data
 async def test_get_empty_creator_feed():
     creator = await UsersFactory()
-    subscriber = await UsersFactory()
-    await UserSubscriptionsFactory(creator_id=creator.id, subscriber_id=subscriber.id)
+
     async with AsyncClient(app=app, base_url="http://test") as async_client:
-        response = await async_client.post("/feed/creator", headers=AUTH_HEADERS, params={"creator_id": creator.id})
+        response = await async_client.post(
+            "/post/list",
+            headers=AUTH_HEADERS,
+            data=json.dumps({"feed_type": FeedType.creator.value, "creator_id": str(creator.id)}),
+        )
+
     response_data = response.json()
     assert response.status_code == 200
+
     assert type(response_data) == dict
     assert type(response_data["posts"]) == list
-    assert response_data["feed_type"] == FeedType.discovery.value
+
+    assert response_data["feed_type"] == FeedType.creator.value
+
     assert len(response_data["posts"]) == 0
-    assert all([response["creator_id"] == str(creator.id) for response in response_data["posts"]])
 
 
-@pytest.mark.parametrize("number_of_posts", [0, 10])
-async def test_get_discovery_feed(number_of_posts: int):
+async def test_get_discovery_feed():
     creator = await UsersFactory()
-    subscriber = await UsersFactory()
-    await UserSubscriptionsFactory(creator_id=creator.id, subscriber_id=subscriber.id)
-    for _ in range(0, number_of_posts):
+
+    for _ in range(0, PAGE_SIZE):
         post = await PostsFactory(creator_id=creator.id)
-        posts_redis_factory(creator.id, FeedType.discovery.value, PostsModel(**post.__dict__))
+        posts_redis_factory(FeedType.discovery.value, FeedType.discovery.value, PostsModel.parse_obj(post.dict()))
+
     async with AsyncClient(app=app, base_url="http://test") as async_client:
-        response = await async_client.post("/feed/discovery", headers=AUTH_HEADERS, params={"user_id": subscriber.id})
+        response = await async_client.post(
+            "/post/list",
+            headers=AUTH_HEADERS,
+            data=json.dumps({"feed_type": FeedType.discovery.value}),
+        )
+
     response_data = response.json()
     assert response.status_code == 200
+
     assert type(response_data) == dict
     assert type(response_data["posts"]) == list
+
     assert response_data["feed_type"] == FeedType.discovery.value
-    assert len(response_data["posts"]) == number_of_posts
+    assert len(response_data["posts"]) == PAGE_SIZE
+
     assert all([response["creator_id"] == str(creator.id) for response in response_data["posts"]])
+
+
+# TODO add tests:
+#   check pageing

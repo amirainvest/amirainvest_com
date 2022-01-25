@@ -7,6 +7,7 @@ from backend_amirainvest_com.api.backend.post_route.controller import (
     create_controller,
     get_controller,
     list_controller,
+    PAGE_SIZE,
     update_controller,
     upload_post_photo_controller,
 )
@@ -27,10 +28,17 @@ router = APIRouter(prefix="/post", tags=["Post"])
 
 
 @router.post("/list", status_code=status.HTTP_200_OK, response_model=ListReturnModel)
-async def list_route(feed_wanted: ListInputModel, token=Depends(auth_depends_user_id)):
+async def list_route(
+    feed_wanted: ListInputModel,
+    page_size: int = PAGE_SIZE,
+    last_loaded_post_id: int = 0,
+    token=Depends(auth_depends_user_id),
+):
     return_feed, return_feed_type = await list_controller(
         feed_wanted=feed_wanted,
         subscriber_id=token["https://amirainvest.com/user_id"],
+        page_size=page_size,
+        last_loaded_post_id=last_loaded_post_id,
     )
     return ListReturnModel(posts=return_feed, feed_type=return_feed_type)
 

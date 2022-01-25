@@ -1,8 +1,7 @@
 import subprocess
 
 from fastapi import FastAPI
-
-# from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
+from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 from starlette.responses import RedirectResponse
 
 from backend_amirainvest_com.api.backend.admin.router import router as admin_router
@@ -16,6 +15,7 @@ from backend_amirainvest_com.api.backend.post_route.router import router as post
 from backend_amirainvest_com.api.backend.user_route.router import router as user_router
 from backend_amirainvest_com.api.routers import search, user_subscriptions
 from backend_amirainvest_com.api.webhooks.app import app as webhooks_app
+from common_amirainvest_com.utils.consts import ENVIRONMENT, Environments
 
 
 app = FastAPI(title="Backend", version="0.1")
@@ -40,7 +40,8 @@ def root():
     return RedirectResponse(url="/docs")
 
 
-# app = SentryAsgiMiddleware(app)
+if ENVIRONMENT != Environments.local.value:
+    app = SentryAsgiMiddleware(app)
 
 
 def run():

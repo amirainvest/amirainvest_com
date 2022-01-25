@@ -7,7 +7,7 @@ module "market_data_realtime_updates_lambda" {
   project                     = local.project
   lambda_name                 = local.lambda_name
   lambda_image_config_command = ["market_data_amirainvest_com.lambdas.realtime_updates.app.handler"]
-  lambda_reserved_concurrent_executions = 1
+  lambda_reserved_concurrent_executions = 0
 }
 
 moved {

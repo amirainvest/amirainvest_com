@@ -116,7 +116,7 @@ services:
       context: .
       dockerfile: Dockerfiles/brokerage.lambda.Dockerfile
     environment:
-      ENVIRONMENT: "prod"
+      ENVIRONMENT: "local"
       AWS_CONTAINER_CREDENTIALS_RELATIVE_URI: "/creds"
     depends_on:
       ecs-local-endpoints:
@@ -132,7 +132,7 @@ services:
       context: .
       dockerfile: Dockerfiles/market_data.lambda.Dockerfile
     environment:
-      ENVIRONMENT: "prod"
+      ENVIRONMENT: "local"
       AWS_CONTAINER_CREDENTIALS_RELATIVE_URI: "/creds"
     depends_on:
       ecs-local-endpoints:

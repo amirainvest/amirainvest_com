@@ -55,4 +55,4 @@ COPY --chown=default:default --from=builder "$VIRTUALENV_PATH" "$VIRTUALENV_PATH
 
 
 ENTRYPOINT ["/bin/bash", "./src/backend_amirainvest_com/entrypoint.sh"]
-CMD ["gunicorn","-c", "./src/backend_amirainvest_com/gunicorn.conf.py"]
+CMD ["gunicorn","-c", "./src/backend_amirainvest_com/lib/backend_amirainvest_com/gunicorn.conf.py"]

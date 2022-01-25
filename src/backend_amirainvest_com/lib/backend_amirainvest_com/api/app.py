@@ -1,5 +1,3 @@
-import subprocess
-
 from fastapi import FastAPI
 from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 from starlette.responses import RedirectResponse
@@ -42,11 +40,3 @@ def root():
 
 if ENVIRONMENT != Environments.local.value:
     app = SentryAsgiMiddleware(app)
-
-
-def run():
-    subprocess.run("uvicorn backend_amirainvest_com.api.app:app --reload --host 0.0.0.0 --port 5000".split(" "))
-
-
-if __name__ == "__main__":
-    run()

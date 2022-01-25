@@ -47,9 +47,10 @@ FROM base as final
 
 COPY --chown=default:default ./src/$PROJECT_NAME/ ./src/$PROJECT_NAME/
 COPY --chown=default:default ./src/common_amirainvest_com/ ./src/common_amirainvest_com/
+COPY --chown=default:default ./local.env ./local.env
 
 COPY --chown=default:default --from=builder "$VIRTUALENV_PATH" "$VIRTUALENV_PATH"
 
 
 ENTRYPOINT ["/bin/bash", "./src/backend_amirainvest_com/entrypoint.sh"]
-CMD ["uvicorn", "backend_amirainvest_com.api.app:app", "--host", "0.0.0.0", "--port", "5000"]
+CMD ["gunicorn", "backend_amirainvest_com.api.app:app", "--workers", "4", "--worker-class", "backend_amirainvest_com.main.ProductionUvicornWorker", "--bind", "0.0.0.0:5000"]

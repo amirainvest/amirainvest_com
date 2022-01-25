@@ -1,4 +1,27 @@
-from backend_amirainvest_com.api.app import run
+import uvicorn
+from uvicorn.workers import UvicornWorker
+
+from backend_amirainvest_com.api.app import app
 
 
-run()
+class ProductionUvicornWorker(UvicornWorker):
+    CONFIG_KWARGS = {
+        "host": "0.0.0.0",
+        "port": "5000",
+        "loop": "asyncio",
+        "http": "h11",
+        "lifespan": "off",
+        "ws": "none",
+        "interface": "asgi3",
+        "proxy_headers": "true",
+        "limit_concurrency": 10,
+        "backlog": 2048,
+    }
+
+
+def local_run():
+    uvicorn.run(app, port=5000, host="0.0.0.0", reload=True)
+
+
+if __name__ == "__main__":
+    local_run()

@@ -64,9 +64,5 @@ def get_security_id(securities: list[Securities], symbol: str) -> int:
     return -1
 
 
-async def main():
-    await run()
-
-
 def handler(event, context):
-    asyncio.run(main())
+    asyncio.run(run())

@@ -86,10 +86,11 @@ class UsersModel(BaseModel):
     id: uuid.UUID
     sub: str
     name: str
-    bio: Optional[str]
     username: str
-    picture_url: str
     email: str
+
+    picture_url: Optional[str]
+    bio: Optional[str]
     personal_site_url: Optional[str]
     linkedin_profile: Optional[str]
     email_verified: bool

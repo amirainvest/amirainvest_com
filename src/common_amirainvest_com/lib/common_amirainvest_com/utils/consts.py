@@ -4,8 +4,12 @@ import os
 from enum import Enum
 from json import JSONDecodeError
 
+import plaid  # type: ignore
 import redis
-from plaid import Environment  # type: ignore
+import sentry_sdk
+from sentry_sdk.integrations.redis import RedisIntegration
+from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+from sentry_sdk.utils import BadDsn
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -44,6 +48,7 @@ class Projects(Enum):
     mono = "mono"
     backend = "backend"
     brokerage = "brokerage"
+    market_data = "market_data"
 
 
 def decode_env_var(env_var_name: str) -> dict:
@@ -56,14 +61,9 @@ ENVIRONMENT = Environments[os.environ.get("ENVIRONMENT", "local").strip().lower(
 PROJECT = Projects[os.environ.get("PROJECT", "mono").strip().lower()].value
 
 try:
-    import sentry_sdk
-    from sentry_sdk.integrations.redis import RedisIntegration
-    from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
-    from sentry_sdk.utils import BadDsn
-
     integrations = [SqlalchemyIntegration(), RedisIntegration()]
 
-    if PROJECT == "brokerage":
+    if PROJECT == "brokerage" or PROJECT == "market_data":
         from sentry_sdk.integrations.aws_lambda import AwsLambdaIntegration
 
         integrations.append(AwsLambdaIntegration(timeout_warning=True))
@@ -106,10 +106,10 @@ _plaid_dict = decode_env_var("plaid")
 PLAID_CLIENT_ID = _plaid_dict["client_id"]
 PLAID_SECRET = _plaid_dict["secret"]
 PLAID_APPLICATION_NAME = "amira"  # _plaid_dict["application_name"]
-PLAID_ENVIRONMENT = Environment.Sandbox
+PLAID_ENVIRONMENT = plaid.Environment.Sandbox
 # TODO This is a catch all for the time being -- we should change this once we get production credentials attached
 if ENVIRONMENT == Environments.prod.value or ENVIRONMENT == Environments.staging.value:
-    PLAID_ENVIRONMENT = Environment.Development
+    PLAID_ENVIRONMENT = plaid.Environment.Development
 
 _iex_dict = decode_env_var("iex")
 IEX_PUBLISHABLE = _iex_dict["publishable"]

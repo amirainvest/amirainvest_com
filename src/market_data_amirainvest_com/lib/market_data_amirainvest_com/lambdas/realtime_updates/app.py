@@ -1,0 +1,63 @@
+import asyncio
+import datetime
+
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from common_amirainvest_com.schemas.schema import Securities, SecurityPrices
+from common_amirainvest_com.utils.decorators import Session
+from market_data_amirainvest_com.iex import get_stock_quote_prices
+from market_data_amirainvest_com.repository import get_securities_collect_true, group_securities
+
+
+async def run():
+    securities = await get_securities_collect_true()
+    grouped_securities = group_securities(securities, 100)
+    for group in grouped_securities:
+        symbols = []
+        for sec in group:
+            if sec.ticker_symbol is None or sec.ticker_symbol == "":
+                continue
+            symbols.append(sec.ticker_symbol)
+
+        quotes = await get_stock_quote_prices(symbols)
+        securities_prices = []
+        for quote in quotes:
+            if quote.symbol is None or quote.symbol == "":
+                continue
+
+            security_id = get_security_id(securities, quote.symbol)
+            if security_id == -1:
+                # TODO: Log here that we didnt find the security.... that we just fetched....
+                continue
+            if quote.latestUpdate is None:
+                continue
+            price_time = round_time_to_minute_floor(datetime.datetime.fromtimestamp(quote.latestUpdate / 1000))
+            securities_prices.append(
+                SecurityPrices(security_id=security_id, price=quote.latestPrice, price_time=price_time)
+            )
+        await _add_securities_prices(securities_prices)
+        await asyncio.sleep(1)
+
+
+@Session
+async def _add_securities_prices(session: AsyncSession, securities_prices: list) -> None:
+    session.add_all(securities_prices)
+
+
+def round_time_to_minute_floor(tm: datetime.datetime) -> datetime.datetime:
+    return tm - datetime.timedelta(minutes=tm.minute % 1, seconds=tm.second, microseconds=tm.microsecond)
+
+
+def get_security_id(securities: list[Securities], symbol: str) -> int:
+    for sec in securities:
+        if sec.ticker_symbol == symbol and sec.id is not None:
+            return sec.id
+    return -1
+
+
+async def main():
+    await run()
+
+
+def handler(event, context):
+    asyncio.run(main())

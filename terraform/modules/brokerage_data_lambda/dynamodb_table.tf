@@ -17,12 +17,12 @@ resource "aws_dynamodb_table" "brokerage_users" {
 
   tags = {
     env     = "prod"
-    project = "brokerage"
+    project = local.project
   }
 
   tags_all = {
     env     = "prod"
-    project = "brokerage"
+    project = local.project
   }
 
   read_capacity  = "0"

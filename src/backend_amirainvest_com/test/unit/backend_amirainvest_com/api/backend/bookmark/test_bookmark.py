@@ -1,9 +1,7 @@
-pytest_plugins = ["common_amirainvest_com.utils.test.fixtures.database"]
 import json
 from datetime import datetime
 from random import randint
 
-import pytest
 from fastapi import status
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,7 +14,6 @@ from common_amirainvest_com.utils.test.factories.schema import BookmarksFactory,
 from ...config import AUTH_HEADERS
 
 
-@pytest.mark.asyncio
 async def test_auth():
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post("/bookmark/list")
@@ -25,7 +22,6 @@ async def test_auth():
     assert response.json() == {"detail": "Not authenticated"}
 
 
-@pytest.mark.asyncio
 async def test_list():
     post_bookmarker = await UsersFactory()
     post_creator = await UsersFactory()
@@ -45,7 +41,6 @@ async def test_list():
     assert results[0]["is_deleted"] is False
 
 
-@pytest.mark.asyncio
 async def test_create(async_session_maker_test):
     session_test: AsyncSession = async_session_maker_test()
 
@@ -77,7 +72,6 @@ async def test_create(async_session_maker_test):
         assert post_bookmarker.id in [x.id for x in users]
 
 
-@pytest.mark.asyncio
 async def test_delete(async_session_maker_test):
     session_test: AsyncSession = async_session_maker_test()
 
@@ -98,3 +92,7 @@ async def test_delete(async_session_maker_test):
     user_bookmarks = await session_test.execute(select(Bookmarks).where(Bookmarks.user_id == post_bookmarker.id))
     assert bookmark.id not in [x.id for x in user_bookmarks]
     assert len(list(user_bookmarks)) == 0
+
+
+async def test_update(async_session_maker_test):
+    pass

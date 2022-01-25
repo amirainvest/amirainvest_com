@@ -1,8 +1,5 @@
-pytest_plugins = ["common_amirainvest_com.utils.test.fixtures.database"]
-
 import datetime
 
-import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
@@ -10,7 +7,6 @@ from common_amirainvest_com.schemas.schema import Posts, Users
 from common_amirainvest_com.utils.test.factories import schema
 
 
-@pytest.mark.asyncio
 async def test_users_factory(async_session_maker_test):
     session_test: AsyncSession = async_session_maker_test()
 
@@ -25,7 +21,6 @@ async def test_users_factory(async_session_maker_test):
     assert len(users) == 2
 
 
-@pytest.mark.asyncio
 async def test_posts_factory(async_session_maker_test):
     session_test: AsyncSession = async_session_maker_test()
 

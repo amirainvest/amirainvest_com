@@ -4,7 +4,6 @@ import uuid
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy.orm import aliased
 
 from backend_amirainvest_com.api.backend.bookmark.model import CreateModel
 from common_amirainvest_com.schemas.schema import Bookmarks
@@ -13,7 +12,7 @@ from common_amirainvest_com.utils.decorators import Session
 
 @Session
 async def list_controller(session: AsyncSession, user_id: uuid.UUID) -> t.List[Bookmarks]:
-    data = await session.execute(select(aliased(Bookmarks)).where(Bookmarks.user_id == user_id))
+    data = await session.execute(select(Bookmarks).where(Bookmarks.user_id == user_id))
     return data.scalars().all()
 
 

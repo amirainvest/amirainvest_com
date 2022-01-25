@@ -5,7 +5,7 @@ import time
 
 import jwt
 import requests
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Security, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, SecurityScopes
 from jose import jwt as j_jwt  # type: ignore
 from pydantic import BaseModel
@@ -18,12 +18,13 @@ http_bearer_scheme = HTTPBearer()
 jwks_client = jwt.PyJWKClient(f"https://{AUTH0_DOMAIN}/.well-known/jwks.json")
 
 
-# TODO add validating security scopes
-# TODO make all 403s return the same error
-async def auth_dep(
+async def _auth_dep(
     security_scopes: SecurityScopes,
-    bearer_auth_creds: HTTPAuthorizationCredentials = Depends(http_bearer_scheme),
+    bearer_auth_creds,
 ):
+    """
+    This is used so that tests can overwrite the auth logic. Depends() messes with pytest
+    """
     token = bearer_auth_creds.credentials
     try:
         signing_key = jwks_client.get_signing_key_from_jwt(token).key
@@ -39,6 +40,19 @@ async def auth_dep(
     except Exception:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authenticated")
     return payload
+
+
+# TODO add validating security scopes
+# TODO make all 403s return the same error
+async def auth_dep(
+    security_scopes: SecurityScopes,
+    bearer_auth_creds: HTTPAuthorizationCredentials = Depends(http_bearer_scheme),
+):
+    return await _auth_dep(security_scopes, bearer_auth_creds)
+
+
+async def auth_depends(data=Security(auth_dep, scopes=[])):
+    return data
 
 
 def get_application_token():

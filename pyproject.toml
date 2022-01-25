@@ -1,3 +1,5 @@
+# https://github.com/python-poetry/poetry/issues/34#issuecomment-997519115
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
@@ -10,21 +12,23 @@ authors = ["Peter Hoburg <peterHoburg@users.noreply.github.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-common_amirainvest_com = {path = "./src/common_amirainvest_com", develop = true}
+
 backend_amirainvest_com = {path = "./src/backend_amirainvest_com", develop = true}
 brokerage_amirainvest_com = {path = "./src/brokerage_amirainvest_com", develop = true}
+common_amirainvest_com = {path = "./src/common_amirainvest_com", develop = true}
 data_imports_amirainvest_com = {path = "./src/data_imports_amirainvest_com", develop = true}
-Jinja2 = "^3.0.3"
+market_data_amirainvest_com = {path = "./src/market_data_amirainvest_com", develop = true}
 
 [tool.poetry.dev-dependencies]
 alembic = "^1.7.5"
 black = "^21.11b1"
-boto3-stubs = {extras = ["all"], version = "^1.20.24"}
 factory-boy = "^3.2.1"
 flake8 = "^4.0.1"
+httpx = "^0"
 isort = "^5.10.1"
 mypy = "*"
 pre-commit = "^2.15.0"
+psycopg2-binary = "^2.9.3"
 pytest = "^6.2.5"
 pytest-asyncio = "^0"
 pytest-cov = "^3.0.0"
@@ -32,7 +36,6 @@ SQLAlchemy = {extras = ["mypy"], version = "^1.4.27"}
 types-redis = "^4.0.4"
 types-requests = "^2.26.2"
 types-toml = "^0"
-httpx = "^0"
 
 [tool.black]
 line-length = 120
@@ -56,7 +59,6 @@ include = '\.pyi?$'
 #module = [
 #    "pytest",
 #]
-#ignore_missing_imports = true
 
 [tool.isort]
 profile = "black"
@@ -73,10 +75,26 @@ lines_after_imports = 2
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "--cov=src/common_amirainvest_com/lib --cov=src/backend_amirainvest_com/lib --cov=src/brokerage_amirainvest_com/lib --cov=src/data_imports_amirainvest_com/lib --cov-report term --cov-report html"
+addopts = """
+--strict-markers
+--cov=src/common_amirainvest_com/lib
+--cov=src/backend_amirainvest_com/lib
+--cov=src/brokerage_amirainvest_com/lib
+--cov=src/data_imports_amirainvest_com/lib
+--cov=src/market_data_amirainvest_com/lib
+--cov-report term
+--cov-report html
+"""
 testpaths = [
     "src/common_amirainvest_com/test",
     "src/backend_amirainvest_com/test",
     "src/brokerage_amirainvest_com/test",
     "src/data_imports_amirainvest_com/test",
+    "src/market_data_amirainvest_com/test",
+]
+asyncio_mode = "auto"
+
+markers = [
+    "unit_test: Used to mark tests that do not use ANY outside resources",
+    "integration_test: Used to mark tests that DO call outside resorces",
 ]

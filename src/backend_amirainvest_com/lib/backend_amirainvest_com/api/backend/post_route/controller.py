@@ -26,6 +26,10 @@ PAGE_SIZE = 30
 MAX_HOURS_AGO = 168  # NUMBER OF HOURS TO PERSIST REDIS / QUERY POSTGRES : 168H = 1W
 MAX_FEED_SIZE = 200
 
+# TODO
+#   change the feed logic to just get all posts with max feed size as limit
+#   The feed should be filtering on post.id < last_loaded_post_id not >. You want to get the older posts, not newer.
+
 
 @Session
 async def get_controller(session: AsyncSession, post_id: int):
@@ -89,7 +93,6 @@ def upload_post_photo_controller(file_bytes: bytes, filename: str, user_id: str,
     return S3().upload_file_by_bytes(file_bytes, f"{user_id}/{post_id}/{filename}", AMIRA_POST_PHOTOS_S3_BUCKET)
 
 
-# TODO change the feed logic to just get all posts with max feed size as limit
 async def get_user_feed(
     feed_type: FeedType,
     user_id: str,

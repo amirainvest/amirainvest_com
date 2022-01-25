@@ -15,6 +15,16 @@ from common_amirainvest_com.utils.test.factories.schema import PostsFactory, Use
 from ...config import AUTH_HEADERS
 
 
+# TODO add tests:
+#   Check pageing
+#   Check getting the correct posts if more posts than max
+#   Check getting the correct posts when last_loaded_post_id passed
+#   Check getting the correct data when multiple subscribers and creators (creator, sub, and discovery feed)
+#   Check discovery feed filtering out user posts (last_load_post_id passed). All posts read
+#   Check more posts than max_feed_size
+#   Check more posts than max_feed_size and last_load_post_id
+
+
 async def test_not_authenticated():
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         post_creator = await UsersFactory()
@@ -167,7 +177,6 @@ async def test_list_subscriber_feed_no_cache(mock_auth):
     assert len(redis_feed) == PAGE_SIZE
 
 
-# TODO make another test with second subscriber and creator to check sub query
 async def test_list_empty_subscriber_feed(mock_auth):
     creator = await UsersFactory()
     subscriber = await UsersFactory()
@@ -240,7 +249,6 @@ async def test_get_creator_feed_no_cache():
     assert all([response["creator_id"] == str(creator.id) for response in response_data["posts"]])
 
 
-# TODO make another test with second creator to make sure the creator query is not pulling in extra data
 async def test_get_empty_creator_feed():
     creator = await UsersFactory()
 
@@ -286,7 +294,3 @@ async def test_get_discovery_feed():
     assert len(response_data["posts"]) == PAGE_SIZE
 
     assert all([response["creator_id"] == str(creator.id) for response in response_data["posts"]])
-
-
-# TODO add tests:
-#   check pageing

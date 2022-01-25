@@ -38,10 +38,10 @@ async def update_controller(session: AsyncSession, user_id: uuid.UUID, update_da
         await (
             session.execute(
                 update(Posts)
-                    .where(Posts.creator_id == user_id)
-                    .where(Posts.id == update_data.id)
-                    .values(**update_data.dict(exclude_none=True))
-                    .returning(Posts)
+                .where(Posts.creator_id == user_id)
+                .where(Posts.id == update_data.id)
+                .values(**update_data.dict(exclude_none=True))
+                .returning(Posts)
             )
         )
     ).one()
@@ -62,7 +62,9 @@ async def list_controller(
     last_loaded_post_id: int = 0,
 ) -> Tuple[List[PostsModel], FeedType]:
     wanted_feed_type = feed_wanted.feed_type
-    wanted_feed_user_id = feed_wanted.creator_id if wanted_feed_type == FeedType.creator else subscriber_id
+    wanted_feed_user_id = subscriber_id
+    if wanted_feed_type == FeedType.creator and feed_wanted.creator_id is not None:
+        wanted_feed_user_id = feed_wanted.creator_id
 
     returned_feed_type = wanted_feed_type
     return_feed = await get_user_feed(wanted_feed_type, wanted_feed_user_id, page_size, last_loaded_post_id)
@@ -87,6 +89,7 @@ def upload_post_photo_controller(file_bytes: bytes, filename: str, user_id: str,
     return S3().upload_file_by_bytes(file_bytes, f"{user_id}/{post_id}/{filename}", AMIRA_POST_PHOTOS_S3_BUCKET)
 
 
+# TODO change the feed logic to just get all posts with max feed size as limit
 async def get_user_feed(
     feed_type: FeedType,
     user_id: str,
@@ -129,7 +132,7 @@ def get_redis_feed(
     last_loaded_post_id: int = 0,
 ) -> List[PostsModel]:
     key = f"{user_id}-{feed_type.value}"
-    redis_feed_raw: List[str] = WEBCACHE.lrange(key, 0, MAX_FEED_SIZE)
+    redis_feed_raw = WEBCACHE.lrange(key, 0, MAX_FEED_SIZE)
     redis_feed = []
     for post_raw in redis_feed_raw:
         post = PostsModel.parse_raw(post_raw)
@@ -165,9 +168,9 @@ def latest_posts(
 ):
     query = (
         query.where(Posts.created_at > get_past_datetime(hours=hours_ago))
-            .where(Posts.id > last_loaded_post_id)
-            .order_by(Posts.id.desc())
-            .limit(page_size)
+        .where(Posts.id > last_loaded_post_id)
+        .order_by(Posts.id.desc())
+        .limit(page_size)
     )
     return query
 
@@ -182,8 +185,8 @@ async def get_subscriber_posts(
 ) -> List[Posts]:
     query = (
         select(Posts)
-            .join(UserSubscriptions, UserSubscriptions.creator_id == Posts.creator_id)
-            .where(UserSubscriptions.subscriber_id == subscriber_id)
+        .join(UserSubscriptions, UserSubscriptions.creator_id == Posts.creator_id)
+        .where(UserSubscriptions.subscriber_id == subscriber_id)
     )
     query = latest_posts(query, page_size=page_size, last_loaded_post_id=last_loaded_post_id, hours_ago=hours_ago)
     data = await session.execute(query)
@@ -214,9 +217,9 @@ async def get_discovery_posts(
     query = select(Posts).where(
         Posts.creator_id.in_(
             select(UserSubscriptions.creator_id)
-                .group_by(UserSubscriptions.creator_id)
-                .order_by(func.count(UserSubscriptions.creator_id))
-                .limit(10)
+            .group_by(UserSubscriptions.creator_id)
+            .order_by(func.count(UserSubscriptions.creator_id))
+            .limit(10)
         )
     )
     query = latest_posts(query, last_loaded_post_id, hours_ago, page_size)

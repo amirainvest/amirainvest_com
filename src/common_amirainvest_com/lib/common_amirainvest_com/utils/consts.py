@@ -80,7 +80,7 @@ try:
         request_bodies="always",
         integrations=integrations,
         debug=True if DEBUG == "true" else False,
-        release="common_amirainvest_com-" + pkg_resources.get_distribution("common_amirainvest_com").version,
+        release=pkg_resources.get_distribution("common_amirainvest_com").version,
     )
 except (BadDsn, JSONDecodeError):
     if ENVIRONMENT != Environments.local.value:

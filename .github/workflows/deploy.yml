@@ -18,6 +18,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          ref: "main"
 
       - name: Install Poetry
         run: pip3 install poetry
@@ -36,7 +38,7 @@ jobs:
         working-directory: ./src/common_amirainvest_com
 
       - name: Git commit
-        run: git commit -m "Auto update package version"
+        run: git commit -m "Auto update common pacage to $(poetry version -s)"
 
       - name: Git push
         run: git push

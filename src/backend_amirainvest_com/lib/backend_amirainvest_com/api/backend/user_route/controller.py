@@ -21,6 +21,12 @@ async def get_controller(session, user_id: str) -> Users:
 
 
 @Session
+async def list_controller(session):
+    data = await session.execute(select(Users))
+    return data.scalars().all()
+
+
+@Session
 async def update_controller(session, user_id: str, user_data: UserUpdate) -> Row:
     user_data_dict = user_data.dict(exclude_none=True)
     if user_data.is_deleted is True:

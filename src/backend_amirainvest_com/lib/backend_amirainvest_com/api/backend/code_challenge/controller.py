@@ -1,7 +1,7 @@
 import base64
 
-from Crypto import Random
-from Crypto.Hash import SHA256
+from Cryptodome import Random
+from Cryptodome.Hash import SHA256
 
 
 def clean_string(string: str) -> str:

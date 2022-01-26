@@ -51,5 +51,8 @@ COPY --chown=default:default ./src/common_amirainvest_com/ ./src/common_amirainv
 COPY --chown=default:default --from=builder "$VIRTUALENV_PATH" "$VIRTUALENV_PATH"
 
 
+#COPY --chown=default:default ./local.env ./local.env
+
+
 ENTRYPOINT ["/bin/bash", "./src/backend_amirainvest_com/entrypoint.sh"]
-CMD ["uvicorn", "backend_amirainvest_com.api.app:app", "--host", "0.0.0.0", "--port", "5000"]
+CMD ["gunicorn","-c", "./src/backend_amirainvest_com/lib/backend_amirainvest_com/gunicorn.conf.py"]

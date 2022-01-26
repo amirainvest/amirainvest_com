@@ -10,6 +10,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          ref: "main"
 
       - name: Change src iter
         run: date -u +%c-%N > ./terraform/src_iter

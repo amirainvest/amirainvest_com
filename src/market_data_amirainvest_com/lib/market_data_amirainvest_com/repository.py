@@ -81,10 +81,28 @@ async def add_to_s3(historical_prices: list[HistoricalPrice], symbol: str, year:
     await s3.upload_file(file_name, AMIRA_SECURITIES_HISTORICAL_PRICES_BUCKET, file_name)
 
 
+@Session
+async def _security_price_time_exists(session: AsyncSession, security_id: int, security_time: datetime) -> bool:
+    response = await session.execute(
+        select(SecurityPrices).where(SecurityPrices.id == security_id, SecurityPrices.price_time == security_time)
+    )
+
+    if len(response.scalars().all()) > 0:
+        return True
+    return False
+
+
+@Session
+async def _add_securities_prices(session: AsyncSession, securities_prices: list) -> None:
+    session.add_all(securities_prices)
+
+
 def group_securities(securities: list[Securities], num_group: int) -> list[list[Securities]]:
     group = []
     sub_group = []
     for sec in securities:
+        if sec.ticker_symbol is None or sec.ticker_symbol == "":
+            continue
         sub_group.append(sec)
         if len(sub_group) >= num_group:
             group.append(sub_group)

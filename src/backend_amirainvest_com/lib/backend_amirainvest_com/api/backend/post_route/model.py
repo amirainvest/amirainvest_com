@@ -1,8 +1,9 @@
+import enum
 from typing import List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, root_validator
 
-from common_amirainvest_com.schemas.schema import PostsModel as GetModel
+from common_amirainvest_com.schemas.schema import PostsModel, PostsModel as GetModel
 
 
 assert GetModel
@@ -23,3 +24,32 @@ class CreateModel(BaseModel):
 class UpdateModel(CreateModel):
     id: int
     platform: Optional[str]  # type: ignore
+
+
+class FeedType(str, enum.Enum):
+    subscriber = "subscriber"
+    creator = "creator"
+    discovery = "discovery"
+
+
+class ListInputModel(BaseModel):
+    feed_type: FeedType
+    creator_id: Optional[str]
+
+    @root_validator(pre=False)
+    def validate_creator_id_exists_for_feed_type(cls, values):
+        _feed_type = values["feed_type"]
+        _creator_id = values.get("creator_id", None)
+
+        if _feed_type == FeedType.creator and _creator_id is None:
+            raise ValueError("Creator feed type requires creator_id")
+        return values
+
+
+class ListReturnModel(BaseModel):
+    posts: List[PostsModel]
+    feed_type: FeedType
+
+    class Config:
+        orm = True
+        use_enum_values = True

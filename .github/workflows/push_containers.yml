@@ -1,41 +1,49 @@
-name: Push container
+name: Push containers
 
 env:
   AWS_REGION: us-east-1
 
 on:
+  workflow_dispatch:
   workflow_call:
-    inputs:
-      microservice_list:
-        description: "List of microservice names"
-        default: "[\"backend_amirainvest_com\", \"brokerage.lambda\", \"market_data.lambda\"]"
-        required: false
-        type: string
-      environment:
-        description: "Environment being run in"
-        default: "prod"
-        required: false
-        type: string
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
       AWS_SECRET_ACCESS_KEY:
         required: true
 
+# https://github.com/actions/runner/issues/480#issuecomment-982710103
 jobs:
-  build_and_push_container:
+  Params:
+    runs-on: ubuntu-20.04
+    outputs:
+      environment: ${{ steps.params.outputs.environment }}
+      microservice_list: ${{ steps.params.outputs.microservice_list }}
+    steps:
+      - name: Generate params
+        id: params
+        shell: python
+        run: |
+          print_base = "::set-output name="
+          environment = "prod"
+          microservice_list = ["backend_amirainvest_com", "brokerage.lambda", "market_data.lambda"]
 
+          print(f"{print_base}environment::{environment}")
+          print(f"{print_base}microservice_list::{microservice_list!s}")
+
+
+  build_and_push_container:
+    needs: Params
     strategy:
       matrix:
-        microservice: ${{fromJson(inputs.microservice_list)}}
+        microservice: ${{ fromJson(needs.Params.outputs.microservice_list) }}
 
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-
-      - name: Git pull
-        run: git pull
+        with:
+          ref: "main"
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -57,20 +65,20 @@ jobs:
       #        run: docker-compose run ${{ matrix.microservice }} pytest # TODO test the container right before pushing
 
       #      - name: Tag container version
-      #        run: docker tag amirainvest_com_${{ matrix.microservice }}:${{ inputs.environment }} 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:1
+      #        run: docker tag amirainvest_com_${{ matrix.microservice }}:${{ needs.Params.outputs.environment }} 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:1
 
       #      - name: Push to ECR
       #        run: docker push 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:1
 
       - name: Tag container with environment
-        run: docker tag amirainvest_com_${{ matrix.microservice }}:"latest" 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:"${{ inputs.environment }}"
+        run: docker tag amirainvest_com_${{ matrix.microservice }}:"latest" 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:"${{ needs.Params.outputs.environment }}"
 
       - name: Push to ECR
-        run: docker push 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:"${{ inputs.environment }}"
+        run: docker push 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/${{ matrix.microservice }}:"${{ needs.Params.outputs.environment }}"
 
 
 
 
 # docker-compose build --build-arg INSTALL_DEV_DEPS="false" backend_amirainvest_com
-# docker tag amirainvest_com_backend_amirainvest_com:"${{ inputs.environment }}" 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/backend_amirainvest_com:"${{ inputs.environment }}"
-# docker push 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/backend_amirainvest_com:"${{ inputs.environment }}"
+# docker tag amirainvest_com_backend_amirainvest_com:"${{ needs.Params.outputs.environment }}" 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/backend_amirainvest_com:"${{ needs.Params.outputs.environment }}"
+# docker push 903791206266.dkr.ecr.us-east-1.amazonaws.com/amirainvest_com/backend_amirainvest_com:"${{ needs.Params.outputs.environment }}"

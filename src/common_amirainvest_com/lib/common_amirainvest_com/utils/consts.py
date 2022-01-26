@@ -66,6 +66,7 @@ try:
     if PROJECT == "brokerage" or PROJECT == "market_data":
         from sentry_sdk.integrations.aws_lambda import AwsLambdaIntegration
 
+
         integrations.append(AwsLambdaIntegration(timeout_warning=True))
 
     SENTRY_URL = "https://{public_key}@{domain}/{project_id}".format(**decode_env_var("sentry"))
@@ -139,8 +140,7 @@ async_session_maker = sessionmaker(
 )
 
 # https://github.com/redis/redis-py
-_redis_connection_pool = redis.ConnectionPool(**WEBCACHE_DICT)
-WEBCACHE = redis.Redis(connection_pool=_redis_connection_pool, health_check_interval=30)
+WEBCACHE = redis.Redis(health_check_interval=30, ssl=True, ssl_cert_reqs=None, **WEBCACHE_DICT)
 
 if __name__ == "__main__":
     print(decode_env_var("brokerages"))

@@ -7,6 +7,14 @@ from pydantic import BaseModel
 from backend_amirainvest_com.utils.model import ErrorMessageModelBase, StatusDetailModel
 
 
+class ListModel(BaseModel):
+    user_id: str
+
+    name: Optional[str]
+    benchmark: Optional[str]
+    chip_labels: Optional[List[str]]
+
+
 class UserUpdate(BaseModel):
     name: Optional[str]
     bio: Optional[str]

@@ -4,10 +4,16 @@ import os
 from enum import Enum
 from json import JSONDecodeError
 
-import redis
-from plaid import Environment  # type: ignore
+import pkg_resources
+import plaid  # type: ignore
+import sentry_sdk
+from sentry_sdk.integrations.redis import RedisIntegration
+from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+from sentry_sdk.utils import BadDsn
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
+
+import redis
 
 
 __all__ = [
@@ -44,6 +50,7 @@ class Projects(Enum):
     mono = "mono"
     backend = "backend"
     brokerage = "brokerage"
+    market_data = "market_data"
 
 
 def decode_env_var(env_var_name: str) -> dict:
@@ -56,14 +63,9 @@ ENVIRONMENT = Environments[os.environ.get("ENVIRONMENT", "local").strip().lower(
 PROJECT = Projects[os.environ.get("PROJECT", "mono").strip().lower()].value
 
 try:
-    import sentry_sdk
-    from sentry_sdk.integrations.redis import RedisIntegration
-    from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
-    from sentry_sdk.utils import BadDsn
-
     integrations = [SqlalchemyIntegration(), RedisIntegration()]
 
-    if PROJECT == "brokerage":
+    if PROJECT == "brokerage" or PROJECT == "market_data":
         from sentry_sdk.integrations.aws_lambda import AwsLambdaIntegration
 
         integrations.append(AwsLambdaIntegration(timeout_warning=True))
@@ -78,6 +80,7 @@ try:
         request_bodies="always",
         integrations=integrations,
         debug=True if DEBUG == "true" else False,
+        release=pkg_resources.get_distribution("common_amirainvest_com").version,
     )
 except (BadDsn, JSONDecodeError):
     if ENVIRONMENT != Environments.local.value:
@@ -106,10 +109,10 @@ _plaid_dict = decode_env_var("plaid")
 PLAID_CLIENT_ID = _plaid_dict["client_id"]
 PLAID_SECRET = _plaid_dict["secret"]
 PLAID_APPLICATION_NAME = "amira"  # _plaid_dict["application_name"]
-PLAID_ENVIRONMENT = Environment.Sandbox
+PLAID_ENVIRONMENT = plaid.Environment.Sandbox
 # TODO This is a catch all for the time being -- we should change this once we get production credentials attached
 if ENVIRONMENT == Environments.prod.value or ENVIRONMENT == Environments.staging.value:
-    PLAID_ENVIRONMENT = Environment.Development
+    PLAID_ENVIRONMENT = plaid.Environment.Development
 
 _iex_dict = decode_env_var("iex")
 IEX_PUBLISHABLE = _iex_dict["publishable"]
@@ -139,8 +142,7 @@ async_session_maker = sessionmaker(
 )
 
 # https://github.com/redis/redis-py
-_redis_connection_pool = redis.ConnectionPool(**WEBCACHE_DICT)
-WEBCACHE = redis.Redis(connection_pool=_redis_connection_pool, health_check_interval=30)
+WEBCACHE = redis.Redis(health_check_interval=30, ssl=True, ssl_cert_reqs=None, **WEBCACHE_DICT)
 
 if __name__ == "__main__":
     print(decode_env_var("brokerages"))

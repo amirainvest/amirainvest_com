@@ -22,15 +22,6 @@ async def get_like_content(search_term: str):
     return [{"text": x.text, "post_id": x.id} for x in data]
 
 
-@router.get("/users", status_code=200, response_model=List[UserSearch])
-async def search_users():
-    all_users = await search.get_all_users()
-    return [
-        {"name": user.name, "user_id": user.id, "benchmark": user.benchmark, "chip_labels": user.chip_labels}
-        for user in all_users
-    ]
-
-
 @router.get("/creators", status_code=200, response_model=List[UserSearch])
 async def get_like_creator(search_term: str):
     matching_users = await search.get_like_creator(search_term=search_term)

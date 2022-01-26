@@ -39,6 +39,8 @@ jobs:
 
       - name: Git commit
         run: git commit -m "Auto update common pacage to $(poetry version -s)"
+        working-directory: ./src/common_amirainvest_com
+
 
       - name: Git push
         run: git push

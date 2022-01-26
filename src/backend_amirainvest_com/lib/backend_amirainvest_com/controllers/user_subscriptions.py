@@ -1,10 +1,9 @@
-import datetime
 import uuid
 
 from sqlalchemy import delete, update
 from sqlalchemy.future import select
 
-from common_amirainvest_com.schemas.schema import UserSubscriptions
+from common_amirainvest_com.schemas.schema import SubscriptionLevel, UserSubscriptions
 from common_amirainvest_com.utils.decorators import Session
 
 
@@ -23,7 +22,12 @@ async def update_user_subscription(session, user_subscription_data: dict):
 
 
 @Session
-async def create_user_subscription(session, subscriber_id: uuid.UUID, creator_id: uuid.UUID, subscription_level):
+async def create_user_subscription(
+    session,
+    subscriber_id: uuid.UUID,
+    creator_id: uuid.UUID,
+    subscription_level: SubscriptionLevel = SubscriptionLevel.standard,
+):
     subscription = UserSubscriptions(
         creator_id=creator_id,
         subscriber_id=subscriber_id,

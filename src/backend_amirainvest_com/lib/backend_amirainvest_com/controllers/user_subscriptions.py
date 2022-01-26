@@ -23,12 +23,11 @@ async def update_user_subscription(session, user_subscription_data: dict):
 
 
 @Session
-async def create_user_subscription(session, subscriber_id: uuid.UUID, creator_id: uuid.UUID):
+async def create_user_subscription(session, subscriber_id: uuid.UUID, creator_id: uuid.UUID, subscription_level):
     subscription = UserSubscriptions(
         creator_id=creator_id,
         subscriber_id=subscriber_id,
-        created_at=datetime.datetime.utcnow(),
-        updated_at=datetime.datetime.utcnow(),
+        subscription_level=subscription_level,
         is_deleted=False,
     )
     session.add(subscription)

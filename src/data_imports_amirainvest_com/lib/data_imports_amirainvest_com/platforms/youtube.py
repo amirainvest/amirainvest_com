@@ -208,7 +208,3 @@ class YouTubeVideo:
 async def load_user_data(channel_id, creator_id):
     youtuber = YouTuber(_id=channel_id, creator_id=creator_id)
     await youtuber.store_user_data()
-
-
-if __name__ == "__main__":
-    run_async_function_synchronously(load_user_data, "UCS4ITAOQlFP9_ny2Zl5b0ig", "2bedf591-5944-4c1d-b586-c56be7b7459f")

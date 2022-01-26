@@ -1,23 +1,8 @@
 from sqlalchemy import select
 
-from common_amirainvest_com.schemas.schema import Posts, Users
-from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
+from common_amirainvest_com.schemas.schema import FinancialAccounts, FinancialAccountTransactions, Posts, Users
 from common_amirainvest_com.utils.decorators import Session
-
-
-@Session
-async def create_user(session):
-    user = Users(
-            **{
-                "sub": "",
-                "name": "",
-                "username": "",
-                "picture_url": "",
-                "email": "",
-            }
-        )
-    session.add(user)
-    return user.__dict__
+from data_imports_amirainvest_com.controllers import posts
 
 
 @Session
@@ -31,11 +16,11 @@ async def create_trade_post(session, creator_id: str, plaid_user_id, transaction
     post = Posts(
         **{
             "creator_id": user.id,
-            "platform": "brokerage",  # BROKERAGE
-            "platform_user_id": plaid_user_id,  # PLAID USER ID
-            "platform_post_id": transaction_id,  # TRANSACTION_ID
+            "platform": "brokerage",
+            "platform_user_id": plaid_user_id,
+            "platform_post_id": transaction_id,
             "profile_img_url": user.picture_url,
-            "text": "",
+            "text": generate_title(action, security),
             "title": generate_title(action, security),
             "chip_labels": user.chip_labels,
         }
@@ -44,10 +29,37 @@ async def create_trade_post(session, creator_id: str, plaid_user_id, transaction
     return post
 
 
+@Session
+async def get_day_transactions(session):
+    return [
+        x._asdict()
+        for x in (
+            (
+                await session.execute(
+                    select(FinancialAccounts, FinancialAccountTransactions).join(FinancialAccounts)
+                    # .where(extract("day", FinancialAccountTransactions.created_at) == datetime.today().day)
+                )
+            ).all()
+        )
+    ]
+
+
+async def create_day_transaction_posts():
+    day_transactions = await get_day_transactions()
+    for transaction_data in day_transactions:
+        account = transaction_data["FinancialAccounts"].dict()
+        transaction = transaction_data["FinancialAccountTransactions"].dict()
+        post = await create_trade_post(
+            account["user_id"],
+            account["plaid_id"],
+            transaction["plaid_investment_transaction_id"],
+            transaction["type"],
+            transaction["name"],
+        )
+        post_data = {k: str(v) for k, v in post.dict().items() if k in Posts.__dict__ and v}
+        posts.put_post_on_creators_redis_feeds(post_data)
+        await posts.put_post_on_subscriber_redis_feeds(post_data, "premium")
+
+
 def generate_title(action, security):
     return f"{action} {security}"
-
-
-if __name__ == '__main__':
-    from pprint import pprint
-    print(run_async_function_synchronously(create_trade_post, "c148fde2-5e22-49a1-a4ae-84b9cb6aec73"))

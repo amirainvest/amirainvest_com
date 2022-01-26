@@ -14,10 +14,13 @@ async def create_post(session, post_data: dict):
     return post
 
 
+@Session
 async def get_posts_for_subscriber(session, subscriber_id):
     data = await session.execute(
         select(Posts).where(
-            Posts.creator_id._in(select(UserSubscriptions).where(UserSubscriptions.subscriber_id == subscriber_id))
+            Posts.creator_id.in_(
+                select(UserSubscriptions.creator_id).where(UserSubscriptions.subscriber_id == subscriber_id)
+            )
         )
     )
     return data.scalars().all()
@@ -34,8 +37,22 @@ async def get_subscribers_for_creator(session, creator_id: str):
     return [x.subscriber_id for x in data.scalars().all()]
 
 
-async def put_post_on_subscriber_redis_feeds(post_data: dict):
-    subscriber_ids = await get_subscribers_for_creator(post_data["creator_id"])
+@Session
+async def get_premium_subscribers_for_creator(session, creator_id: str):
+    data = await session.execute(
+        select(UserSubscriptions)
+        .where(UserSubscriptions.creator_id == creator_id)
+        .where(UserSubscriptions.subscription_level == "premium")
+    )
+    return [x.subscriber_id for x in data.scalars().all()]
+
+
+async def put_post_on_subscriber_redis_feeds(post_data: dict, subscription_type: str = "standard"):
+    subscriber_ids = []
+    if subscription_type == "standard":
+        subscriber_ids = await get_subscribers_for_creator(post_data["creator_id"])
+    elif subscription_type == "premium":
+        subscriber_ids = await get_premium_subscribers_for_creator(post_data["creator_id"])
     for subscriber_id in subscriber_ids:
         add_post_to_redis_feed(subscriber_id, post_data, feed_type="subscriber")
 

@@ -86,7 +86,3 @@ async def load_user_data(username, creator_id):
     substack_user = SubstackUser(username, creator_id)
     await substack_user.load_platform_data()
     await posts.create_post()
-
-
-if __name__ == "__main__":
-    run_async_function_synchronously(load_user_data, "jonahlupton", "52e99fe8-26e4-4844-b9ca-9b171d08e2b6")

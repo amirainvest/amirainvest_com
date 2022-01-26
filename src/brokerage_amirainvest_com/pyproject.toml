@@ -13,16 +13,11 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.9"
+
 common_amirainvest_com = { path = "../common_amirainvest_com", develop = true }
 
-alembic = "^1.7.5"
 arrow = "^1.2.1"
-asyncpg = ">= 0.25.0 < 1"
-fastapi = ">= 0.70.0 < 1"
+boto3 = "^1.20.20"
 plaid-python = "^8.6.0"
 pydantic = "^1.8.2"
-sentry-sdk = "^1.5.0"
 SQLAlchemy = "^1.4.27"
-Jinja2 = "^3.0.3"
-boto3-stubs = { extras = ["dynamodb", "sqs"], version = "^1.20.24" }
-

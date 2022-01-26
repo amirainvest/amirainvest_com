@@ -55,6 +55,12 @@ async def auth_depends(data=Security(auth_dep, scopes=[])):
     return data
 
 
+async def auth_depends_user_id(data=Security(auth_dep, scopes=[])):
+    if "https://amirainvest.com/user_id" not in data:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authenticated")
+    return data
+
+
 def get_application_token():
     return requests.post(
         url=f"https://{AUTH0_DOMAIN}/oauth/token",

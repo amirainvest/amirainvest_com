@@ -1,4 +1,4 @@
-name: Push container
+name: Push containers
 
 env:
   AWS_REGION: us-east-1
@@ -6,15 +6,6 @@ env:
 on:
   workflow_dispatch:
   workflow_call:
-    inputs:
-      microservice_list:
-        description: "List of microservice names"
-        required: false
-        type: string
-      environment:
-        description: "Environment being run in"
-        required: false
-        type: string
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true

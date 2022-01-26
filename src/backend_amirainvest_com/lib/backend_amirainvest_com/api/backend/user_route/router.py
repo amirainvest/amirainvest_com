@@ -1,5 +1,4 @@
 import uuid
-from time import sleep
 from typing import List
 
 from fastapi import APIRouter, Depends, File, HTTPException, status, UploadFile

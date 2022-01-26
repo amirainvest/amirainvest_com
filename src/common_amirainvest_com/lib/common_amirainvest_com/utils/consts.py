@@ -4,14 +4,16 @@ import os
 from enum import Enum
 from json import JSONDecodeError
 
+import pkg_resources
 import plaid  # type: ignore
-import redis
 import sentry_sdk
 from sentry_sdk.integrations.redis import RedisIntegration
 from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 from sentry_sdk.utils import BadDsn
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
+
+import redis
 
 
 __all__ = [
@@ -66,7 +68,6 @@ try:
     if PROJECT == "brokerage" or PROJECT == "market_data":
         from sentry_sdk.integrations.aws_lambda import AwsLambdaIntegration
 
-
         integrations.append(AwsLambdaIntegration(timeout_warning=True))
 
     SENTRY_URL = "https://{public_key}@{domain}/{project_id}".format(**decode_env_var("sentry"))
@@ -79,6 +80,7 @@ try:
         request_bodies="always",
         integrations=integrations,
         debug=True if DEBUG == "true" else False,
+        release="common_amirainvest_com-" + pkg_resources.get_distribution("common_amirainvest_com").version,
     )
 except (BadDsn, JSONDecodeError):
     if ENVIRONMENT != Environments.local.value:

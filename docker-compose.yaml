@@ -137,8 +137,6 @@ services:
     depends_on:
       ecs-local-endpoints:
         condition: service_started
-    ports:
-      - "9000:8080"
     networks:
       local:
       credentials_network:

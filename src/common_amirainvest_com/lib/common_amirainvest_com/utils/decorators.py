@@ -76,6 +76,7 @@ def Session(func):
             if session_passed is True:
                 func_return = await func(*args, **kwargs)
             else:
+
                 session: AsyncSession = _async_session_maker()
                 try:
                     func_return = await _session_work(session, args, kwargs)

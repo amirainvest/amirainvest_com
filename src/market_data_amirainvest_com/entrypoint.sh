@@ -9,6 +9,4 @@ if [ "$DEBUG" == "true" ]; then
 fi
 
 eval "$(python -m common_amirainvest_com.utils.load_secrets)"
-#python -m awslambdaric "$@"
-exec /usr/local/bin/aws-lambda-rie python -m awslambdaric market_data_amirainvest_com.lambdas.realtime_updates.app.handler
-
+python -m awslambdaric "$@"

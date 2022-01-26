@@ -2,6 +2,9 @@ import asyncio
 import datetime
 from typing import List
 
+from common_amirainvest_com.utils.decorators import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from common_amirainvest_com.utils.consts import IEX_SECRET
 from common_amirainvest_com.schemas.schema import Securities, SecurityPrices
 from common_amirainvest_com.utils.logger import log
 from market_data_amirainvest_com.iex import get_stock_quote_prices
@@ -38,16 +41,25 @@ async def _get_security_prices(stock_quotes: List[StockQuote], securities: List[
     return securities_prices
 
 
+@Session
+async def remove(session: AsyncSession):
+    await session.close()
+
+
 async def run():
     try:
+        print("HI!!! ", IEX_SECRET)
         securities = await get_securities_collect_true()
-        grouped_securities = group_securities(securities, 100)
-        for group in grouped_securities:
-            symbols = _group_just_symbols(group)
-            quotes = await get_stock_quote_prices(symbols)
-            securities_prices = await _get_security_prices(quotes, securities)
-            await _add_securities_prices(securities_prices)
-            await asyncio.sleep(1)
+        for sec in securities:
+            print(sec.ticker_symbol)
+        # grouped_securities = group_securities(securities, 100)
+        # for group in grouped_securities:
+        #     symbols = _group_just_symbols(group)
+        #     quotes = await get_stock_quote_prices(symbols)
+        #     securities_prices = await _get_security_prices(quotes, securities)
+        #     await _add_securities_prices(securities_prices)
+        #     await asyncio.sleep(1)
+        await remove()
     except Exception as err:
         log.exception(err)
         raise err
@@ -65,4 +77,6 @@ def get_security_id(securities: list[Securities], symbol: str) -> int:
 
 
 def handler(event, context):
+    print("HERE!>!>")
     asyncio.run(run())
+    print("<!<!<! HERE")

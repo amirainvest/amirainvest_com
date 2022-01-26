@@ -6,10 +6,10 @@ from json import JSONDecodeError
 
 import plaid  # type: ignore
 import redis
-import sentry_sdk
-from sentry_sdk.integrations.redis import RedisIntegration
-from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
-from sentry_sdk.utils import BadDsn
+# import sentry_sdk
+# from sentry_sdk.integrations.redis import RedisIntegration
+# from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+# from sentry_sdk.utils import BadDsn
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -60,28 +60,28 @@ DEBUG = os.environ.get("DEBUG", "true").strip().lower()
 ENVIRONMENT = Environments[os.environ.get("ENVIRONMENT", "local").strip().lower()].value
 PROJECT = Projects[os.environ.get("PROJECT", "mono").strip().lower()].value
 
-try:
-    integrations = [SqlalchemyIntegration(), RedisIntegration()]
-
-    if PROJECT == "brokerage" or PROJECT == "market_data":
-        from sentry_sdk.integrations.aws_lambda import AwsLambdaIntegration
-
-        integrations.append(AwsLambdaIntegration(timeout_warning=True))
-
-    SENTRY_URL = "https://{public_key}@{domain}/{project_id}".format(**decode_env_var("sentry"))
-
-    sentry_sdk.init(
-        SENTRY_URL,
-        environment=ENVIRONMENT,
-        sample_rate=1.0,
-        traces_sample_rate=1.0,
-        request_bodies="always",
-        integrations=integrations,
-        debug=True if DEBUG == "true" else False,
-    )
-except (BadDsn, JSONDecodeError):
-    if ENVIRONMENT != Environments.local.value:
-        raise EnvironmentError("Sentry URL not set for non local env")
+# try:
+#     integrations = [SqlalchemyIntegration(), RedisIntegration()]
+#
+#     if PROJECT == "brokerage" or PROJECT == "market_data":
+#         from sentry_sdk.integrations.aws_lambda import AwsLambdaIntegration
+#
+#         integrations.append(AwsLambdaIntegration(timeout_warning=True))
+#
+#     SENTRY_URL = "https://{public_key}@{domain}/{project_id}".format(**decode_env_var("sentry"))
+#
+#     sentry_sdk.init(
+#         SENTRY_URL,
+#         environment=ENVIRONMENT,
+#         sample_rate=1.0,
+#         traces_sample_rate=1.0,
+#         request_bodies="always",
+#         integrations=integrations,
+#         debug=True if DEBUG == "true" else False,
+#     )
+# except (BadDsn, JSONDecodeError):
+#     if ENVIRONMENT != Environments.local.value:
+#         raise EnvironmentError("Sentry URL not set for non local env")
 
 POSTGRES_DATABASE_URL = "postgresql://{username}:{password}@{host}/{database}".format(**decode_env_var("postgres"))
 

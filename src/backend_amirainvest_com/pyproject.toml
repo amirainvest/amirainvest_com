@@ -1,5 +1,4 @@
 [build-system]
-# https://github.com/python-poetry/poetry/issues/34#issuecomment-997519115
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
@@ -14,24 +13,24 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.9"
+
 common_amirainvest_com = { path = "../common_amirainvest_com", develop = true }
 
-asyncpg = "^0.25.0"
 boto3 = "^1.20.20"
-boto3-stubs = { extras = ["sqs", "dynamodb"], version = "^1.20.24" }
-pycryptodome = "^3.12.0"
-python-jose = "^3.3.0"
-python-multipart = "^0.0.5"
+fastapi = "^0"
+gunicorn = "^20.1.0"
+httpx = "^0"
+Jinja2 = "^3.0.3"
+plaid-python = "^8.8.0"
+pycryptodomex = "^3.13.0"
+pydantic = "^1.8.2"
+PyJWT = "^2.3.0"
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+python-multipart = "^0"
 redis = "^4.0.2"
 requests = "^2.26.0"
-sentry-sdk = "^1.5.0"
 SQLAlchemy = "^1.4.27"
 uvicorn = ">= 0.15 < 1"
-cryptography = "^36.0.1"
-fastapi = "^0.70.1"
-plaid-python = "^8.8.0"
-PyJWT = "^2.3.0"
-Jinja2 = "^3.0.3"
 
 [tool.poetry.dev-dependencies]
 

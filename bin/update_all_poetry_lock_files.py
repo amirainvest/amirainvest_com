@@ -13,6 +13,5 @@ def update_all_poetry_lock_files():
         subprocess.run("poetry update", shell=True, check=True, cwd=poetry_package_dir)
 
 
-
 if __name__ == '__main__':
     update_all_poetry_lock_files()

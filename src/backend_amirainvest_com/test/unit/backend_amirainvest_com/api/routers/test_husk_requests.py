@@ -1,29 +1,28 @@
-pytest_plugins = ["common_amirainvest_com.utils.test.fixtures.database"]
 import json
 
-import pytest
 from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from backend_amirainvest_com.api.app import app
 from common_amirainvest_com.schemas.schema import HuskRequests
 from common_amirainvest_com.utils.test.factories.schema import HuskRequestsFactory
 
-from .config import AUTH_HEADERS
+from ..config import AUTH_HEADERS
 
 
-@pytest.mark.asyncio
-async def test_get_husk_requests():
+async def test_list():
     async with AsyncClient(app=app, base_url="http://test") as async_client:
-        response = await async_client.get("/husk_requests/", headers=AUTH_HEADERS)
+        response = await async_client.post("/husk_request/list", headers=AUTH_HEADERS)
     assert response.status_code == 200
 
 
-@pytest.mark.asyncio
-async def test_create_husk_request(session_test):
+async def test_create(async_session_maker_test):
+    session_test: AsyncSession = async_session_maker_test()
+
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(
-            "/husk_requests/",
+            "/husk_request/create",
             headers=AUTH_HEADERS,
             data=json.dumps(
                 {
@@ -43,8 +42,9 @@ async def test_create_husk_request(session_test):
     assert response_data["id"] == husk_requests.id
 
 
-@pytest.mark.asyncio
-async def test_delete_husk_request(session_test):
+async def test_delete(async_session_maker_test):
+    session_test: AsyncSession = async_session_maker_test()
+
     husk_request = await HuskRequestsFactory()
 
     husk_requests = await session_test.execute(select(HuskRequests))
@@ -52,8 +52,8 @@ async def test_delete_husk_request(session_test):
     assert len(husk_requests) == 1
 
     async with AsyncClient(app=app, base_url="http://test") as async_client:
-        response = await async_client.delete(
-            "/husk_requests/", headers=AUTH_HEADERS, params={"husk_request_id": husk_request.id}
+        response = await async_client.post(
+            "/husk_request/delete", headers=AUTH_HEADERS, params={"husk_request_id": husk_request.id}
         )
     assert response.status_code == 200
 

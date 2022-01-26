@@ -4,20 +4,25 @@ from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from common_amirainvest_com.utils.consts import async_session
+from common_amirainvest_com.utils.consts import async_session_maker
 from common_amirainvest_com.utils.logger import log
 
 
-__all__ = ["Session", "get_session"]
-_session: Optional[AsyncSession] = None  # NOTE: This is monkeypatched by a test fixture!
-_async_session = async_session  # NOTE: This is monkeypatched by a test fixture!
+__all__ = ["Session", "get_async_session"]
+_async_session: Optional[AsyncSession] = None  # NOTE: This is monkeypatched by a test fixture!
+_async_session_maker = async_session_maker  # NOTE: This is monkeypatched by a test fixture!
 
 
-def get_session() -> Optional[AsyncSession]:
+# TODO add typing for session decorator
+#   Waiting on : https://github.com/python/mypy/pull/11847
+#   and https://github.com/python/mypy/issues/11833
+
+
+def get_async_session() -> Optional[AsyncSession]:
     """
     Used by the test factories to get the session at factory run time.
     """
-    return _session
+    return _async_session
 
 
 def Session(func):
@@ -35,7 +40,7 @@ def Session(func):
         ...
 
     a = await example(other_data="stuff")
-    b = await example(async_session(), "stuff")
+    b = await example(async_session_maker(), "stuff")
 
 
     NOTE: The FIRST or SECOND argument is "session". "session" in ANY OTHER ARGUMENT SPOT will break!
@@ -43,21 +48,20 @@ def Session(func):
     """
 
     async def _session_work(session: AsyncSession, args, kwargs):
-        async with session.begin_nested():
-            if "session" in kwargs:
-                kwargs["session"] = session
-            elif "session" in list(inspect.signature(func).parameters.keys()):
-                sig_args = list(inspect.signature(func).parameters.keys())
-                if sig_args[0] == "session":
-                    args = (session, *args)
-                elif sig_args[0] in {"cls", "self"} and sig_args[1] == "session":
-                    args = (args[0], session, *args[1:])
-                else:
-                    raise RuntimeError("session is not the first or second argument in the function")
+        if "session" in kwargs:
+            kwargs["session"] = session
+        elif "session" in list(inspect.signature(func).parameters.keys()):
+            sig_args = list(inspect.signature(func).parameters.keys())
+            if sig_args[0] == "session":
+                args = (session, *args)
+            elif sig_args[0] in {"cls", "self"} and sig_args[1] == "session":
+                args = (args[0], session, *args[1:])
             else:
-                raise RuntimeError("session not an args")
-            func_return = await func(*args, **kwargs)
-            return func_return
+                raise RuntimeError("session is not the first or second argument in the function")
+        else:
+            raise RuntimeError("session not an args")
+        func_return = await func(*args, **kwargs)
+        return func_return
 
     @functools.wraps(func)
     async def wrapper_events(*args, **kwargs):
@@ -73,7 +77,7 @@ def Session(func):
                 func_return = await func(*args, **kwargs)
             else:
 
-                session: AsyncSession = _async_session()
+                session: AsyncSession = _async_session_maker()
                 try:
                     func_return = await _session_work(session, args, kwargs)
                 except:  # noqa: E722

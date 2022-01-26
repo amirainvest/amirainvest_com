@@ -37,7 +37,6 @@ def consume_queue(queue_name: str, func: t.Callable, timeout: int = 60):
             process.start()
             data = json.loads(message.body)
             try:
-                print(data)
                 func(**data)
             except Exception:
                 try:

@@ -1,10 +1,3 @@
-# https://developer.twitter.com/en/portal/dashboard
-# CONSUMER TOKEN = "EPWo6qg7HkGzlTB8b0Ipf4Ofw"
-# CONSUMER_SECRET_KEY = "jaBwzGWPkO1bcM3n45UZcF80OgAmOVjffMaUUgvOXNOrb7RTAF"
-# ACCESS_TOKEN = "1383769515813572610-xv4NopmXGqEBuVILURIiMwThA28bj9"
-# ACCESS_TOKEN_SECRET = "dAffq3DnJxPomxwhE7C6cGuZw5geyCHT2z5DNlSyZATLl"
-# TODO move these to secrets
-
 import urllib.parse
 from datetime import datetime
 from typing import Optional
@@ -19,6 +12,7 @@ from data_imports_amirainvest_com.consts import TWITTER_API_TOKEN_ENV, TWITTER_A
 from data_imports_amirainvest_com.controllers import posts
 from data_imports_amirainvest_com.controllers.tweets import create_tweet, get_tweets_for_creator
 from data_imports_amirainvest_com.controllers.twitter_users import create_twitter_user
+from data_imports_amirainvest_com.controllers.users import get_user
 from data_imports_amirainvest_com.platforms.platforms import PlatformUser
 
 
@@ -115,6 +109,7 @@ class TwitterUser(PlatformUser):
         tweet_posts = []
         stored_tweets = await self.get_stored_creator_tweets()
         stored_tweet_ids = [x.tweet_id for x in stored_tweets]
+        user = await get_user(self.creator_id)
         for raw_tweet in raw_tweets:
             if raw_tweet["id"] not in stored_tweet_ids:
                 tweets.append(
@@ -146,6 +141,7 @@ class TwitterUser(PlatformUser):
                         "html": "",
                         "title": "",
                         "profile_url": "",
+                        "chip_labels": user.chip_labels,
                         "created_at": raw_tweet.get("created_at"),
                         "updated_at": raw_tweet.get("created_at"),
                     }

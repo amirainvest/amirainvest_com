@@ -2,10 +2,22 @@ import datetime
 import enum
 import typing as t
 import uuid
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel
-from sqlalchemy import BigInteger, Boolean, Column, DECIMAL, Enum, Float, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import (
+    ARRAY,
+    BigInteger,
+    Boolean,
+    Column,
+    DECIMAL,
+    Enum,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    UniqueConstraint,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.orm import declarative_base, relationship
@@ -31,14 +43,30 @@ class Info(BaseModel):
 
 
 class Users(Base):
+class ToDict:
+    # This is just to shut up Pycharm
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def dict(self) -> dict:
+        return_dict = {}
+        key: str
+        for key, value in self.__dict__.items():
+            if not key.startswith("_"):
+                return_dict[key] = value
+        return return_dict
+
+
+class Users(Base, ToDict):
     __tablename__ = "users"
     id: uuid.UUID = Column(UUID(as_uuid=True), primary_key=True, unique=True, default=uuid.uuid4)
     sub = Column(String, nullable=False, info=Info(default="fake_sub").dict())
     name = Column(String, nullable=False)
-    bio = Column(String)
     username = Column(String, nullable=False)
-    picture_url = Column(String, nullable=False)
-    email = Column(String, nullable=False)
+    email = Column(String, nullable=False, unique=True)
+
+    picture_url = Column(String)
+    bio = Column(String)
     personal_site_url = Column(String)
     linkedin_profile = Column(String)
     email_verified = Column(Boolean, default=False)
@@ -48,6 +76,7 @@ class Users(Base):
     interests_short_term = Column(Boolean)
     interests_diversification_rating = Column(Integer)
     benchmark = Column(String)
+    chip_labels = Column(ARRAY(String))
     public_profile = Column(Boolean)
     public_performance = Column(Boolean)
     public_holdings = Column(Boolean)
@@ -55,7 +84,7 @@ class Users(Base):
     is_claimed = Column(Boolean)
     is_deactivated = Column(Boolean)
     is_deleted = Column(Boolean)
-    # deleted_at = Column(DateTime)
+    deleted_at = Column(DateTime)
     created_at = Column(DateTime, server_default=UTCNow())
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
@@ -64,10 +93,11 @@ class UsersModel(BaseModel):
     id: uuid.UUID
     sub: str
     name: str
-    bio: Optional[str]
     username: str
-    picture_url: str
     email: str
+
+    picture_url: Optional[str]
+    bio: Optional[str]
     personal_site_url: Optional[str]
     linkedin_profile: Optional[str]
     email_verified: bool
@@ -77,6 +107,7 @@ class UsersModel(BaseModel):
     interests_short_term: Optional[bool]
     interests_diversification_rating: Optional[int]
     benchmark: Optional[str]
+    chip_labels: Optional[List[str]]
     public_profile: Optional[bool]
     public_performance: Optional[bool]
     public_holdings: Optional[bool]
@@ -84,12 +115,12 @@ class UsersModel(BaseModel):
     is_claimed: Optional[bool]
     is_deactivated: Optional[bool]
     is_deleted: Optional[bool]
-    # deleted_at: Optional[datetime.datetime] = Column(DateTime)
+    deleted_at: Optional[datetime.datetime]
     created_at: Optional[datetime.datetime]
     updated_at: Optional[datetime.datetime]
 
 
-class BroadcastRequests(Base):
+class BroadcastRequests(Base, ToDict):
     __tablename__ = "broadcast_requests"
     id = Column(Integer, primary_key=True, unique=True)
     subscriber_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -111,11 +142,17 @@ class BroadcastRequestsModel(BaseModel):
     created_at: Optional[datetime.datetime]
 
 
-class UserSubscriptions(Base):
+class SubscriptionLevel(enum.Enum):
+    standard = "standard"
+    premium = "premium"
+
+
+class UserSubscriptions(Base, ToDict):
     __tablename__ = "user_subscriptions"
     id = Column(Integer, primary_key=True, unique=True)
     subscriber_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     creator_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    subscription_level = Column(Enum(SubscriptionLevel), default=SubscriptionLevel.standard.value, nullable=False)
     created_at = Column(DateTime, server_default=UTCNow())
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
     is_deleted = Column(Boolean, nullable=False)
@@ -132,12 +169,13 @@ class UserSubscriptionsModel(BaseModel):
     id: int
     subscriber_id: uuid.UUID
     creator_id: uuid.UUID
+    subscription_level: SubscriptionLevel
     created_at: Optional[datetime.datetime]
     updated_at: Optional[datetime.datetime]
     is_deleted: bool
 
 
-class UserMediaErrors(Base):
+class UserMediaErrors(Base, ToDict):
     __tablename__ = "user_media_errors"
     id = Column(Integer, primary_key=True, unique=True)
     user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -148,7 +186,7 @@ class UserMediaErrors(Base):
     creator: Users = relationship("Users", backref="user_media_errors", passive_deletes=True, cascade="all,delete")
 
 
-class SubstackUsers(Base):
+class SubstackUsers(Base, ToDict):
     __tablename__ = "substack_users"
     username = Column(String, primary_key=True, unique=True)
     user_url = Column(String)
@@ -159,7 +197,7 @@ class SubstackUsers(Base):
     creator: Users = relationship("Users", backref="substack_users", passive_deletes=True, cascade="all,delete")
 
 
-class SubstackArticles(Base):
+class SubstackArticles(Base, ToDict):
     __tablename__ = "substack_articles"
     article_id = Column(String, primary_key=True, unique=True, nullable=False)
     url = Column(String)
@@ -174,7 +212,7 @@ class SubstackArticles(Base):
     )
 
 
-class YouTubers(Base):
+class YouTubers(Base, ToDict):
     __tablename__ = "youtubers"
     channel_id = Column(String, primary_key=True, unique=True)
     creator_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -190,7 +228,7 @@ class YouTubers(Base):
     creator: Users = relationship("Users", backref="youtubers", passive_deletes=True, cascade="all,delete")
 
 
-class YouTubeVideos(Base):
+class YouTubeVideos(Base, ToDict):
     __tablename__ = "youtube_videos"
     video_id = Column(String, primary_key=True, unique=True)
     title = Column(String)
@@ -205,7 +243,7 @@ class YouTubeVideos(Base):
     )
 
 
-class TwitterUsers(Base):
+class TwitterUsers(Base, ToDict):
     __tablename__ = "twitter_users"
     twitter_user_id = Column(String, primary_key=True, unique=True)
     creator_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -222,7 +260,7 @@ class TwitterUsers(Base):
     creator: Users = relationship("Users", backref="twitter_users", passive_deletes=True, cascade="all,delete")
 
 
-class Tweets(Base):
+class Tweets(Base, ToDict):
     __tablename__ = "tweets"
     tweet_id = Column(String, primary_key=True, unique=True)
     twitter_user_id = Column(String, ForeignKey("twitter_users.twitter_user_id", ondelete="CASCADE"))
@@ -242,7 +280,7 @@ class Tweets(Base):
     )
 
 
-class TweetAnnotations(Base):
+class TweetAnnotations(Base, ToDict):
     __tablename__ = "tweet_annotations"
     id = Column(Integer, primary_key=True, unique=True)
     tweet_id = Column(String, ForeignKey("tweets.tweet_id", ondelete="CASCADE"), unique=True)
@@ -255,7 +293,7 @@ class TweetAnnotations(Base):
     tweet: Tweets = relationship("Tweets", backref="tweet_annotations", passive_deletes=True, cascade="all,delete")
 
 
-class TweetCashtags(Base):
+class TweetCashtags(Base, ToDict):
     __tablename__ = "tweet_cashtags"
     id = Column(Integer, primary_key=True, unique=True)
     tweet_id = Column(String, ForeignKey("tweets.tweet_id", ondelete="CASCADE"), unique=True)
@@ -266,7 +304,7 @@ class TweetCashtags(Base):
     tweet: Tweets = relationship("Tweets", backref="tweet_cashtags", passive_deletes=True, cascade="all,delete")
 
 
-class TweetHashtags(Base):
+class TweetHashtags(Base, ToDict):
     __tablename__ = "tweet_hashtags"
     id = Column(Integer, primary_key=True, unique=True)
     tweet_id = Column(String, ForeignKey("tweets.tweet_id", ondelete="CASCADE"), unique=True)
@@ -277,7 +315,7 @@ class TweetHashtags(Base):
     tweet: Tweets = relationship("Tweets", backref="tweet_hashtags", passive_deletes=True, cascade="all,delete")
 
 
-class TweetMentions(Base):
+class TweetMentions(Base, ToDict):
     __tablename__ = "tweet_mentions"
     id = Column(Integer, primary_key=True, unique=True)
     tweet_id = Column(String, ForeignKey("tweets.tweet_id", ondelete="CASCADE"), unique=True)
@@ -288,7 +326,7 @@ class TweetMentions(Base):
     tweet: Tweets = relationship("Tweets", backref="tweet_mentions", passive_deletes=True, cascade="all,delete")
 
 
-class TweetURLs(Base):
+class TweetURLs(Base, ToDict):
     __tablename__ = "tweet_urls"
     id = Column(Integer, primary_key=True, unique=True)
     tweet_id = Column(String, ForeignKey("tweets.tweet_id", ondelete="CASCADE"), unique=True)
@@ -306,7 +344,7 @@ class TweetURLs(Base):
     tweet: Tweets = relationship("Tweets", backref="tweet_urls", passive_deletes=True, cascade="all,delete")
 
 
-class Posts(Base):
+class Posts(Base, ToDict):
     __tablename__ = "posts"
     id = Column(Integer, primary_key=True, unique=True)
     creator_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"))
@@ -318,9 +356,12 @@ class Posts(Base):
     html = Column(String)
     title = Column(String)
     profile_url = Column(String)
+    photos = Column(ARRAY(String))
+    chip_labels = Column(ARRAY(String))
     created_at = Column(DateTime, server_default=UTCNow())
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
+    # TODO I think some of these relationships are not defined correctly.
     creator: Users = relationship(
         "Users", backref="post_creator", passive_deletes=True, cascade="all,delete", foreign_keys=[creator_id]
     )
@@ -337,11 +378,13 @@ class PostsModel(BaseModel):
     html: Optional[str]
     title: Optional[str]
     profile_url: Optional[str]
+    photos: Optional[List[str]]
+    chip_labels: Optional[List[str]]
     created_at: Optional[datetime.datetime]
     updated_at: Optional[datetime.datetime]
 
 
-class PostLikes(Base):
+class PostLikes(Base, ToDict):
     __tablename__ = "post_likes"
     user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
     post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"), primary_key=True)
@@ -355,7 +398,7 @@ class PostLikes(Base):
     )
 
 
-class PostComments(Base):
+class PostComments(Base, ToDict):
     __tablename__ = "post_comments"
     id = Column(Integer, primary_key=True, unique=True)
     user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -372,7 +415,7 @@ class PostComments(Base):
     )
 
 
-class PostReads(Base):
+class PostReads(Base, ToDict):
     __tablename__ = "post_reads"
     id = Column(Integer, primary_key=True, unique=True)
     user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -388,7 +431,7 @@ class PostReads(Base):
     )
 
 
-class Bookmarks(Base):
+class Bookmarks(Base, ToDict):
     __tablename__ = "bookmarks"
     id = Column(Integer, primary_key=True, unique=True)
     user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -405,7 +448,7 @@ class Bookmarks(Base):
     )
 
 
-class BookmarksModel(BaseModel):
+class BookmarkModel(BaseModel):
     id: int
     user_id: uuid.UUID
     post_id: int
@@ -414,7 +457,7 @@ class BookmarksModel(BaseModel):
     is_deleted: bool
 
 
-class HuskRequests(Base):
+class HuskRequests(Base, ToDict):
     __tablename__ = "husk_requests"
     id = Column(Integer, primary_key=True, unique=True)
     twitter_user_id = Column(String)
@@ -433,7 +476,7 @@ class HuskRequestsModel(BaseModel):
     fulfilled: Optional[bool]
 
 
-class FinancialInstitutions(Base):
+class FinancialInstitutions(Base, ToDict):
     __tablename__ = "financial_institutions"
     id = Column(Integer, primary_key=True, unique=True, nullable=False)
     name = Column(String, nullable=False)
@@ -443,7 +486,7 @@ class FinancialInstitutions(Base):
     created_at = Column(DateTime, server_default=UTCNow())
 
 
-class FinancialAccounts(Base):
+class FinancialAccounts(Base, ToDict):
     __tablename__ = "financial_accounts"
     id = Column(Integer, primary_key=True, unique=True, nullable=False)
     user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
@@ -463,7 +506,7 @@ class FinancialAccounts(Base):
     created_at = Column(DateTime, server_default=UTCNow())
 
 
-class FinancialAccountTransactions(Base):
+class FinancialAccountTransactions(Base, ToDict):
     __tablename__ = "financial_account_transactions"
     id = Column(BigInteger, primary_key=True, nullable=False, unique=True)
     account_id = Column(Integer, ForeignKey("financial_accounts.id"), nullable=False)
@@ -482,7 +525,7 @@ class FinancialAccountTransactions(Base):
     unofficial_currency_code = Column(String)
 
 
-class FinancialAccountCurrentHoldings(Base):
+class FinancialAccountCurrentHoldings(Base, ToDict):
     __tablename__ = "financial_account_current_holdings"
     __table_args__ = (UniqueConstraint("account_id", "security_id"),)
     id = Column(BigInteger, primary_key=True, unique=True, nullable=False)
@@ -500,8 +543,8 @@ class FinancialAccountCurrentHoldings(Base):
     created_at = Column(DateTime, server_default=UTCNow())
 
 
-class Securities(Base):
-    __tablename__ = "securities"
+class PlaidSecurities(Base, ToDict):
+    __tablename__ = "plaid_securities"
     id = Column(Integer, primary_key=True, unique=True, nullable=False)
     plaid_security_id = Column(String, unique=True)
     name = Column(String, nullable=False)
@@ -521,30 +564,65 @@ class Securities(Base):
     created_at = Column(DateTime, server_default=UTCNow())
 
 
-class SecurityPrices(Base):
-    __tablename__ = "security_prices"
-    __table_args__ = (UniqueConstraint("price_time", "securities_id"),)
+class PlaidSecurityPrices(Base, ToDict):
+    __tablename__ = "plaid_security_prices"
+    __table_args__ = (UniqueConstraint("price_time", "plaid_securities_id"),)
     id = Column(BigInteger, primary_key=True, unique=True, nullable=False)
-    securities_id = Column(Integer, ForeignKey("securities.id"), nullable=False)
+    plaid_securities_id = Column(Integer, ForeignKey("plaid_securities.id"), nullable=False)
     price = Column(DECIMAL(19, 4), nullable=False)
     price_time = Column(DateTime, nullable=False)
     created_at = Column(DateTime, server_default=UTCNow())
 
 
-class HistoricalJobsStatus(enum.Enum):
+class BrokerageJobsStatus(enum.Enum):
     pending = "PENDING"
     running = "RUNNING"
     succeeded = "SUCCEEDED"
     failed = "FAILED"
 
 
-class HistoricalJobs(Base):
-    __tablename__ = "historical_jobs"
+class BrokerageJobs(Base, ToDict):
+    __tablename__ = "brokerage_jobs"
     id = Column(Integer, primary_key=True, unique=True, nullable=False)
     user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    status = Column(Enum(HistoricalJobsStatus), default=HistoricalJobsStatus.pending.value, nullable=False)
+    status = Column(Enum(BrokerageJobsStatus), default=BrokerageJobsStatus.pending.value, nullable=False)
     retries = Column(Integer, default=0, nullable=False)
     params = Column(String)
     started_at = Column(DateTime)
     ended_at = Column(DateTime)
     created_at = Column(DateTime, server_default=UTCNow(), nullable=False)
+
+
+class Securities(Base, ToDict):
+    __tablename__ = "securities"
+    id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    collect = Column(Boolean, default=False, index=True, nullable=False)
+    name = Column(String, nullable=False)
+    ticker_symbol: str = Column(String, unique=True, nullable=False)
+    exchange = Column(String)
+    description = Column(String)
+    website = Column(String)
+    industry = Column(String)
+    ceo = Column(String)
+    issue_type = Column(String)
+    sector = Column(String)
+    primary_sic_code = Column(BigInteger)
+    employee_count = Column(Integer)
+    address = Column(String)
+    phone = Column(String)
+    open_price = Column(DECIMAL(19, 4), nullable=False)
+    close_price = Column(DECIMAL(19, 4), nullable=False)
+    type = Column(String)
+    currency = Column(String)
+    last_updated = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
+    created_at = Column(DateTime, server_default=UTCNow())
+
+
+class SecurityPrices(Base, ToDict):
+    __tablename__ = "security_prices"
+    __table_args__ = (UniqueConstraint("price_time", "security_id"),)
+    id = Column(BigInteger, primary_key=True, unique=True, nullable=False)
+    security_id = Column(Integer, ForeignKey("securities.id"), nullable=False)
+    price = Column(DECIMAL(19, 4), nullable=False)
+    price_time = Column(DateTime, nullable=False)
+    created_at = Column(DateTime, server_default=UTCNow())

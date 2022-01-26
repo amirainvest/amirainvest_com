@@ -1,4 +1,5 @@
-FROM python@sha256:dbbfcbf95f6b596d2be1d8f3b368016619f78f829facf6f2e361bea1151794e5 as base
+# python:3.9-slim
+FROM python:3.9 as base
 
 WORKDIR /opt
 
@@ -35,6 +36,10 @@ COPY --chown=default:default ./src/brokerage_amirainvest_com/lib/brokerage_amira
 COPY --chown=default:default ./src/data_imports_amirainvest_com/pyproject.toml ./src/data_imports_amirainvest_com/
 COPY --chown=default:default ./src/data_imports_amirainvest_com/lib/data_imports_amirainvest_com/__init__.py \
 ./src/data_imports_amirainvest_com/lib/data_imports_amirainvest_com/
+
+COPY --chown=default:default ./src/market_data_amirainvest_com/pyproject.toml ./src/market_data_amirainvest_com/
+COPY --chown=default:default ./src/market_data_amirainvest_com/lib/market_data_amirainvest_com/__init__.py \
+./src/market_data_amirainvest_com/lib/market_data_amirainvest_com/
 
 
 RUN . $VIRTUALENV_PATH/bin/activate && poetry install --remove-untracked --no-dev

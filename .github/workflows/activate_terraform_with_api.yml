@@ -1,6 +1,12 @@
-name: Activate Terraform with commit
+name: Activate Terraform with API
 
 on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to deploy to"
+        required: true
+        type: string
   workflow_call:
     inputs:
       environment:
@@ -20,8 +26,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-        with:
-          ref: "main"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
@@ -79,7 +83,7 @@ jobs:
         if: steps.plan.outcome == 'failure'
         run: exit 1
 
-#      - name: Terraform Apply
-#        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-#        run: terraform apply -auto-approve
-#        working-directory: ./terraform
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        run: terraform apply -auto-approve
+        working-directory: ./terraform

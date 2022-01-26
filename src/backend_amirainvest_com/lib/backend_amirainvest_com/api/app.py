@@ -1,3 +1,4 @@
+import pkg_resources
 from fastapi import FastAPI
 from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 from starlette.responses import RedirectResponse
@@ -16,7 +17,7 @@ from backend_amirainvest_com.api.webhooks.app import app as webhooks_app
 from common_amirainvest_com.utils.consts import ENVIRONMENT, Environments
 
 
-app = FastAPI(title="Backend", version="0.1")
+app = FastAPI(title="Backend", version=pkg_resources.get_distribution("common_amirainvest_com").version)
 
 app.include_router(admin_router)
 app.include_router(user_router)

@@ -39,6 +39,8 @@ jobs:
 
       - name: Git commit
         run: git commit -m "Auto update common pacage to $(poetry version -s)"
+        working-directory: ./src/common_amirainvest_com
+
 
       - name: Git push
         run: git push
@@ -71,11 +73,3 @@ jobs:
       environment: "prod"
     secrets:
       TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
-
-#  run_terraform:
-#    needs: ecr_images
-#    uses: amirainvest/amirainvest_com/.github/workflows/terraform.yml@main
-#    with:
-#      environment: "prod"
-#    secrets:
-#      TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}

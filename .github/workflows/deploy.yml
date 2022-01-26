@@ -66,7 +66,11 @@ jobs:
 
   run_terraform:
     needs: ecr_images
-    uses: amirainvest/amirainvest_com/.github/workflows/activate_terraform_with_commit.yml@main
+    uses: amirainvest/amirainvest_com/.github/workflows/activate_terraform_with_api.yml@main
+    with:
+      environment: "prod"
+    secrets:
+      TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
 
 #  run_terraform:
 #    needs: ecr_images

@@ -40,6 +40,7 @@ jobs:
 
       - name: Git tag
         run: git tag $(poetry version -s)
+        working-directory: ./src/common_amirainvest_com
 
       - name: Push tags
         run: git push origin --tags

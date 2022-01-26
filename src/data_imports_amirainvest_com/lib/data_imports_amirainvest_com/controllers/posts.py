@@ -54,11 +54,11 @@ async def put_post_on_subscriber_redis_feeds(post_data: dict, subscription_type:
     elif subscription_type == "premium":
         subscriber_ids = await get_premium_subscribers_for_creator(post_data["creator_id"])
     for subscriber_id in subscriber_ids:
-        add_post_to_redis_feed(subscriber_id, post_data, feed_type="subscriber")
+        add_post_to_redis_feed(subscriber_id, {k: str(v) for k, v in post_data.items()}, feed_type="subscriber")
 
 
 def put_post_on_creators_redis_feeds(post_data: dict):
-    add_post_to_redis_feed(post_data["creator_id"], post_data, feed_type="creator")
+    add_post_to_redis_feed(post_data["creator_id"], {k: str(v) for k, v in post_data.items()}, feed_type="creator")
 
 
 def add_post_to_redis_feed(user_id: str, post: dict, feed_type: str, max_feed_size: int = MAX_FEED_SIZE):

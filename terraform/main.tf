@@ -46,7 +46,7 @@ terraform {
   cloud {
     organization = "Amirainvest"
     workspaces {
-      name = "Production_API_Driven"
+      name = "Production"
     }
   }
 }

@@ -18,6 +18,7 @@ jobs:
       microservice_list: ${{ steps.params.outputs.microservice_list }}
       deploy_tf: ${{ steps.params.outputs.deploy_tf }}
       run_deploy: ${{ steps.params.outputs.run_deploy }}
+      AWS_REGION: ${{ steps.params.outputs.AWS_REGION }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2

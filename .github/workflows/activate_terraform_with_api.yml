@@ -11,7 +11,7 @@ on:
 
 jobs:
   Params:
-    uses: ./.github/actions/params.yml
+    uses: ./.github/actions/params.yml@main
 
   terraform:
     needs: Params

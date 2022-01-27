@@ -1,0 +1,21 @@
+name: Set params
+
+on:
+  workflow_call:
+    outputs:
+      environment:
+        description: "environment"
+        value: ${{ jobs.Params.outputs.environment }}
+      microservice_list:
+        description: "microservice_list"
+        value: ${{ jobs.Params.outputs.microservice_list }}
+      deploy_tf:
+        description: "deploy_tf"
+        value: ${{ jobs.Params.outputs.deploy_tf }}
+      pr_merged:
+        description: "pr_merged"
+        value: ${{ jobs.Params.outputs.pr_merged }}
+
+jobs:
+  Params:
+    uses: amirainvest/amirainvest_com/.github/workflows/params.yml@main

@@ -10,9 +10,29 @@ on:
 
 
 jobs:
+  Params:
+    runs-on: ubuntu-20.04
+    outputs:
+      environment: ${{ steps.params.outputs.environment }}
+      microservice_list: ${{ steps.params.outputs.microservice_list }}
+      deploy_tf: ${{ steps.params.outputs.deploy_tf }}
+      pr_merged: ${{ steps.params.outputs.pr_merged }}
+    steps:
+      - name: Generate params
+        env:
+          GITHUB_CONTEXT: ${{ toJSON(github) }}
+        id: params
+        shell: bash
+        run: python ./bin/github_params.py
+
   tag_release:
+    needs: Params
     runs-on: ubuntu-20.04
     steps:
+      - name: Check if PR merged
+        if: needs.Params.outputs.pr_merged != 'true'
+        run: exit 1
+
       - name: Checkout
         uses: actions/checkout@v2
         with:

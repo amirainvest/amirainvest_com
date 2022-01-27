@@ -21,6 +21,8 @@ jobs:
       microservice_list: ${{ steps.params.outputs.microservice_list }}
     steps:
       - name: Generate params
+        env:
+          GITHUB_CONTEXT: ${{ toJSON(github) }}
         id: params
         shell: bash
         run: python ./bin/github_params.py

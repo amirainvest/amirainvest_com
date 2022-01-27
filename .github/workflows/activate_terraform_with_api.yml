@@ -1,0 +1,105 @@
+name: Activate Terraform with API
+
+on:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to deploy to"
+        required: true
+        type: string
+  workflow_call:
+    inputs:
+      environment:
+        description: "Environment to deploy to"
+        required: true
+        type: string
+    secrets:
+      TF_API_TOKEN:
+        required: true
+
+
+jobs:
+  Params:
+    runs-on: ubuntu-20.04
+    outputs:
+      environment: ${{ steps.params.outputs.environment }}
+      microservice_list: ${{ steps.params.outputs.microservice_list }}
+      deploy_tf: ${{ steps.params.outputs.deploy_tf }}
+      pr_merged: ${{ steps.params.outputs.pr_merged }}
+    steps:
+      - name: Generate params
+        env:
+          GITHUB_CONTEXT: ${{ toJSON(github) }}
+        id: params
+        shell: bash
+        run: python ./bin/github_params.py
+
+  terraform:
+    needs: Params
+    name: "Terraform"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Terraform Format
+        id: fmt
+        run: terraform fmt -recursive -check
+        working-directory: ./terraform
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+        working-directory: ./terraform
+
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+        working-directory: ./terraform
+
+      - name: Terraform Plan
+        id: plan
+        if: needs.Params.outputs.deploy_tf == 'false'
+        run: terraform plan -no-color
+        continue-on-error: true
+        working-directory: ./terraform
+
+      - uses: actions/github-script@0.9.0
+        if: needs.Params.outputs.deploy_tf == 'false'
+        env:
+          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+            <details><summary>Show Plan</summary>
+            \`\`\`\n
+            ${process.env.PLAN}
+            \`\`\`
+            </details>
+            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+
+      - name: Terraform Plan Status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+
+      - name: Terraform Apply
+        if: needs.Params.outputs.deploy_tf == 'true'
+        run: terraform apply -auto-approve
+        working-directory: ./terraform

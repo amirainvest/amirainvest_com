@@ -12,6 +12,9 @@ jobs:
       deploy_tf: ${{ steps.params.outputs.deploy_tf }}
       pr_merged: ${{ steps.params.outputs.pr_merged }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
       - name: Generate params
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}

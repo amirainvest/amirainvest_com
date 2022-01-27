@@ -30,7 +30,7 @@ def main():
     run_deploy = "false"
     aws_region = "us-east-1"
 
-    if _github_context["event"].get("pull_request"):
+    if _trigger_type == "pull_request" and _github_context["event"].get("pull_request"):
         if _github_context["event"]["pull_request"]["merged"] is True:
             run_deploy = "true"
     elif _trigger_type != "pull_request":

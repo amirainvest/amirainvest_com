@@ -1,0 +1,29 @@
+name: "Returns params"
+description: "Runs python script that returns params in output"
+
+outputs:
+  environment:
+    description: "environment"
+    value: ${{ steps.Params.outputs.environment }}
+  microservice_list:
+    description: "microservice_list"
+    value: ${{ steps.Params.outputs.microservice_list }}
+  deploy_tf:
+    description: "deploy_tf"
+    value: ${{ steps.Params.outputs.deploy_tf }}
+  pr_merged:
+    description: "pr_merged"
+    value: ${{ steps.Params.outputs.pr_merged }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Generate
+      id: params
+      env:
+        GITHUB_CONTEXT: ${{ toJSON(github) }}
+      shell: bash
+      run: python ./bin/github_params.py

@@ -11,7 +11,7 @@ on:
 
 jobs:
   Params:
-    uses: amirainvest/amirainvest_com/.github/workflows/params.yml@main
+    uses: amirainvest/amirainvest_com/.github/actions/params.yml@main
 
   terraform:
     needs: Params

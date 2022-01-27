@@ -21,12 +21,12 @@ jobs:
         id: params
         shell: bash
         run: python ./bin/github_params.py
+
   test:
+    needs: Params
     name: "Test"
     runs-on: ubuntu-latest
     steps:
 
       - name: Test
-        env:
-          GITHUB_CONTEXT: ${{ toJSON(github) }}
-        run:  echo ${{ needs.Params.outputs.pr_merged }}
+        run: echo ${{ needs.Params.outputs.pr_merged }}

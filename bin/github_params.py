@@ -54,7 +54,7 @@ def main():
         "deploy_tf": deploy_tf,
         "pr_merged": pr_merged,
     }
-    for key, val in iter(var_dict):
+    for key, val in var_dict.items():
         print(f"{_print_base}{key}::{val!s}")
 
 

@@ -18,4 +18,19 @@ on:
 
 jobs:
   Params:
-    uses: amirainvest/amirainvest_com/.github/workflows/params.yml@main
+    runs-on: ubuntu-20.04
+    outputs:
+      environment: ${{ steps.params.outputs.environment }}
+      microservice_list: ${{ steps.params.outputs.microservice_list }}
+      deploy_tf: ${{ steps.params.outputs.deploy_tf }}
+      pr_merged: ${{ steps.params.outputs.pr_merged }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Generate params
+        env:
+          GITHUB_CONTEXT: ${{ toJSON(github) }}
+        id: params
+        shell: bash
+        run: python ./bin/github_params.py

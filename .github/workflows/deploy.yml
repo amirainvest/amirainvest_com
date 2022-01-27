@@ -13,7 +13,7 @@ jobs:
   Params:
     uses: amirainvest/amirainvest_com/.github/workflows/params.yml@main
 
-  tag_release:
+  check_if_pr_merged_or_closed:
     needs: Params
     runs-on: ubuntu-20.04
     steps:
@@ -21,6 +21,10 @@ jobs:
         if: needs.Params.outputs.pr_merged != 'true'
         run: exit 1
 
+  tag_release:
+    needs: check_if_pr_merged_or_closed
+    runs-on: ubuntu-20.04
+    steps:
       - name: Checkout
         uses: actions/checkout@v2
         with:

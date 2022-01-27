@@ -28,6 +28,7 @@ def main():
     environment = "prod" if _branch_name == "main" else "test"
     deploy_tf = "true" if _branch_name == "main" else "false"
     pr_merged = "false"
+    aws_region = "us-east-1"
 
     if _github_context["event"].get("pull_request"):
         if _github_context["event"]["pull_request"]["merged"] is True:
@@ -38,6 +39,7 @@ def main():
         "microservice_list": microservice_list,
         "deploy_tf": deploy_tf,
         "pr_merged": pr_merged,
+        "AWS_REGION": aws_region,
     }
     for key, val in var_dict.items():
         print(f"{_print_base}{key}::{val!s}")

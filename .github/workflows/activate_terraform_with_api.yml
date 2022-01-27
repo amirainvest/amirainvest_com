@@ -3,17 +3,7 @@ name: Activate Terraform with API
 on:
   pull_request:
   workflow_dispatch:
-    inputs:
-      environment:
-        description: "Environment to deploy to"
-        required: true
-        type: string
   workflow_call:
-    inputs:
-      environment:
-        description: "Environment to deploy to"
-        required: true
-        type: string
     secrets:
       TF_API_TOKEN:
         required: true

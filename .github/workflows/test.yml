@@ -13,6 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
+#      - name: Test
+#        run: echo ${{ needs.Params.outputs.microservice_list }}
       - name: Test
-        run: echo ${{ needs.Params.outputs.microservice_list }}
+        env:
+          GITHUB_CONTEXT: ${{ toJSON(github) }}
+        run: echo "$GITHUB_CONTEXT"
 

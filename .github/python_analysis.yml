@@ -1,25 +1,25 @@
-#name: "Python Analysis"
-#
-#on:
-#  workflow_dispatch:
-#  pull_request:
-#    branches: [ main, staging ]
-#
-#jobs:
-#  code_analysis:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v2
+name: "Python Analysis"
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [ main, staging ]
+
+jobs:
+  code_analysis:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: "main"
+
+#      - name: Cache docker image
+#        id: docker-image
+#        uses: actions/cache@v2
 #        with:
-#          ref: "main"
-#
-##      - name: Cache docker image
-##        id: docker-image
-##        uses: actions/cache@v2
-##        with:
-##          path: ${{github.workspace}}/var/lib/docker/overlay2
-##          key: docker-base
-#
-#      - name: Run checks
-#        run: make check_docker
+#          path: ${{github.workspace}}/var/lib/docker/overlay2
+#          key: docker-base
+
+      - name: Run checks
+        run: make check_docker

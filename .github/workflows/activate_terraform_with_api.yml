@@ -16,7 +16,7 @@ jobs:
       environment: ${{ steps.params.outputs.environment }}
       microservice_list: ${{ steps.params.outputs.microservice_list }}
       deploy_tf: ${{ steps.params.outputs.deploy_tf }}
-      pr_merged: ${{ steps.params.outputs.pr_merged }}
+      run_deploy: ${{ steps.params.outputs.run_deploy }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2

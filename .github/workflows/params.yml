@@ -12,9 +12,9 @@ on:
       deploy_tf:
         description: "deploy_tf"
         value: ${{ jobs.Params.outputs.deploy_tf }}
-      pr_merged:
-        description: "pr_merged"
-        value: ${{ jobs.Params.outputs.pr_merged }}
+      run_deploy:
+        description: "run_deploy"
+        value: ${{ jobs.Params.outputs.run_deploy }}
 
 jobs:
   Params:
@@ -23,7 +23,7 @@ jobs:
       environment: ${{ steps.params.outputs.environment }}
       microservice_list: ${{ steps.params.outputs.microservice_list }}
       deploy_tf: ${{ steps.params.outputs.deploy_tf }}
-      pr_merged: ${{ steps.params.outputs.pr_merged }}
+      run_deploy: ${{ steps.params.outputs.run_deploy }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2

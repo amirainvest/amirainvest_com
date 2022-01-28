@@ -17,7 +17,6 @@ routes_with_no_auth_required_path = [
     "/code_challenge",
     "/",
     "/application/config",
-    "/husk_request/list",
 ]
 
 mounts_auth_bypass = [

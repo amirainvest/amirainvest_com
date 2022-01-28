@@ -37,6 +37,7 @@ __all__ = [
     "IEX_URL",
     "IEX_PUBLISHABLE",
     "IEX_SECRET",
+    "async_engine",
 ]
 
 

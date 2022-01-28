@@ -47,6 +47,10 @@ class HuskRequestsFactory(FactoryBase):
     class Meta:
         model = HuskRequests
 
+    provided_name = ""
+    platform_id = ""
+    platform = "twitter"
+
 
 class PostsFactory(FactoryBase):
     class Meta:

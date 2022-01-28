@@ -13,6 +13,7 @@ from common_amirainvest_com.schemas.schema import (
     SubstackUsers,
     Tweets,
     TwitterUsers,
+    UserFeedback,
     UserMediaErrors,
     Users,
     UserSubscriptions,
@@ -33,6 +34,13 @@ class UsersFactory(FactoryBase):
     email = factory.Faker("email")
     email_verified = True
     is_deleted = False
+
+
+class UserFeedbackFactory(FactoryBase):
+    class Meta:
+        model = UserFeedback
+
+    user_id = ""
 
 
 class HuskRequestsFactory(FactoryBase):

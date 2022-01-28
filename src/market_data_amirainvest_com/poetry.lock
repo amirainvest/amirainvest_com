@@ -418,7 +418,7 @@ unicode_backport = ["unicodedata2"]
 
 [[package]]
 name = "common-amirainvest-com"
-version = "0.13.0"
+version = "0.15.0"
 description = ""
 category = "main"
 optional = false

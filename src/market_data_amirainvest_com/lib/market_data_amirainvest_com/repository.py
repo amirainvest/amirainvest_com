@@ -82,9 +82,9 @@ async def add_to_s3(historical_prices: list[HistoricalPrice], symbol: str, year:
 
 
 @Session
-async def _security_price_time_exists(session: AsyncSession, security_id: int, security_time: datetime) -> bool:
+async def _security_price_time_exists(session: AsyncSession, security_id: int, price_time: datetime) -> bool:
     response = await session.execute(
-        select(SecurityPrices).where(SecurityPrices.id == security_id, SecurityPrices.price_time == security_time)
+        select(SecurityPrices).where(SecurityPrices.security_id == security_id, SecurityPrices.price_time == price_time)
     )
 
     if len(response.scalars().all()) > 0:

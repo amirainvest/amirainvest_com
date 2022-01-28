@@ -16,6 +16,7 @@ from common_amirainvest_com.schemas.schema import (
     TradingStrategies,
     Tweets,
     TwitterUsers,
+    UserFeedback,
     UserMediaErrors,
     Users,
     UserSubscriptions,
@@ -53,9 +54,20 @@ class UsersFactory(FactoryBase):
     is_deleted = False
 
 
+class UserFeedbackFactory(FactoryBase):
+    class Meta:
+        model = UserFeedback
+
+    user_id = ""
+
+
 class HuskRequestsFactory(FactoryBase):
     class Meta:
         model = HuskRequests
+
+    provided_name = ""
+    platform_id = ""
+    platform = "twitter"
 
 
 class PostsFactory(FactoryBase):

@@ -8,7 +8,7 @@ from backend_amirainvest_com.utils.model import ErrorMessageModelBase, StatusDet
 
 
 class ListModel(BaseModel):
-    user_id: str
+    user_id: uuid.UUID
 
     name: Optional[str]
     benchmark: Optional[str]

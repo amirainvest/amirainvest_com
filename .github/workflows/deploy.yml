@@ -7,13 +7,22 @@ on:
       - main
     types:
       - closed
-#  push:
-#    branches:
-#      [ main ]
 
 
 jobs:
+  Params:
+    uses: amirainvest/amirainvest_com/.github/workflows/params.yml@main
+
+  check_if_pr_merged_or_closed:
+    needs: Params
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Check if PR merged
+        if: needs.Params.outputs.run_deploy != 'true'
+        run: exit 1
+
   tag_release:
+    needs: check_if_pr_merged_or_closed
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
@@ -69,7 +78,5 @@ jobs:
   run_terraform:
     needs: ecr_images
     uses: amirainvest/amirainvest_com/.github/workflows/activate_terraform_with_api.yml@main
-    with:
-      environment: "prod"
     secrets:
       TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}

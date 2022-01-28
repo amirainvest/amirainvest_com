@@ -9,9 +9,9 @@ from data_imports_amirainvest_com.sqs.data_load_producer import load_refresh_rea
 async def run(action: str):
     log.info(f"{action} running.")
     if action == "data_load_consumer":
-        consume_data_load_sqs_queue()
+        await consume_data_load_sqs_queue()
     elif action == "expedited_data_load_consumer":
-        consume_data_load_sqs_queue(expedited=True)
+        await consume_data_load_sqs_queue(expedited=True)
     elif action == "data_load_refresh_producer":
         await load_refresh_ready_data()
     else:

@@ -2,9 +2,12 @@ import time
 
 import feedparser
 from bs4 import BeautifulSoup
+from sqlalchemy import insert
 
+from common_amirainvest_com.schemas.schema import Users
 from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
 from common_amirainvest_com.utils.datetime_utils import parse_iso_8601_from_string
+from common_amirainvest_com.utils.decorators import Session
 from common_amirainvest_com.utils.logger import log
 from data_imports_amirainvest_com.controllers import posts
 from data_imports_amirainvest_com.controllers.substack_articles import (
@@ -83,12 +86,6 @@ class SubstackUser(PlatformUser):
 async def load_user_data(username, creator_id):
     substack_user = SubstackUser(username, creator_id)
     await substack_user.load_platform_data()
-
-
-from sqlalchemy import insert
-
-from common_amirainvest_com.schemas.schema import Users
-from common_amirainvest_com.utils.decorators import Session
 
 
 @Session

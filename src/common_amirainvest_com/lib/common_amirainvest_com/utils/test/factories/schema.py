@@ -5,12 +5,15 @@ https://factoryboy.readthedocs.io/en/stable/index.html
 import factory
 
 from common_amirainvest_com.schemas.schema import (
+    Benchmarks,
     Bookmarks,
     BroadcastRequests,
+    ChipLabels,
     HuskRequests,
     Posts,
     SubstackArticles,
     SubstackUsers,
+    TradingStrategies,
     Tweets,
     TwitterUsers,
     UserFeedback,
@@ -21,6 +24,21 @@ from common_amirainvest_com.schemas.schema import (
     YouTubeVideos,
 )
 from common_amirainvest_com.utils.test.factories.base import FactoryBase
+
+
+class TradingStrategiesFactory(FactoryBase):
+    class Meta:
+        model = TradingStrategies
+
+
+class BenchmarksFactory(FactoryBase):
+    class Meta:
+        model = Benchmarks
+
+
+class ChipLabelsFactory(FactoryBase):
+    class Meta:
+        model = ChipLabels
 
 
 class UsersFactory(FactoryBase):

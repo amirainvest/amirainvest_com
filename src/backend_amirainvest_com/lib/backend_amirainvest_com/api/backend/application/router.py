@@ -6,6 +6,6 @@ from backend_amirainvest_com.api.backend.application.controller import get_confi
 router = APIRouter(prefix="/application", tags=["Application"])
 
 
-@router.get("/config", status_code=status.HTTP_200_OK)
+@router.post("/config/get", status_code=status.HTTP_200_OK)
 async def config_route():
     return await get_config()

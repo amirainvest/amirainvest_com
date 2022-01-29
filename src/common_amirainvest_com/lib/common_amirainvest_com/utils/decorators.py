@@ -77,6 +77,7 @@ def Session(func):
                 func_return = await func(*args, **kwargs)
             else:
 
+                # session: AsyncSession = async_scoped_session(_async_session_maker, scopefunc=current_task)
                 session: AsyncSession = _async_session_maker()
                 try:
                     func_return = await _session_work(session, args, kwargs)

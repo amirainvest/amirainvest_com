@@ -107,6 +107,44 @@ class UsersModel(BaseModel):
     updated_at: Optional[datetime.datetime]
 
 
+class Watchlists(Base, ToDict):
+    __tablename__ = "watchlists"
+    id = Column(Integer, primary_key=True, unique=True)
+    creator_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    name = Column(String, nullable=False)
+    tickers = Column(ARRAY(String), nullable=False)
+    note = Column(String)
+    created_at = Column(DateTime, server_default=UTCNow())
+    updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
+
+
+class WatchlistsModel(BaseModel):
+    id: int
+    creator_id: uuid.UUID
+    name: str
+    tickers: List[str]
+    note: Optional[str]
+    created_at: Optional[datetime.datetime]
+    updated_at: Optional[datetime.datetime]
+
+
+class WatchlistFollows(Base, ToDict):
+    __tablename__ = "watchlist_follows"
+    id = Column(Integer, primary_key=True, unique=True)
+    follower_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    watchlist_id = Column(Integer, ForeignKey("watchlists.id", ondelete="CASCADE"), nullable=False)
+    created_at = Column(DateTime, server_default=UTCNow())
+    updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
+
+
+class WatchlistFollowsModels(BaseModel):
+    id: int
+    follower_id: uuid.UUID
+    watchlist_id: int
+    created_at: Optional[datetime.datetime]
+    updated_at: Optional[datetime.datetime]
+
+
 class Benchmarks(Base):
     __tablename__ = "benchmarks"
     id = Column(Integer, primary_key=True, unique=True)

@@ -1,10 +1,12 @@
 import uuid
+from typing import List
 
-from backend_amirainvest_com.api.backend.watchlist.model import CreateModel
+from sqlalchemy import delete, select, update
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from backend_amirainvest_com.api.backend.watchlist.model import CreateModel, UpdateModel
 from common_amirainvest_com.schemas.schema import Watchlists
 from common_amirainvest_com.utils.decorators import Session
-from sqlalchemy import delete, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 @Session
@@ -16,13 +18,11 @@ async def create_controller(session: AsyncSession, watchlist_data: CreateModel) 
 
 @Session
 async def get_controller(session: AsyncSession, watchlist_id: int):
-    await session.execute(
-        select(Watchlists).where(Watchlists.id == watchlist_id)
-    )
+    await session.execute(select(Watchlists).where(Watchlists.id == watchlist_id))
 
 
 @Session
-async def list_controller(session: AsyncSession, creator_id: uuid.UUID) -> t.List[Watchlists]:
+async def list_controller(session: AsyncSession, creator_id: uuid.UUID) -> List[Watchlists]:
     # GETS CREATOR WATCHLISTS
     data = await session.execute(select(Watchlists).where(Watchlists.creator_id == creator_id))
     return data.scalars().all()

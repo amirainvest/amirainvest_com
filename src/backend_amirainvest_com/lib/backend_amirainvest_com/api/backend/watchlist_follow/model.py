@@ -1,8 +1,10 @@
 import datetime
+import uuid
 from typing import Optional
 
-from common_amirainvest_com.schemas.schema import WatchlistsModel as GetModel
 from pydantic import BaseModel
+
+from common_amirainvest_com.schemas.schema import WatchlistsModel as GetModel
 
 
 assert GetModel

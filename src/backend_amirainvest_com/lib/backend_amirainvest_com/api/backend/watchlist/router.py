@@ -1,9 +1,14 @@
 import uuid
 from typing import List
+
 from fastapi import APIRouter, Security, status
 
 from backend_amirainvest_com.api.backend.watchlist.controller import (
-    create_controller, delete_controller, update_controller, get_controller, list_controller
+    create_controller,
+    delete_controller,
+    get_controller,
+    list_controller,
+    update_controller,
 )
 from backend_amirainvest_com.api.backend.watchlist.model import CreateModel, GetModel, UpdateModel
 from backend_amirainvest_com.controllers.auth import auth_dep

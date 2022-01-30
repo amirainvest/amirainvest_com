@@ -1,8 +1,10 @@
 import datetime
-from typing import Optional
+import uuid
+from typing import List, Optional
+
+from pydantic import BaseModel
 
 from common_amirainvest_com.schemas.schema import WatchlistsModel as GetModel
-from pydantic import BaseModel
 
 
 assert GetModel

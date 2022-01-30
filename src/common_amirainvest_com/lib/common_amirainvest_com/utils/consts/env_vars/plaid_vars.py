@@ -1,7 +1,7 @@
 import plaid  # type: ignore
 
-from .general_vars import ENVIRONMENT, Environments
 from ..tools import decode_env_var
+from .general_vars import ENVIRONMENT, Environments
 
 
 _plaid_dict = decode_env_var("plaid")

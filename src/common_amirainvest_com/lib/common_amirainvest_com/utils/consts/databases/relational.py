@@ -3,8 +3,8 @@ import typing as t
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from ..tools import decode_env_var
 from ...async_utils import run_async_function_synchronously
+from ..tools import decode_env_var
 
 
 POSTGRES_DATABASE_URL = "postgresql://{username}:{password}@{host}/{database}".format(**decode_env_var("postgres"))

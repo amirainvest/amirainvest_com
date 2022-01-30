@@ -1,5 +1,5 @@
-from .general_vars import ENVIRONMENT, Environments
 from ..tools import decode_env_var
+from .general_vars import ENVIRONMENT, Environments
 
 
 _iex_dict = decode_env_var("iex")

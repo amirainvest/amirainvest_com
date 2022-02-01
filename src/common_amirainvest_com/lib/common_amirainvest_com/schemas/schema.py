@@ -24,6 +24,7 @@ from sqlalchemy.sql import expression
 from sqlalchemy.types import DateTime
 
 
+# TODO use BigInt vs int for table IDS
 Base = declarative_base()
 
 
@@ -50,14 +51,35 @@ class ToDict:
         return return_dict
 
 
+class SubscriptionLevel(enum.Enum):
+    standard = "standard"
+    premium = "premium"
+
+
+class MediaPlatform(enum.Enum):
+    youtube = "YouTube"
+    substack = "Substack"
+    twitter = "Twitter"
+    brokerage = "Brokerage"
+    amira = "Amira"
+
+
+class JobsStatus(enum.Enum):
+    pending = "PENDING"
+    running = "RUNNING"
+    succeeded = "SUCCEEDED"
+    failed = "FAILED"
+
+
 class Users(Base, ToDict):
     __tablename__ = "users"
     id: uuid.UUID = Column(UUID(as_uuid=True), primary_key=True, unique=True, default=uuid.uuid4)
-    sub = Column(String, nullable=False)
-    name = Column(String, nullable=False)
-    username = Column(String, nullable=False)
+    first_name = Column(String, nullable=False)
+    last_name = Column(String, nullable=False)
+    username = Column(String, nullable=False, unique=True)
     email = Column(String, nullable=False, unique=True)
 
+    sub = Column(String, unique=True, nullable=True)
     picture_url = Column(String)
     bio = Column(String)
     personal_site_url = Column(String)
@@ -71,15 +93,17 @@ class Users(Base, ToDict):
     public_performance = Column(Boolean)
     public_holdings = Column(Boolean)
     public_trades = Column(Boolean)
-    is_claimed = Column(Boolean)
-    is_deactivated = Column(Boolean)
-    is_deleted = Column(Boolean)
+    # TODO see if this needs to be server default
+    is_claimed = Column(Boolean, default=False)
+    is_deactivated = Column(Boolean, default=False)
+    is_deleted = Column(Boolean, default=False)
     deleted_at = Column(DateTime)
     created_at = Column(DateTime, server_default=UTCNow())
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
 
 class UsersModel(BaseModel):
+    # TODO Change this be the same as table
     id: uuid.UUID
     sub: str
     name: str
@@ -107,25 +131,29 @@ class UsersModel(BaseModel):
     updated_at: Optional[datetime.datetime]
 
 
-class Benchmarks(Base):
+class Benchmarks(Base, ToDict):
     __tablename__ = "benchmarks"
     id = Column(Integer, primary_key=True, unique=True)
     name = Column(String)
 
 
-class TradingStrategies(Base):
+class TradingStrategies(Base, ToDict):
     __tablename__ = "trading_strategies"
     id = Column(Integer, primary_key=True, unique=True)
     name = Column(String)
 
 
-class ChipLabels(Base):
+class ChipLabels(Base, ToDict):
     __tablename__ = "chip_labels"
     id = Column(Integer, primary_key=True, unique=True)
     name = Column(String)
 
 
 class BroadcastRequests(Base, ToDict):
+    """
+    If a user wants a creator join amira
+    """
+    # TODO look at relationiship()
     __tablename__ = "broadcast_requests"
     id = Column(Integer, primary_key=True, unique=True)
     subscriber_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -147,20 +175,16 @@ class BroadcastRequestsModel(BaseModel):
     created_at: Optional[datetime.datetime]
 
 
-class SubscriptionLevel(enum.Enum):
-    standard = "standard"
-    premium = "premium"
-
-
 class UserSubscriptions(Base, ToDict):
     __tablename__ = "user_subscriptions"
     id = Column(Integer, primary_key=True, unique=True)
     subscriber_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     creator_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    # TODO remove this from update endpoint
     subscription_level = Column(Enum(SubscriptionLevel), default=SubscriptionLevel.standard.value, nullable=False)
     created_at = Column(DateTime, server_default=UTCNow())
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
-    is_deleted = Column(Boolean, nullable=False)
+    is_deleted = Column(Boolean, nullable=False, default=False)
 
     subscriber: Users = relationship(
         "Users", backref="subscriber", passive_deletes=True, cascade="all,delete", foreign_keys=[subscriber_id]
@@ -180,22 +204,22 @@ class UserSubscriptionsModel(BaseModel):
     is_deleted: bool
 
 
-class UserMediaErrors(Base, ToDict):
-    __tablename__ = "user_media_errors"
-    id = Column(Integer, primary_key=True, unique=True)
-    user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    platform = Column(String, nullable=False)
-    error_at = Column(String, nullable=False)
-    updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
+# class UserMediaErrors(Base, ToDict):
+#     __tablename__ = "user_media_errors"
+#     id = Column(Integer, primary_key=True, unique=True)
+#     user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+#     platform = Column(Enum(MediaPlatform), nullable=False)
+#     first_error_at = Column(String, nullable=False)
+#     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
+#
+#     creator: Users = relationship("Users", backref="user_media_errors", passive_deletes=True, cascade="all,delete")
 
-    creator: Users = relationship("Users", backref="user_media_errors", passive_deletes=True, cascade="all,delete")
-
-
+# TODO look at changing all IDS that are ints to UUID for high volume table
 class UserFeedback(Base, ToDict):
     __tablename__ = "user_feedback"
     id = Column(Integer, primary_key=True, unique=True)
     user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    text = Column(String, nullable=False)
+    text = Column(String, nullable=False)  # TODO change char limit in app
     created_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
     user: Users = relationship("Users", backref="user_feedback", passive_deletes=True, cascade="all,delete")
@@ -210,11 +234,12 @@ class UserFeedbackModel(BaseModel):
 
 class SubstackUsers(Base, ToDict):
     __tablename__ = "substack_users"
-    username = Column(String, primary_key=True, unique=True)
-    user_url = Column(String)
+    id = Column(Integer, primary_key=True)
+    username = Column(String, nullable=False)
     creator_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     is_deleted = Column(Boolean)
     created_at = Column(DateTime, server_default=UTCNow())
+    updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
     creator: Users = relationship("Users", backref="substack_users", passive_deletes=True, cascade="all,delete")
 
@@ -225,8 +250,8 @@ class SubstackArticles(Base, ToDict):
     url = Column(String)
     title = Column(String, nullable=False)
     summary = Column(String, nullable=False)
-    author = Column(String, nullable=False)
     created_at = Column(DateTime, server_default=UTCNow())
+    updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
     username = Column(String, ForeignKey("substack_users.username", ondelete="CASCADE"), nullable=False)
 
     substack_user: SubstackUsers = relationship(
@@ -244,8 +269,9 @@ class YouTubers(Base, ToDict):
     description = Column(String)
     subscriber_count = Column(Integer)
     video_count = Column(Integer)
-    is_deleted = Column(Boolean)
+    is_deleted = Column(Boolean, default=False)
     created_at = Column(DateTime, server_default=UTCNow())
+    updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
     creator: Users = relationship("Users", backref="youtubers", passive_deletes=True, cascade="all,delete")
 
@@ -260,6 +286,8 @@ class YouTubeVideos(Base, ToDict):
     playlist_id = Column(String)
     channel_id = Column(String, ForeignKey("youtubers.channel_id", ondelete="CASCADE"))
     created_at = Column(DateTime, server_default=UTCNow())
+    updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
+
     youtuber: YouTubers = relationship(
         "YouTubers", backref="youtube_video_creator", passive_deletes=True, cascade="all,delete"
     )
@@ -276,8 +304,9 @@ class TwitterUsers(Base, ToDict):
     follower_count = Column(Integer)
     following_count = Column(Integer)
     tweet_count = Column(Integer)
-    is_deleted = Column(Boolean)
+    is_deleted = Column(Boolean, default=False)
     created_at = Column(DateTime, server_default=UTCNow())
+    updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
     creator: Users = relationship("Users", backref="twitter_users", passive_deletes=True, cascade="all,delete")
 
@@ -289,13 +318,13 @@ class Tweets(Base, ToDict):
     language = Column(String)
     text = Column(String)
     possibly_sensitive = Column(Boolean)
-    created_at = Column(DateTime, server_default=UTCNow())
     retweet_count = Column(Integer)
     reply_count = Column(Integer)
     like_count = Column(Integer)
     quote_count = Column(Integer)
     tweet_url = Column(String)
     embed = Column(String)
+    created_at = Column(DateTime, server_default=UTCNow())
 
     twitter_user: TwitterUsers = relationship(
         "TwitterUsers", backref="tweets", passive_deletes=True, cascade="all,delete"
@@ -368,9 +397,10 @@ class TweetURLs(Base, ToDict):
 
 class Posts(Base, ToDict):
     __tablename__ = "posts"
+    # TODO maybe change the id type to UUID
     id = Column(Integer, primary_key=True, unique=True)
     creator_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"))
-    platform = Column(String)
+    platform = Column(Enum(MediaPlatform), nullable=False)
     platform_user_id = Column(String)
     platform_post_id = Column(String)
     profile_img_url = Column(String)
@@ -382,6 +412,9 @@ class Posts(Base, ToDict):
     chip_labels = Column(ARRAY(String))
     created_at = Column(DateTime, server_default=UTCNow())
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
+    subscription_level = Column(
+        Enum(SubscriptionLevel), nullable=False, default=SubscriptionLevel.standard.value
+    )  # TODO does this need to be .value?
 
     # TODO I think some of these relationships are not defined correctly.
     creator: Users = relationship(
@@ -406,61 +439,65 @@ class PostsModel(BaseModel):
     updated_at: Optional[datetime.datetime]
 
 
-class PostLikes(Base, ToDict):
-    __tablename__ = "post_likes"
-    user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
-    post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"), primary_key=True)
-    liked_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
-
-    post: Posts = relationship(
-        "Posts", backref="liked_post", passive_deletes=True, cascade="all,delete", foreign_keys=[post_id]
-    )
-    user: Users = relationship(
-        "Users", backref="post_liker", passive_deletes=True, cascade="all,delete", foreign_keys=[user_id]
-    )
-
-
-class PostComments(Base, ToDict):
-    __tablename__ = "post_comments"
-    id = Column(Integer, primary_key=True, unique=True)
-    user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
-    text = Column(String, nullable=False)
-    created_at = Column(DateTime, server_default=UTCNow())
-    updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
-
-    post: Posts = relationship(
-        "Posts", backref="commented_post", passive_deletes=True, cascade="all,delete", foreign_keys=[post_id]
-    )
-    user: Users = relationship(
-        "Users", backref="post_commenter", passive_deletes=True, cascade="all,delete", foreign_keys=[user_id]
-    )
+# class PostLikes(Base, ToDict):
+#     __tablename__ = "post_likes"
+#     user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+#     post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"), primary_key=True)
+#     liked_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
+#
+#     post: Posts = relationship(
+#         "Posts", backref="liked_post", passive_deletes=True, cascade="all,delete", foreign_keys=[post_id]
+#     )
+#     user: Users = relationship(
+#         "Users", backref="post_liker", passive_deletes=True, cascade="all,delete", foreign_keys=[user_id]
+#     )
 
 
-class PostReads(Base, ToDict):
-    __tablename__ = "post_reads"
-    id = Column(Integer, primary_key=True, unique=True)
-    user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
-    read_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
-    time_read_seconds = Column(Float, nullable=False)
+# class PostComments(Base, ToDict):
+# __tablename__ = "post_comments"
+# id = Column(Integer, primary_key=True, unique=True)
+# user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+# post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
+# text = Column(String, nullable=False)
+# created_at = Column(DateTime, server_default=UTCNow())
+# updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
+#
+# post: Posts = relationship(
+#     "Posts", backref="commented_post", passive_deletes=True, cascade="all,delete", foreign_keys=[post_id]
+# )
+# user: Users = relationship(
+#     "Users", backref="post_commenter", passive_deletes=True, cascade="all,delete", foreign_keys=[user_id]
+# )
 
-    post: Posts = relationship(
-        "Posts", backref="read_post", passive_deletes=True, cascade="all,delete", foreign_keys=[post_id]
-    )
-    user: Users = relationship(
-        "Users", backref="post_reader", passive_deletes=True, cascade="all,delete", foreign_keys=[user_id]
-    )
+
+# class PostReads(Base, ToDict):
+#     __tablename__ = "post_reads"
+#     id = Column(Integer, primary_key=True, unique=True)
+#     user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+#     post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
+#     read_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
+#     time_read_seconds = Column(Float, nullable=False)
+#
+#     post: Posts = relationship(
+#         "Posts", backref="read_post", passive_deletes=True, cascade="all,delete", foreign_keys=[post_id]
+#     )
+#     user: Users = relationship(
+#         "Users", backref="post_reader", passive_deletes=True, cascade="all,delete", foreign_keys=[user_id]
+#     )
 
 
 class Bookmarks(Base, ToDict):
     __tablename__ = "bookmarks"
+    __table_args__ = (UniqueConstraint("user_id", "post_id"),)
     id = Column(Integer, primary_key=True, unique=True)
+    # TODO add Unique constraint to user_id + post_id
     user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(DateTime, server_default=UTCNow())
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
-    is_deleted = Column(Boolean, nullable=False)
+    is_deleted = Column(Boolean, nullable=False, default=False)
+    # TODO check how this delete works
+    # TODO when adding a bookmark check if it already exists, if it does change is_deleted don't add a new one
 
     user: Users = relationship(
         "Users", backref="bookmarker", passive_deletes=True, cascade="all,delete", foreign_keys=[user_id]
@@ -479,26 +516,24 @@ class BookmarkModel(BaseModel):
     is_deleted: bool
 
 
-class HuskPlatforms(enum.Enum):
-    youtube = "YouTube"
-    substack = "Substack"
-    twitter = "Twitter"
-
-
 class HuskRequests(Base, ToDict):
     __tablename__ = "husk_requests"
     id = Column(Integer, primary_key=True, unique=True)
+    requestor_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     provided_name = Column(String, nullable=False)
     platform_id = Column(String, nullable=False)
-    platform = Column(Enum(HuskPlatforms), nullable=False)
+    platform = Column(Enum(MediaPlatform), nullable=False)
     created_at = Column(DateTime, server_default=UTCNow())
-    fulfilled = Column(Boolean)
+    fulfilled = Column(Boolean, default=False)
+    user: Users = relationship(
+        "Users", backref="husk_requestor", passive_deletes=True, cascade="all,delete", foreign_keys=[user_id]
+    )
 
 
 class HuskRequestsModel(BaseModel):
     id: int
     provided_name: str
-    platform: HuskPlatforms
+    platform: MediaPlatform
     platform_id: str
     created_at: Optional[datetime.datetime]
     fulfilled: Optional[bool]
@@ -513,6 +548,8 @@ class FinancialInstitutions(Base, ToDict):
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
     created_at = Column(DateTime, server_default=UTCNow())
 
+
+#########################  TODO add relationships
 
 class FinancialAccounts(Base, ToDict):
     __tablename__ = "financial_accounts"
@@ -532,6 +569,7 @@ class FinancialAccounts(Base, ToDict):
     unofficial_currency_code = Column(String)
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
     created_at = Column(DateTime, server_default=UTCNow())
+
 
 
 class FinancialAccountTransactions(Base, ToDict):
@@ -602,18 +640,12 @@ class PlaidSecurityPrices(Base, ToDict):
     created_at = Column(DateTime, server_default=UTCNow())
 
 
-class BrokerageJobsStatus(enum.Enum):
-    pending = "PENDING"
-    running = "RUNNING"
-    succeeded = "SUCCEEDED"
-    failed = "FAILED"
-
-
 class BrokerageJobs(Base, ToDict):
     __tablename__ = "brokerage_jobs"
     id = Column(Integer, primary_key=True, unique=True, nullable=False)
     user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    status = Column(Enum(BrokerageJobsStatus), default=BrokerageJobsStatus.pending.value, nullable=False)
+    status = Column(Enum(JobsStatus), default=JobsStatus.pending.value, nullable=False)
+    # TODO set server upper bound at 3 total retries(dont mess up the off-by one)
     retries = Column(Integer, default=0, nullable=False)
     params = Column(String)
     started_at = Column(DateTime)

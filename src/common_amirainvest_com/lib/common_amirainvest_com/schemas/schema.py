@@ -608,6 +608,13 @@ class FinancialAccountCurrentHoldings(Base, ToDict):
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
     created_at = Column(DateTime, server_default=UTCNow())
 
+    user: Users = relationship(
+        "Users", backref="account owner", passive_deletes=True, cascade="all,delete", foreign_keys=[user_id]
+    )
+
+    user: Users = relationship(
+        "Users", backref="account owner", passive_deletes=True, cascade="all,delete", foreign_keys=[user_id]
+    )
 
 class PlaidSecurities(Base, ToDict):
     __tablename__ = "plaid_securities"

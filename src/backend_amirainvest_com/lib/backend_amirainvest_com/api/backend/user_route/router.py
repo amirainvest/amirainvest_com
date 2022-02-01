@@ -16,7 +16,8 @@ from backend_amirainvest_com.api.backend.user_route.model import (
     Http409Model,
     InitPostModel,
     InitReturnModel,
-    ListModel,
+    ListInputModel,
+    ListReturnModel,
     UserUpdate,
 )
 from backend_amirainvest_com.controllers import uploads
@@ -37,9 +38,9 @@ async def get_route(user_id: uuid.UUID, token=Depends(auth_depends_user_id)):
 
 
 # TODO add test
-@router.post("/list", status_code=200, response_model=List[ListModel])
-async def search_users(token=Depends(auth_depends_user_id)):
-    all_users = await list_controller()
+@router.post("/list", status_code=200, response_model=List[ListReturnModel])
+async def search_users(list_request: ListInputModel, token=Depends(auth_depends_user_id)):
+    all_users = await list_controller(list_request)
     return [
         {"name": user.name, "user_id": user.id, "benchmark": user.benchmark, "chip_labels": user.chip_labels}
         for user in all_users

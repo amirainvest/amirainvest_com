@@ -7,7 +7,7 @@ from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from backend_amirainvest_com.api.backend.user_route.model import Http400Enum, Http409Enum, InitPostModel, UserUpdate
+from backend_amirainvest_com.api.backend.user_route import model
 from backend_amirainvest_com.controllers.data_imports import add_data_import_data_to_sqs_queue
 from backend_amirainvest_com.utils import auth0_utils
 from common_amirainvest_com.schemas.schema import Users
@@ -21,13 +21,21 @@ async def get_controller(session, user_id: str) -> Users:
 
 
 @Session
-async def list_controller(session):
-    data = await session.execute(select(Users))
+async def list_controller(session, list_request: model.ListInputModel):
+    query = select(Users)
+    for filter_ in list_request.filters:
+        if filter_.filter_type == model.FilterTypes.substring_match:
+            query = query.filter(getattr(Users, filter_.attribute.value).ilike(f"%{filter_.value.lower()}%"))
+
+    if list_request.sort is not None:
+        query.order_by(getattr(getattr(Users, list_request.sort.value), list_request.sort.order.value))
+
+    data = await session.execute(query)
     return data.scalars().all()
 
 
 @Session
-async def update_controller(session, user_id: str, user_data: UserUpdate) -> Row:
+async def update_controller(session, user_id: str, user_data: model.UserUpdate) -> Row:
     user_data_dict = user_data.dict(exclude_none=True)
     if user_data.is_deleted is True:
         user_data_dict["deleted_at"] = datetime.datetime.utcnow()
@@ -78,7 +86,7 @@ async def handle_user_create(user_data: dict):
 
 
 @Session
-async def create_controller(session: AsyncSession, user_data: InitPostModel, sub: str) -> uuid.UUID:
+async def create_controller(session: AsyncSession, user_data: model.InitPostModel, sub: str) -> uuid.UUID:
     result = (await session.execute(select(Users.id, Users.email).where(Users.sub == sub))).one_or_none()
 
     if result is None:
@@ -93,7 +101,7 @@ async def create_controller(session: AsyncSession, user_data: InitPostModel, sub
         if email != user_data.email:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail=Http409Enum.user_sub_missmatch.value.dict(),
+                detail=model.Http409Enum.user_sub_missmatch.value.dict(),
             )
 
     metadata = {"UserId": str(user_id)}
@@ -104,7 +112,7 @@ async def create_controller(session: AsyncSession, user_data: InitPostModel, sub
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=Http400Enum.auth0_app_metadata_failed.value.dict(),
+            detail=model.Http400Enum.auth0_app_metadata_failed.value.dict(),
         )
 
     return user_id

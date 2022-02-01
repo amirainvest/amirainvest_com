@@ -575,20 +575,21 @@ class FinancialAccounts(Base, ToDict):
 class FinancialAccountTransactions(Base, ToDict):
     __tablename__ = "financial_account_transactions"
     id = Column(BigInteger, primary_key=True, nullable=False, unique=True)
+    plaid_investment_transaction_id = Column(String, unique=True, nullable=False)
+
     account_id = Column(Integer, ForeignKey("financial_accounts.id"), nullable=False)
     security_id = Column(Integer, ForeignKey("securities.id"))
     type = Column(String, nullable=False)
     subtype = Column(String, nullable=False)
-    plaid_investment_transaction_id = Column(String, unique=True, nullable=False)
     posting_date = Column(DateTime, nullable=False)
     name = Column(String, nullable=False)
     quantity = Column(DECIMAL, nullable=False)
     value_amount = Column(DECIMAL(19, 4), nullable=False)
     price = Column(DECIMAL(19, 4), nullable=False)
     fees = Column(DECIMAL(19, 4))
-    created_at = Column(DateTime, server_default=UTCNow())
     iso_currency_code = Column(String)
     unofficial_currency_code = Column(String)
+    created_at = Column(DateTime, server_default=UTCNow())
 
 
 class FinancialAccountCurrentHoldings(Base, ToDict):
@@ -597,7 +598,7 @@ class FinancialAccountCurrentHoldings(Base, ToDict):
     id = Column(BigInteger, primary_key=True, unique=True, nullable=False)
     user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     account_id = Column(Integer, ForeignKey("financial_accounts.id"), nullable=False)
-    security_id = Column(Integer, ForeignKey("securities.id"), nullable=False)
+    plaid_security_id = Column(Integer, ForeignKey("plaid_securities.id"), nullable=False)
     latest_price = Column(DECIMAL(19, 4), nullable=False)
     latest_price_date = Column(DateTime)
     institution_value = Column(DECIMAL(19, 4), nullable=False)
@@ -625,14 +626,12 @@ class PlaidSecurities(Base, ToDict):
     isin = Column(String)
     cusip = Column(String)
     sedol = Column(String)
-    institution_id = Column(Integer, ForeignKey("financial_institutions.id"))
+    financial_institution_id = Column(Integer, ForeignKey("financial_institutions.id"))
     plaid_institution_security_id = Column(String)
     is_cash_equivalent = Column(Boolean)
     type = Column(String)
     iso_currency_code = Column(String)
     unofficial_currency_code = Column(String)
-    plaid_update_type = Column(String)
-    plaid_webhook_url = Column(String)
     last_updated = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
     created_at = Column(DateTime, server_default=UTCNow())
 
@@ -687,7 +686,7 @@ class Securities(Base, ToDict):
 
 class SecurityPrices(Base, ToDict):
     __tablename__ = "security_prices"
-    __table_args__ = (UniqueConstraint("price_time", "security_id"),)
+    __table_args__ = (UniqueConstraint("security_id", "price_time"),)
     id = Column(BigInteger, primary_key=True, unique=True, nullable=False)
     security_id = Column(Integer, ForeignKey("securities.id"), nullable=False)
     price = Column(DECIMAL(19, 4), nullable=False)

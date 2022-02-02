@@ -538,7 +538,7 @@ class FinancialAccountTransactions(Base, ToDict):
     __tablename__ = "financial_account_transactions"
     id = Column(BigInteger, primary_key=True, nullable=False, unique=True)
     account_id = Column(Integer, ForeignKey("financial_accounts.id"), nullable=False)
-    security_id = Column(Integer, ForeignKey("securities.id"))
+    security_id = Column(Integer, ForeignKey("plaid_securities.id"))
     type = Column(String, nullable=False)
     subtype = Column(String, nullable=False)
     plaid_investment_transaction_id = Column(String, unique=True, nullable=False)
@@ -551,24 +551,6 @@ class FinancialAccountTransactions(Base, ToDict):
     created_at = Column(DateTime, server_default=UTCNow())
     iso_currency_code = Column(String)
     unofficial_currency_code = Column(String)
-
-
-class FinancialAccountCurrentHoldings(Base, ToDict):
-    __tablename__ = "financial_account_current_holdings"
-    __table_args__ = (UniqueConstraint("account_id", "security_id"),)
-    id = Column(BigInteger, primary_key=True, unique=True, nullable=False)
-    user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    account_id = Column(Integer, ForeignKey("financial_accounts.id"), nullable=False)
-    security_id = Column(Integer, ForeignKey("securities.id"), nullable=False)
-    latest_price = Column(DECIMAL(19, 4), nullable=False)
-    latest_price_date = Column(DateTime)
-    institution_value = Column(DECIMAL(19, 4), nullable=False)
-    cost_basis = Column(DECIMAL(19, 4))
-    quantity = Column(DECIMAL(19, 4), nullable=False)
-    iso_currency_code = Column(String)
-    unofficial_currency_code = Column(String)
-    updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
-    created_at = Column(DateTime, server_default=UTCNow())
 
 
 class PlaidSecurities(Base, ToDict):
@@ -599,6 +581,24 @@ class PlaidSecurityPrices(Base, ToDict):
     plaid_securities_id = Column(Integer, ForeignKey("plaid_securities.id"), nullable=False)
     price = Column(DECIMAL(19, 4), nullable=False)
     price_time = Column(DateTime, nullable=False)
+    created_at = Column(DateTime, server_default=UTCNow())
+
+
+class FinancialAccountCurrentHoldings(Base, ToDict):
+    __tablename__ = "financial_account_current_holdings"
+    __table_args__ = (UniqueConstraint("account_id", "security_id"),)
+    id = Column(BigInteger, primary_key=True, unique=True, nullable=False)
+    user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    account_id = Column(Integer, ForeignKey("financial_accounts.id"), nullable=False)
+    security_id = Column(Integer, ForeignKey("plaid_securities.id"), nullable=False)
+    latest_price = Column(DECIMAL(19, 4), nullable=False)
+    latest_price_date = Column(DateTime)
+    institution_value = Column(DECIMAL(19, 4), nullable=False)
+    cost_basis = Column(DECIMAL(19, 4))
+    quantity = Column(DECIMAL(19, 4), nullable=False)
+    iso_currency_code = Column(String)
+    unofficial_currency_code = Column(String)
+    updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
     created_at = Column(DateTime, server_default=UTCNow())
 
 

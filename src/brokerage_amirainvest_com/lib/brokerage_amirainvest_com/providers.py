@@ -30,7 +30,7 @@ class Providers:
 
         try:
             await provider.collect_investment_history(user_id=user_id, item_id=item_id)
-            await end_job(job_id, BrokerageJobsStatus.succeeded)
+            await end_job(job_id, BrokerageJobsStatus.succeeded, None)
         except Exception as err:
             await end_job(job_id, BrokerageJobsStatus.failed, err)
 
@@ -52,6 +52,6 @@ class Providers:
 
         try:
             await provider.collect_current_holdings(user_id=user_id, item_id=item_id)
-            await end_job(job_id, BrokerageJobsStatus.succeeded)
+            await end_job(job.id, BrokerageJobsStatus.succeeded, None)
         except Exception as err:
-            await end_job(job_id, BrokerageJobsStatus.failed, err)
+            await end_job(job.id, BrokerageJobsStatus.failed, repr(err))

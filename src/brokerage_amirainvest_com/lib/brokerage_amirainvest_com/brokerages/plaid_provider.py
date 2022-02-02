@@ -1,5 +1,7 @@
+import datetime
 import time
 import uuid
+from datetime import timezone
 from decimal import Decimal
 
 import arrow
@@ -19,6 +21,7 @@ from plaid.model.security import Security as PlaidSecurity  # type: ignore
 from sqlalchemy import delete
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
 from brokerage_amirainvest_com.brokerages.interfaces import BrokerageInterface, TokenRepositoryInterface
 from brokerage_amirainvest_com.models import (
@@ -45,6 +48,7 @@ from common_amirainvest_com.schemas.schema import (
     FinancialAccountTransactions,
     FinancialInstitutions,
     PlaidSecurities,
+    PlaidSecurityPrices,
 )
 from common_amirainvest_com.utils.consts import PLAID_ENVIRONMENT
 from common_amirainvest_com.utils.decorators import Session  # type: ignore
@@ -164,6 +168,51 @@ class PlaidRepository:
                 )
             )
         session.add_all(accounts_to_insert)
+
+    @Session
+    async def add_security_prices(self, session: AsyncSession, securities: list[Security]):
+        plaid_security_ids = []
+        for sec in securities:
+            plaid_security_ids.append(sec.security_id)
+
+        plaid_securities = await get_securities_by_plaid_ids(plaid_security_ids)
+        securities_map = {}
+        for plaid_security in plaid_securities:
+            securities_map[plaid_security.plaid_security_id] = plaid_security.id
+
+        plaid_securities_prices = []
+        for sec in securities:
+            try:
+                internal_plaid_security_id = securities_map[sec.security_id]
+                if sec.close_price_as_of is None:
+                    continue
+
+                dt = datetime.datetime(
+                    sec.close_price_as_of.year,
+                    sec.close_price_as_of.month,
+                    sec.close_price_as_of.day,
+                    21,
+                    30,
+                    0,
+                )
+
+                response = await session.execute(
+                    select(PlaidSecurityPrices).where(
+                        PlaidSecurityPrices.plaid_securities_id == internal_plaid_security_id,
+                        PlaidSecurityPrices.price_time == dt,
+                    )
+                )
+
+                if response.scalar() is not None:
+                    continue
+                plaid_securities_prices.append(
+                    PlaidSecurityPrices(
+                        plaid_securities_id=internal_plaid_security_id, price=sec.close_price, price_time=dt
+                    )
+                )
+            except KeyError:
+                continue
+        session.add_all(plaid_securities_prices)
 
     @Session
     async def add_investment_transactions(
@@ -286,13 +335,18 @@ class PlaidHttp:
         self,
         user_id: uuid.UUID,
         item_id: str,
-        start_date: arrow.Arrow = arrow.get("1995-01-01"),
+        start_date: arrow.Arrow = arrow.get("2020-01-01"),
         end_date: arrow.Arrow = arrow.utcnow(),
         offset: int = 0,
     ) -> InvestmentInformation:
         brokerage_user = await self.token_repository.get_key(str(user_id))
-        if brokerage_user is None or item_id not in brokerage_user.plaid_access_tokens:
+
+        if brokerage_user is None:
             raise Exception("TODO LATER")  # TODO IMPLEMENT EXCEPTION
+
+        if item_id not in brokerage_user.plaid_access_tokens:
+            raise Exception("TODO LATER")  # TODO Implement Exception
+
         access_token = brokerage_user.plaid_access_tokens[item_id]
         request = InvestmentsTransactionsGetRequest(
             access_token=access_token,
@@ -378,6 +432,7 @@ class PlaidProvider(BrokerageInterface):
         investment_history = await self.http_client.get_investment_history(user_id=user_id, item_id=item_id)
 
         await self.repository.add_securities(securities=list(investment_history.securities.values()))
+        await self.repository.add_security_prices(securities=list(investment_history.securities.values()))
         await self.repository.add_accounts(user_id=user_id, accounts=investment_history.accounts)
         await self.repository.add_investment_transactions(
             investment_transactions=investment_history.investment_transactions
@@ -389,6 +444,7 @@ class PlaidProvider(BrokerageInterface):
                 user_id=user_id, item_id=item_id, offset=count
             )
             await self.repository.add_securities(securities=list(investment_history.securities.values()))
+            await self.repository.add_security_prices(securities=list(investment_history.securities.values()))
             await self.repository.add_accounts(user_id=user_id, accounts=investment_history.accounts)
             await self.repository.add_investment_transactions(
                 investment_transactions=investment_history.investment_transactions
@@ -399,6 +455,7 @@ class PlaidProvider(BrokerageInterface):
         holdings_information = await self.http_client.get_current_holdings(user_id=user_id, item_id=item_id)
 
         await self.repository.add_securities(securities=list(holdings_information.securities.values()))
+        await self.repository.add_security_prices(securities=list(holdings_information.securities.values()))
         await self.repository.add_accounts(user_id=user_id, accounts=holdings_information.accounts)
         await self.repository.add_holdings(
             holdings=holdings_information.holdings,

@@ -76,7 +76,7 @@ async def update_settings_controller(session: AsyncSession, user_id: uuid.UUID, 
                 .values(**update_data.dict(exclude_none=True))
                 .returning(NotificationSettings)
             )
-        ).one()
+        )
 
     )
 
@@ -90,5 +90,5 @@ async def create_settings_controller(session: AsyncSession, user_id: uuid.UUID, 
             insert(NotificationSettings)
             .values(**create_data_dict)
             .returning(NotificationSettings)
-        )
-    ).one()
+        ).one()
+    )

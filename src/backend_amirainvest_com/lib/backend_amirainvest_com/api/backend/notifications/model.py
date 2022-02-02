@@ -2,14 +2,14 @@ from typing import List, Optional
 
 from pydantic import BaseModel
 
-from common_amirainvest_com.schemas.schema import NotificationsModel as GetModel
-from common_amirainvest_com.schemas.schema import NotificationSettingsModel as GetSettingsModel
+from common_amirainvest_com.schemas.schema import NotificationsModel
+from common_amirainvest_com.schemas.schema import NotificationSettingsModel
 
 
-assert GetModel
-assert GetSettingsModel
+assert NotificationsModel
+assert NotificationSettingsModel
 
-class CreateModel(BaseModel):
+class CreateModel(NotificationsModel):
     notification_type: str  #from Enum defined in schamas
     text : str
     redirect_id : str
@@ -21,7 +21,7 @@ class UpdateModel(CreateModel):
     mark_as_read: Optional[bool]
     is_deleted : Optional[bool]
 
-class CreateSettingsModel(GetSettingsModel):
+class CreateSettingsModel(NotificationSettingsModel):
     mention: Optional[bool]
     upvotes: Optional[bool]
     shared_change: Optional[bool]

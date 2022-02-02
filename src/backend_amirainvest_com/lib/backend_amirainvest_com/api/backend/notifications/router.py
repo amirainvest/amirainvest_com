@@ -21,7 +21,7 @@ router = APIRouter(prefix="/notifications", tags=["Notifications / Settings"] )#
 
 # Notifications are created from various jobs. They are read and updated via the API
 
-@router.get("/get", 
+@router.post("/get", 
     summary='Retrieve User Notifications', 
     description='This should run when you initialize the Notifications tab', status_code=status.HTTP_200_OK, 
     response_model=GetModel
@@ -49,13 +49,13 @@ async def update_route(user_id: uuid.UUID, update_data: UpdateModel):
 
 #notification settings
 
-@router.get("/settings/get",
+@router.post("/settings/get",
     summary='Retrieve User Notification Settings', 
     description='This should run when you enter a user\'s profile allowing them to see their notifications settings', 
     status_code=status.HTTP_200_OK, 
     response_model=GetSettingsModel
     )
-async def get_settings_route(user_id: uuid.UUID):
+async def get_settings_route(user_id: uuid.UUID): 
     return (
         await get_settings_controller(user_id)
     )._asdict()
@@ -75,15 +75,15 @@ async def update_settings_route(user_id: uuid.UUID, update_data: UpdateSettingsM
     )._asdict()
 
 @router.post("/settings/create",
-    summary='Create a settings record',
+    summary='Create a settings record on creation of a new user',
     description='This runs when a new user profile is created. It creates a record in the settings table with their specific settings. All are True by default',
     status_code=status.HTTP_200_OK, 
     response_model=GetSettingsModel
     )
-async def create_settings_route(user_id: uuid.UUID, update_data: CreateSettingsModel):
+async def create_settings_controller(user_id: uuid.UUID, create_data: CreateSettingsModel):
     return (
-        await update_settings_controller(
+        await create_settings_controller(
             user_id,
-            update_data,
+            create_data,
         )
     )._asdict()

@@ -56,18 +56,18 @@ class SubscriptionLevel(enum.Enum):
 
 
 class MediaPlatform(enum.Enum):
-    youtube = "YouTube"
-    substack = "Substack"
-    twitter = "Twitter"
-    brokerage = "Brokerage"
-    amira = "Amira"
+    youtube = "youtube"
+    substack = "substack"
+    twitter = "twitter"
+    brokerage = "brokerage"
+    amira = "amira"
 
 
 class JobsStatus(enum.Enum):
-    pending = "PENDING"
-    running = "RUNNING"
-    succeeded = "SUCCEEDED"
-    failed = "FAILED"
+    pending = "pending"
+    running = "lower"
+    succeeded = "succeeded"
+    failed = "failed"
 
 
 class Users(Base, ToDict):

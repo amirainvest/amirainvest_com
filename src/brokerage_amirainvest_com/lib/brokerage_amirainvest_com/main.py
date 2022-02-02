@@ -1,5 +1,3 @@
-import uuid
-
 from brokerage_amirainvest_com.brokerages import plaid_provider
 from brokerage_amirainvest_com.dynamo import TokenProvider
 from brokerage_amirainvest_com.providers import Providers
@@ -28,13 +26,13 @@ if __name__ == "__main__":
         run_async_function_synchronously(
             provider_service.collect_investment_history,
             provider_key="plaid",
-            user_id=uuid.UUID(user_id),
+            user_id=(user_id),
             item_id=brokerage_item_id,
         )
     elif action == "COLLECT_HOLDINGS":
         run_async_function_synchronously(
             provider_service.collect_current_holdings,
             provider_key="plaid",
-            user_id=uuid.UUID(user_id),
+            user_id=user_id,
             item_id=brokerage_item_id,
         )

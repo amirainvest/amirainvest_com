@@ -1,5 +1,4 @@
 import datetime
-import uuid
 
 from fastapi import HTTPException, status
 from sqlalchemy import delete, insert, update
@@ -78,7 +77,7 @@ async def handle_user_create(user_data: dict):
 
 
 @Session
-async def create_controller(session: AsyncSession, user_data: InitPostModel, sub: str) -> uuid.UUID:
+async def create_controller(session: AsyncSession, user_data: InitPostModel, sub: str) -> str:
     result = (await session.execute(select(Users.id, Users.email).where(Users.sub == sub))).one_or_none()
 
     if result is None:
@@ -111,5 +110,5 @@ async def create_controller(session: AsyncSession, user_data: InitPostModel, sub
 
 
 @Session
-async def delete_controller(session: AsyncSession, user_id: uuid.UUID, sub: str):
+async def delete_controller(session: AsyncSession, user_id: str, sub: str):
     await session.execute(delete(Users).where(Users.id == user_id).where(Users.sub == sub))

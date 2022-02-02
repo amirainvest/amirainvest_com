@@ -1,4 +1,3 @@
-import uuid
 from enum import Enum
 from typing import List, Optional
 
@@ -36,7 +35,7 @@ class UserUpdate(BaseModel):
 
 
 class InitReturnModel(BaseModel):
-    id: uuid.UUID
+    id: str
 
 
 class InitPostModel(BaseModel):

@@ -3,7 +3,7 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from common_amirainvest_com.schemas.schema import MediaPlatform, HuskRequestsModel as GetModel
+from common_amirainvest_com.schemas.schema import HuskRequestsModel as GetModel, MediaPlatform
 
 
 assert GetModel

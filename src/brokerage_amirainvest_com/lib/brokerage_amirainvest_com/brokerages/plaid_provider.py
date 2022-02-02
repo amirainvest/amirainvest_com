@@ -1,7 +1,6 @@
 import datetime
 import time
 import uuid
-from datetime import timezone
 from decimal import Decimal
 
 import arrow
@@ -335,7 +334,7 @@ class PlaidHttp:
         self,
         user_id: uuid.UUID,
         item_id: str,
-        start_date: arrow.Arrow = arrow.get("2020-01-01"),
+        start_date: arrow.Arrow = arrow.utcnow().shift(years=-2),
         end_date: arrow.Arrow = arrow.utcnow(),
         offset: int = 0,
     ) -> InvestmentInformation:

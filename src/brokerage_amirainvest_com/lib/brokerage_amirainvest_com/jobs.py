@@ -67,6 +67,6 @@ async def end_job(session: AsyncSession, job_id: int, job_status: BrokerageJobsS
     retries = job.retries + 1
     await session.execute(
         update(BrokerageJobs)
-            .where(BrokerageJobs.id == job_id)
-            .values(retries=retries, status=job_status, error=error, ended_at=datetime.datetime.utcnow())
+        .where(BrokerageJobs.id == job_id)
+        .values(retries=retries, status=job_status, error=error, ended_at=datetime.datetime.utcnow())
     )

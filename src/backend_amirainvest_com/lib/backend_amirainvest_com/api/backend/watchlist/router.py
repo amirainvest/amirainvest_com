@@ -19,22 +19,22 @@ router = APIRouter(prefix="/watchlist", tags=["Watchlist"], dependencies=[Securi
 
 @router.post("/create", status_code=status.HTTP_201_CREATED, response_model=GetModel)
 async def create_route(watchlist_data: CreateModel):
-    return (await create_controller(watchlist_data)).dict()
+    return await create_controller(watchlist_data)
 
 
 @router.post("/get", status_code=status.HTTP_200_OK, response_model=GetModel)
 async def get_route(watchlist_id: int):
-    return (await get_controller(watchlist_id)).dict()
+    return await get_controller(watchlist_id)
 
 
 @router.post("/list", status_code=status.HTTP_200_OK, response_model=List[GetModel])
 async def list_route(creator_id: uuid.UUID):
-    return (await list_controller(creator_id)).dict()
+    return await list_controller(creator_id)
 
 
 @router.post("/update", status_code=status.HTTP_200_OK)
 async def update_route(watchlist_data: UpdateModel):
-    return (await update_controller(watchlist_data)).dict()
+    return await update_controller(watchlist_data)
 
 
 @router.post("/delete", status_code=status.HTTP_200_OK)

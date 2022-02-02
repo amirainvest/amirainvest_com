@@ -1,8 +1,6 @@
 import uvicorn  # type: ignore
 from uvicorn.workers import UvicornWorker  # type: ignore
 
-from backend_amirainvest_com.api.app import app
-
 
 class ProductionUvicornWorker(UvicornWorker):
     CONFIG_KWARGS = {
@@ -20,7 +18,7 @@ class ProductionUvicornWorker(UvicornWorker):
 
 
 def local_run():
-    uvicorn.run(app, port=5000, host="0.0.0.0", reload=True)
+    uvicorn.run("backend_amirainvest_com.main:app", port=5000, host="0.0.0.0", reload=True)
 
 
 if __name__ == "__main__":

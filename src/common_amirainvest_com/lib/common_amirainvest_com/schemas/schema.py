@@ -137,7 +137,7 @@ class WatchlistFollows(Base, ToDict):
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
 
-class WatchlistFollowsModels(BaseModel):
+class WatchlistFollowsModel(BaseModel):
     id: int
     follower_id: uuid.UUID
     watchlist_id: int

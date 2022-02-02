@@ -1,0 +1,116 @@
+Summary Portfolio Information
+{
+    "portfolio": {
+        "id": 0,
+        "portfolio_return_hist":[   # list of dates and the return of the portfolio on that date
+            {
+                "date": "",                 # DJ Question: Do we want this as a timestamp string, or epoch integer in milliseconds
+                "daily_return": "decimal"
+            }
+        ],
+        "benchmark_return_hist": [ # User will select benchmark in the account and we can pre-compute based on that
+            {
+                "date": "",                 # DJ Question: Do we want this as a timestamp string, or epoch integer in milliseconds
+                "daily_return": "decimal"
+            }
+        ],
+        "total_return": "decimal",  # Whatever timeframe the graph is over, its the cumlative return up to point in time
+        "beta": "decimal",          # beta value in a linear regression: "portfolio_return_hist" = "benchmark_return" * beta + alpha
+        "sharpe_ratio": "decimal",  # (total return of portfolio - total return of the benchmark) / standard deviation of return of: (portfolio return - benchmark return) done elementwise
+        "% long": "decimal",        # sum of all the positions with market value > 0 (not including cash) divided by sum of total portfolio market value(including cash)
+        "% short": "decimal",       # sum of all the positions with market value < 0 (not including cash) divided by the sum of total portfolio market value (including cash)
+        "gross %": "decimal",       # sum of % long and % short
+        "net %": "decimal",         # difference of % long and % short
+        "portfolio_allocation":
+            [
+                {"sector1": "% of portfolio"},
+                {"sector2": "% of portfolio"},
+                ...
+            ],
+        "created_at": "2022-02-01T20:43:48.034Z",   # ISO 8601
+        "updated_at": "2022-02-01T20:43:48.034Z"    # ISO 8601
+    },
+    "portfolio_type": ('user' or 'creator')
+}
+
+Question:
+--------
+Do we want to change the total return, beta and sharpe ratio values based on the timeframe shown in the graph?
+And if we do.. do we want those calc's to happen on the frontend or backend? My inclination is backend and when you
+click to change the timeframe on the chart, it updates those values.
+--------
+Answer: This would depend on how we want to deliver the historical data -- do we want to just deliver all time series data at once?
+Or, do we want to use a request model with start/end times and query data that way?
+
+
+# DJ Question: Do we want to use IEX to reconcile the pricing for the ticker here? Or, in the mean-time default to Plaid's
+    security pricing. -- switch it out if we start having issues, leave for now
+---------
+
+Holdings
+{
+    "holdings": [
+        {
+            "ticker": "string",
+            "percentage of portfolio": "decimal",   # will be supplemented with IEX data (m val / port val)
+            "max holding period": "int",            # max period that they've held the position in days (from data we have); will be supplemented with IEX data
+            "return": "decimal",                    # calculated as % above or below average price
+            "market value": "decimal"               # if portfolio_type is creator, then return null (don't want users seeing a creators $$ amounts)
+        }
+    ],
+    "portfolio_type": ('user' or 'creator')
+}
+
+
+# all historical data -- shouldn't need to update
+# Corporate action update...?
+# Only certain types of transactions we want to show
+# In types : Only going to show buys and sells
+    # Within buy & sell:
+        # Buy:  - buy & buy to cover
+        # Sell: - sell & sell short
+        # Return Type "Buy"/"Sell"/"Short"/"Cover"
+
+Trades
+{
+    "trades": [
+        {
+            "trade_date": "date",
+            "transaction_type": "string",       # DJ Question: Do we want to come up with our own type's here, or default to Plaids?
+            "ticker": "string",
+            "transaction_price": "string",
+            "trans_market_value": "decimal",    # DJ Question: this just the transaction price at execution time?
+            "percent_change_in_position": "decimal" # if new position than 100%, otherwise just the delta
+        }
+    ],
+    "portfolio_type": ('user' or 'creator')
+}
+
+
+Your Watchlists (User's own watchlists)
+{
+    "watchlists": [
+        {
+            "watchlist_id": 0,
+            "watchlist_name: "string",
+            "watchlist_tag": "string",
+            "num items": "int"
+        }
+    ],
+    "watchlist_type": (user or creator)
+}
+
+
+
+Shared Watchlists (Watchlists that a user follows)
+{
+    "watchlists": [
+        {
+        "watchlist_id": 0,
+        "watchlist_name: "string",
+        "creator_name": "string",
+        "num items": "int"
+        }
+    ],
+    "watchlist_type": (user or creator)
+}

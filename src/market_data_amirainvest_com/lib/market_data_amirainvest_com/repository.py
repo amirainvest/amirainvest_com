@@ -71,14 +71,14 @@ async def add_to_s3(historical_prices: list[HistoricalPrice], symbol: str, year:
             ]
         )
 
-    file_name = f"{symbol}/{symbol}-{year}.csv"
-    with open(file_name, "w", encoding="UTF-8") as f:
+    file_name = f"{symbol}-{year}.csv"
+    with open(file_name, "w+", encoding="UTF-8") as f:
         writer = csv.writer(f)
         writer.writerow(headers)
         writer.writerows(rows)
 
     s3 = S3()
-    await s3.upload_file(file_name, AMIRA_SECURITIES_HISTORICAL_PRICES_BUCKET, file_name)
+    await s3.upload_file(file_name, AMIRA_SECURITIES_HISTORICAL_PRICES_BUCKET, f"{symbol}/{file_name}")
 
 
 @Session
@@ -135,7 +135,7 @@ async def add_to_db(session: AsyncSession, security_id: int, historical_prices: 
 
 @Session
 async def get_securities(session: AsyncSession) -> list[Securities]:
-    response = await session.execute(select(Securities))
+    response = await session.execute(select(Securities).where(Securities.issue_type.in_(('cs', 'ad', 'et'))))
     return response.scalars().all()
 
 

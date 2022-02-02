@@ -41,6 +41,10 @@ async def post_link(user_id: str, public_token: str = Form(...)):
         )
     else:
         # TODO check if item and access token already match and update/sqs message
+        # TODO How can we reconcile an account id changing if the name of a account changes, or we lose the
+        #   access token and must re-connect
+        # TODO Validate error codes from Plaid and step through how we should reconcile them
+        # TODO How can we get a list of institutions from Plaid?
         plaid_tokens = brokerage_user.plaid_access_tokens
         plaid_tokens[item_id] = access_token
         brokerage_user.plaid_access_tokens = plaid_tokens

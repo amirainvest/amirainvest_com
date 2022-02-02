@@ -24,6 +24,10 @@ class S3:
         with open(local_filepath, "wb") as data:
             self.resource.meta.client.download_fileobj(bucket, key, data)
 
+    async def get_all_objects(self, bucket: str):
+        bucket = self.resource.Bucket(bucket)
+        return bucket.objects.all()
+
     async def validate_object_exists(self, bucket: str, key: str) -> bool:
         try:
             self.resource.meta.client.head_object(

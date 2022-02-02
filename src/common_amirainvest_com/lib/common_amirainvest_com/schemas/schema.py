@@ -17,7 +17,7 @@ from sqlalchemy import (
     text,
     UniqueConstraint,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.sql import expression
@@ -545,17 +545,27 @@ class FinancialInstitutions(Base, ToDict):
 
     name = Column(String, nullable=False)
 
-    created_at = Column(DateTime, server_default=UTCNow())
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
+    created_at = Column(DateTime, server_default=UTCNow())
+
+
+class PlaidItems(Base, ToDict):
+    __tablename__ = "plaid_items"
+    id = Column(Integer, primary_key=True, unique=True, nullable=False, autoincrement=True)
+
+    plaid_item_id = Column(String, unique=True, nullable=False)
+    user_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id"), nulalble=False)
+
+    institution_id = Column(Integer, ForeignKey("financial_institutions.id"))
 
 
 class FinancialAccounts(Base, ToDict):
     __tablename__ = "financial_accounts"
     id = Column(Integer, primary_key=True, unique=True, nullable=False, autoincrement=True)
+    plaid_id = Column(String, unique=True, nullable=False)
 
     user_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
-
-    plaid_id = Column(String, unique=True)
+    plaid_item_id = Column(Integer, ForeignKey("plaid_items.id"), nullable=False)
 
     available_to_withdraw = Column(DECIMAL(19, 4))
     current_funds = Column(DECIMAL(19, 4))
@@ -563,31 +573,29 @@ class FinancialAccounts(Base, ToDict):
     limit = Column(DECIMAL(19, 4))
     mask = Column(String)
     official_account_name = Column(String)
-    plaid_item_id = Column(String)
     sub_type = Column(String)
     type = Column(String)
     unofficial_currency_code = Column(String)
     user_assigned_account_name = Column(String)
 
-    created_at = Column(DateTime, server_default=UTCNow())
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
+    created_at = Column(DateTime, server_default=UTCNow())
 
 
 class FinancialAccountTransactions(Base, ToDict):
     __tablename__ = "financial_account_transactions"
     id = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
+    plaid_investment_transaction_id = Column(String, unique=True, nullable=False)
 
     account_id = Column(Integer, ForeignKey("financial_accounts.id"), nullable=False)
-    security_id = Column(Integer, ForeignKey("securities.id"))
-
-    plaid_investment_transaction_id = Column(String, unique=True, nullable=False)
+    security_id = Column(Integer, ForeignKey("plaid_securities.id"))
 
     name = Column(String, nullable=False)
     posting_date = Column(DateTime, nullable=False)
     price = Column(DECIMAL(19, 4), nullable=False)
     quantity = Column(DECIMAL, nullable=False)
-    subtype = Column(String, nullable=False)
     type = Column(String, nullable=False)
+    subtype = Column(String, nullable=False)
     value_amount = Column(DECIMAL(19, 4), nullable=False)
 
     fees = Column(DECIMAL(19, 4))
@@ -615,8 +623,8 @@ class FinancialAccountCurrentHoldings(Base, ToDict):
     latest_price_date = Column(DateTime)
     unofficial_currency_code = Column(String)
 
-    created_at = Column(DateTime, server_default=UTCNow())
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
+    created_at = Column(DateTime, server_default=UTCNow())
 
 
 class PlaidSecurities(Base, ToDict):
@@ -639,8 +647,8 @@ class PlaidSecurities(Base, ToDict):
     type = Column(String)
     unofficial_currency_code = Column(String)
 
-    created_at = Column(DateTime, server_default=UTCNow())
     last_updated = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
+    created_at = Column(DateTime, server_default=UTCNow())
 
 
 class PlaidSecurityPrices(Base, ToDict):
@@ -665,7 +673,8 @@ class BrokerageJobs(Base, ToDict):
 
     retries = Column(Integer, server_default="0", nullable=False)
 
-    params = Column(String)
+    params = Column(JSONB)
+    error = Column(String)
     started_at = Column(DateTime)
     ended_at = Column(DateTime)
 
@@ -675,14 +684,12 @@ class BrokerageJobs(Base, ToDict):
 class Securities(Base, ToDict):
     __tablename__ = "securities"
     id = Column(Integer, primary_key=True, unique=True, nullable=False, autoincrement=True)
-
     collect = Column(Boolean, server_default=expression.false(), index=True)
-
     ticker_symbol: str = Column(String, unique=True, nullable=False)
 
     close_price = Column(DECIMAL(19, 4), nullable=False)
-    name = Column(String, nullable=False)
     open_price = Column(DECIMAL(19, 4), nullable=False)
+    name = Column(String, nullable=False)
 
     address = Column(String)
     ceo = Column(String)
@@ -698,8 +705,8 @@ class Securities(Base, ToDict):
     type = Column(String)
     website = Column(String)
 
-    created_at = Column(DateTime, server_default=UTCNow())
     last_updated = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
+    created_at = Column(DateTime, server_default=UTCNow())
 
 
 class SecurityPrices(Base, ToDict):
@@ -713,14 +720,14 @@ class SecurityPrices(Base, ToDict):
     price_time = Column(DateTime, nullable=False)
 
     created_at = Column(DateTime, server_default=UTCNow())
-    
-    
+
+
 class Benchmarks(Base, ToDict):
     __tablename__ = "benchmarks"
     id = Column(Integer, primary_key=True, unique=True, autoincrement=True)
     ticker_symbol = Column(String, ForeignKey("securities.ticker_symbol"), nullable=False)
     benchmark = Column(String, ForeignKey("users.benchmark"), nullable=False)
-    
+
 
 class TradingStrategies(Base, ToDict):
     __tablename__ = "trading_strategies"

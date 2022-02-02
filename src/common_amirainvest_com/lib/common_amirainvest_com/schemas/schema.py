@@ -617,7 +617,7 @@ class FinancialAccountTransactions(Base, ToDict):
 
 class FinancialAccountCurrentHoldings(Base, ToDict):
     __tablename__ = "financial_account_current_holdings"
-    __table_args__ = (UniqueConstraint("account_id", "security_id"),)
+    __table_args__ = (UniqueConstraint("account_id", "plaid_security_id"),)
     id = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
 
     account_id = Column(Integer, ForeignKey("financial_accounts.id"), nullable=False)
@@ -663,7 +663,7 @@ class PlaidSecurities(Base, ToDict):
 
 class PlaidSecurityPrices(Base, ToDict):
     __tablename__ = "plaid_security_prices"
-    __table_args__ = UniqueConstraint("price_time", "plaid_securities_id")
+    __table_args__ = (UniqueConstraint("price_time", "plaid_securities_id"),)
     id = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
 
     plaid_securities_id = Column(Integer, ForeignKey("plaid_securities.id"), nullable=False)
@@ -722,7 +722,7 @@ class Securities(Base, ToDict):
 
 class SecurityPrices(Base, ToDict):
     __tablename__ = "security_prices"
-    __table_args__ = UniqueConstraint("security_id", "price_time")
+    __table_args__ = (UniqueConstraint("security_id", "price_time"),)
     id = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
 
     security_id = Column(Integer, ForeignKey("securities.id"), nullable=False)

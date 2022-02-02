@@ -135,7 +135,7 @@ async def add_to_db(session: AsyncSession, security_id: int, historical_prices: 
 
 @Session
 async def get_securities(session: AsyncSession) -> list[Securities]:
-    response = await session.execute(select(Securities).where(Securities.issue_type.in_(('cs', 'ad', 'et'))))
+    response = await session.execute(select(Securities).where(Securities.issue_type.in_(("cs", "ad", "et"))))
     return response.scalars().all()
 
 

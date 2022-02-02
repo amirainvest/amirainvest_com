@@ -23,7 +23,6 @@ async def work(security: Securities, year: int):
             security.ticker_symbol, HistoricalPriceEnum.OneYear, f"{year}0101".upper()
         )
 
-        # IS this because it failed.... or because it doesnt exist....!
         if len(historical_pricing) <= 0:
             print("NO PRICING FOR ", security.ticker_symbol)
             return
@@ -37,9 +36,9 @@ async def work(security: Securities, year: int):
 async def prune_securities_list(year: int, securities: list[Securities]) -> list[Securities]:
     s3 = S3()
     all_objects = await s3.get_all_objects(AMIRA_SECURITIES_HISTORICAL_PRICES_BUCKET)
-    current_securities = {}
+    current_securities: dict[str, None] = {}
     for obj in all_objects:
-        current_securities[obj.key] = {}
+        current_securities[obj.key] = None
 
     sec_list = []
     for sec in securities:

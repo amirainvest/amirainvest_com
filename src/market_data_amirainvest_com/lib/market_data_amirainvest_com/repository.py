@@ -114,15 +114,29 @@ def group_securities(securities: list[Securities], num_group: int) -> list[list[
 
 @Session
 async def add_to_db(session: AsyncSession, security_id: int, historical_prices: list[HistoricalPrice]):
-    # TODO: Maybe we check to see if a security price already exists before adding it as we have a UC on
-    #   security_id and time?
-    # Do a select where in and get all dates with that security id that exist in our array, iterate through and ignore..
+    price_times = []
+    for h in historical_prices:
+        price_times.append(h.date)
+
+    response = await session.execute(
+        select(SecurityPrices).where(
+            SecurityPrices.price_time.in_(price_times), SecurityPrices.security_id == security_id
+        )
+    )
+    current_price_times = response.scalars().all()
+
+    price_time_map: dict[datetime, None] = {}
+    for cur in current_price_times:
+        price_time_map[cur.price_time] = None
 
     security_prices = []
     for p in historical_prices:
         if p.date is None or p.date == "":
             continue
         date = datetime.strptime(p.date, "%Y-%m-%d")
+        if date in price_time_map:
+            continue
+
         security_prices.append(
             SecurityPrices(
                 security_id=security_id,

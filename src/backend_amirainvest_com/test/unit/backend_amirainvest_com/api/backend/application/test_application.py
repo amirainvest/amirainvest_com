@@ -2,16 +2,11 @@ from fastapi import status
 from httpx import AsyncClient
 
 from backend_amirainvest_com.api.app import app
-from common_amirainvest_com.utils.test.factories.schema import (
-    BenchmarksFactory,
-    ChipLabelsFactory,
-    TradingStrategiesFactory,
-)
+from common_amirainvest_com.utils.test.factories.schema import ChipLabelsFactory, TradingStrategiesFactory
 
 
 async def test_config():
     await ChipLabelsFactory(name="Test chip")
-    await BenchmarksFactory(name="Test benchmark")
     await TradingStrategiesFactory(name="Test trading")
 
     async with AsyncClient(app=app, base_url="http://test") as async_client:

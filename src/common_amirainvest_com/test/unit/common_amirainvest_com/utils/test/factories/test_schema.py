@@ -10,8 +10,9 @@ from common_amirainvest_com.utils.test.factories import schema
 async def test_users_factory(async_session_maker_test):
     session_test: AsyncSession = async_session_maker_test()
 
-    user_1: Users = await schema.UsersFactory(interests_diversification_rating=42)
-    await schema.UsersFactory(interests_diversification_rating=200)
+    security = await schema.SecuritiesFactory()
+    user_1: Users = await schema.UsersFactory(interests_diversification_rating=42, benchmark=security.id)
+    await schema.UsersFactory(interests_diversification_rating=200, benchmark=security.id)
 
     assert type(user_1.created_at) is datetime.datetime
     assert user_1.interests_diversification_rating == 42
@@ -24,7 +25,10 @@ async def test_users_factory(async_session_maker_test):
 async def test_posts_factory(async_session_maker_test):
     session_test: AsyncSession = async_session_maker_test()
 
-    user_1: Users = await schema.UsersFactory()
+    security = await schema.SecuritiesFactory()
+    user_1: Users = await schema.UsersFactory(benchmark=security.id)
     await schema.PostsFactory(creator_id=user_1.id)
+
     posts = (await session_test.execute(select(Posts))).scalars().all()
+
     assert len(posts) == 1

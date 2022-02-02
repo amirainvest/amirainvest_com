@@ -36,6 +36,10 @@ def pg_utcnow(element, compiler, **kw):
     return "TIMEZONE('utc', CURRENT_TIMESTAMP)"
 
 
+def generate_uuid_string() -> str:
+    return str(uuid.uuid4())
+
+
 class ToDict:
     # This is just to shut up Pycharm
     def __init__(self, *args, **kwargs):
@@ -56,18 +60,18 @@ class SubscriptionLevel(enum.Enum):
 
 
 class MediaPlatform(enum.Enum):
-    youtube = "YouTube"
-    substack = "Substack"
-    twitter = "Twitter"
-    brokerage = "Brokerage"
-    amira = "Amira"
+    youtube = "youtube"
+    substack = "substack"
+    twitter = "twitter"
+    brokerage = "brokerage"
+    amira = "amira"
 
 
 class JobsStatus(enum.Enum):
-    pending = "PENDING"
-    running = "RUNNING"
-    succeeded = "SUCCEEDED"
-    failed = "FAILED"
+    pending = "pending"
+    running = "running"
+    succeeded = "succeeded"
+    failed = "failed"
 
 
 class Users(Base, ToDict):
@@ -76,9 +80,11 @@ class Users(Base, ToDict):
         UUID(as_uuid=False),
         primary_key=True,
         unique=True,
-        default=uuid.uuid4(),
+        default=generate_uuid_string,
         server_default=text("uuid_generate_v4()"),
     )
+
+    benchmark = Column(Integer, ForeignKey("securities.id"), nullable=False)
 
     email = Column(String, unique=True, nullable=False)
     username = Column(String, unique=True, nullable=False)
@@ -88,7 +94,6 @@ class Users(Base, ToDict):
     first_name = Column(String, nullable=False)
     last_name = Column(String, nullable=False)
 
-    benchmark = Column(String)
     bio = Column(String)
     chip_labels = Column(ARRAY(String))
     deleted_at = Column(DateTime)
@@ -228,7 +233,7 @@ class UserFeedbackModel(BaseModel):
 
 class SubstackUsers(Base, ToDict):
     __tablename__ = "substack_users"
-    id = Column(Integer, primary_key=True, autoincrement=False)
+    id = Column(Integer, primary_key=True, autoincrement=True)
 
     username = Column(String, nullable=False)
     creator_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -242,7 +247,7 @@ class SubstackArticles(Base, ToDict):
     __tablename__ = "substack_articles"
     article_id = Column(String, primary_key=True, unique=True, nullable=False)
 
-    username = Column(String, ForeignKey("substack_users.username", ondelete="CASCADE"), nullable=False)
+    substack_user = Column(Integer, ForeignKey("substack_users.id", ondelete="CASCADE"), nullable=False)
 
     title = Column(String, nullable=False)
     summary = Column(String, nullable=False)
@@ -545,16 +550,17 @@ class FinancialInstitutions(Base, ToDict):
 
     name = Column(String, nullable=False)
 
-    updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
     created_at = Column(DateTime, server_default=UTCNow())
+    updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
 
 class PlaidItems(Base, ToDict):
     __tablename__ = "plaid_items"
     id = Column(Integer, primary_key=True, unique=True, nullable=False, autoincrement=True)
 
+    user_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+
     plaid_item_id = Column(String, unique=True, nullable=False)
-    user_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id"), nulalble=False)
 
     institution_id = Column(Integer, ForeignKey("financial_institutions.id"))
 
@@ -562,10 +568,11 @@ class PlaidItems(Base, ToDict):
 class FinancialAccounts(Base, ToDict):
     __tablename__ = "financial_accounts"
     id = Column(Integer, primary_key=True, unique=True, nullable=False, autoincrement=True)
-    plaid_id = Column(String, unique=True, nullable=False)
 
     user_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
     plaid_item_id = Column(Integer, ForeignKey("plaid_items.id"), nullable=False)
+
+    plaid_id = Column(String, unique=True, nullable=False)
 
     available_to_withdraw = Column(DECIMAL(19, 4))
     current_funds = Column(DECIMAL(19, 4))
@@ -578,24 +585,25 @@ class FinancialAccounts(Base, ToDict):
     unofficial_currency_code = Column(String)
     user_assigned_account_name = Column(String)
 
-    updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
     created_at = Column(DateTime, server_default=UTCNow())
+    updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
 
 class FinancialAccountTransactions(Base, ToDict):
     __tablename__ = "financial_account_transactions"
     id = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
-    plaid_investment_transaction_id = Column(String, unique=True, nullable=False)
 
     account_id = Column(Integer, ForeignKey("financial_accounts.id"), nullable=False)
     security_id = Column(Integer, ForeignKey("plaid_securities.id"))
+
+    plaid_investment_transaction_id = Column(String, unique=True, nullable=False)
 
     name = Column(String, nullable=False)
     posting_date = Column(DateTime, nullable=False)
     price = Column(DECIMAL(19, 4), nullable=False)
     quantity = Column(DECIMAL, nullable=False)
-    type = Column(String, nullable=False)
     subtype = Column(String, nullable=False)
+    type = Column(String, nullable=False)
     value_amount = Column(DECIMAL(19, 4), nullable=False)
 
     fees = Column(DECIMAL(19, 4))
@@ -623,8 +631,8 @@ class FinancialAccountCurrentHoldings(Base, ToDict):
     latest_price_date = Column(DateTime)
     unofficial_currency_code = Column(String)
 
-    updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
     created_at = Column(DateTime, server_default=UTCNow())
+    updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
 
 class PlaidSecurities(Base, ToDict):
@@ -647,8 +655,8 @@ class PlaidSecurities(Base, ToDict):
     type = Column(String)
     unofficial_currency_code = Column(String)
 
-    last_updated = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
     created_at = Column(DateTime, server_default=UTCNow())
+    last_updated = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
 
 class PlaidSecurityPrices(Base, ToDict):
@@ -673,10 +681,10 @@ class BrokerageJobs(Base, ToDict):
 
     retries = Column(Integer, server_default="0", nullable=False)
 
-    params = Column(JSONB)
-    error = Column(String)
-    started_at = Column(DateTime)
     ended_at = Column(DateTime)
+    error = Column(String)
+    params = Column(JSONB)
+    started_at = Column(DateTime)
 
     created_at = Column(DateTime, server_default=UTCNow())
 
@@ -684,12 +692,16 @@ class BrokerageJobs(Base, ToDict):
 class Securities(Base, ToDict):
     __tablename__ = "securities"
     id = Column(Integer, primary_key=True, unique=True, nullable=False, autoincrement=True)
-    collect = Column(Boolean, server_default=expression.false(), index=True)
+
+    collect = Column(Boolean, default=False, server_default=expression.false(), index=True)
+    is_benchmark = Column(Boolean, default=False, server_default=expression.false(), index=True)
+
+    human_readable_name = Column(String, unique=True, info={"note": "This is manually populated for benchmarks"})
     ticker_symbol: str = Column(String, unique=True, nullable=False)
 
     close_price = Column(DECIMAL(19, 4), nullable=False)
-    open_price = Column(DECIMAL(19, 4), nullable=False)
     name = Column(String, nullable=False)
+    open_price = Column(DECIMAL(19, 4), nullable=False)
 
     address = Column(String)
     ceo = Column(String)
@@ -705,8 +717,8 @@ class Securities(Base, ToDict):
     type = Column(String)
     website = Column(String)
 
-    last_updated = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
     created_at = Column(DateTime, server_default=UTCNow())
+    last_updated = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
 
 class SecurityPrices(Base, ToDict):
@@ -720,13 +732,6 @@ class SecurityPrices(Base, ToDict):
     price_time = Column(DateTime, nullable=False)
 
     created_at = Column(DateTime, server_default=UTCNow())
-
-
-class Benchmarks(Base, ToDict):
-    __tablename__ = "benchmarks"
-    id = Column(Integer, primary_key=True, unique=True, autoincrement=True)
-    ticker_symbol = Column(String, ForeignKey("securities.ticker_symbol"), nullable=False)
-    benchmark = Column(String, ForeignKey("users.benchmark"), nullable=False)
 
 
 class TradingStrategies(Base, ToDict):

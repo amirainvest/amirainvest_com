@@ -17,7 +17,7 @@ from sqlalchemy import (
     String,
     UniqueConstraint,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.sql import expression
@@ -615,7 +615,8 @@ class BrokerageJobs(Base, ToDict):
     user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     status = Column(Enum(BrokerageJobsStatus), default=BrokerageJobsStatus.pending.value, nullable=False)
     retries = Column(Integer, default=0, nullable=False)
-    params = Column(String)
+    params = Column(JSONB)
+    error = Column(String)
     started_at = Column(DateTime)
     ended_at = Column(DateTime)
     created_at = Column(DateTime, server_default=UTCNow(), nullable=False)

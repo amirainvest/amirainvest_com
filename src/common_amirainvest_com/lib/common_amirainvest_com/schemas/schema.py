@@ -144,24 +144,6 @@ class UsersModel(BaseModel):
     # updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
 
-class Benchmarks(Base, ToDict):
-    __tablename__ = "benchmarks"
-    id = Column(Integer, primary_key=True, unique=True, autoincrement=True)
-    name = Column(String)
-
-
-class TradingStrategies(Base, ToDict):
-    __tablename__ = "trading_strategies"
-    id = Column(Integer, primary_key=True, unique=True, autoincrement=True)
-    name = Column(String)
-
-
-class ChipLabels(Base, ToDict):
-    __tablename__ = "chip_labels"
-    id = Column(Integer, primary_key=True, unique=True, autoincrement=True)
-    name = Column(String)
-
-
 class BroadcastRequests(Base, ToDict):
     """
     If a user wants a creator join amira
@@ -731,3 +713,22 @@ class SecurityPrices(Base, ToDict):
     price_time = Column(DateTime, nullable=False)
 
     created_at = Column(DateTime, server_default=UTCNow())
+    
+    
+class Benchmarks(Base, ToDict):
+    __tablename__ = "benchmarks"
+    id = Column(Integer, primary_key=True, unique=True, autoincrement=True)
+    ticker_symbol = Column(String, ForeignKey("securities.ticker_symbol"), nullable=False)
+    benchmark = Column(String, ForeignKey("users.benchmark"), nullable=False)
+    
+
+class TradingStrategies(Base, ToDict):
+    __tablename__ = "trading_strategies"
+    id = Column(Integer, primary_key=True, unique=True, autoincrement=True)
+    name = Column(String, nullable=False)
+
+
+class ChipLabels(Base, ToDict):
+    __tablename__ = "chip_labels"
+    id = Column(Integer, primary_key=True, unique=True, autoincrement=True)
+    name = Column(String, nullable=False)

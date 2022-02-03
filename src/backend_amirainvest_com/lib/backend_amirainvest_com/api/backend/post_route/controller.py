@@ -16,10 +16,11 @@ from backend_amirainvest_com.api.backend.post_route.model import (
 )
 from backend_amirainvest_com.utils.s3 import S3
 from common_amirainvest_com.s3.consts import AMIRA_POST_PHOTOS_S3_BUCKET
-from common_amirainvest_com.schemas.schema import Posts, UserSubscriptions
+from common_amirainvest_com.schemas.schema import Bookmarks, Posts, UserSubscriptions
 from common_amirainvest_com.utils.consts import WEBCACHE
 from common_amirainvest_com.utils.decorators import Session
 from common_amirainvest_com.utils.generic_utils import get_past_datetime
+from backend_amirainvest_com.controllers.creator import get_creator_attributes
 
 
 PAGE_SIZE = 30
@@ -228,3 +229,22 @@ async def get_discovery_posts(
     query = latest_posts(query, last_loaded_post_id, hours_ago, page_size)
     data = await session.execute(query)
     return data.scalars().all()
+
+
+@Session
+async def get_is_bookmarked(session: AsyncSession, post_id: int):
+    if (
+        await session.execute(
+            select(Bookmarks).where(Bookmarks.post_id == post_id).where(Bookmarks.is_deleted is not True)
+        )
+    ).one_or_none():
+        return True
+    return False
+
+
+@Session
+async def get_post_attributes(session: AsyncSession, post: PostsModel):
+    # PLATFORM DISPLAY NAME
+    # TWITTER HANDLE
+    creator_object = get_creator_attributes(post.creator_id)
+    is_bookmarked = get_is_bookmarked(post.id)

@@ -40,6 +40,7 @@ class UsersFactory(FactoryBase):
     class Meta:
         model = Users
 
+    benchmark = 1
     sub = factory.Faker("name")
     first_name = "test_first_name"
     last_name = "test_last_name"

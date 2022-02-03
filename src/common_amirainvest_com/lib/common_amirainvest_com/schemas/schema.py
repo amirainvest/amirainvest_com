@@ -137,8 +137,8 @@ class Users(Base, ToDict):
 
 
 class UsersModel(BaseModel):
-    # TODO Change this be the same as table
     id: str
+    benchmark: int
 
     email: str
     username: str
@@ -148,26 +148,25 @@ class UsersModel(BaseModel):
     first_name: str
     last_name: str
 
-    # benchmark = Column(String)
-    # bio = Column(String)
-    # chip_labels = Column(ARRAY(String))
-    # deleted_at = Column(DateTime)
-    # interests_diversification_rating = Column(Integer)
-    # linkedin_profile = Column(String)
-    # personal_site_url = Column(String)
-    # picture_url = Column(String)
-    # public_holdings = Column(Boolean)
-    # public_performance = Column(Boolean)
-    # public_profile = Column(Boolean)
-    # public_trades = Column(Boolean)
-    # trading_strategies = Column(ARRAY(String))
-    #
-    # created_at = Column(DateTime, server_default=UTCNow())
-    # email_verified = Column(Boolean, server_default=expression.false())
-    # is_claimed = Column(Boolean, server_default=expression.false())
-    # is_deactivated = Column(Boolean, server_default=expression.false())
-    # is_deleted = Column(Boolean, server_default=expression.false())
-    # updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
+    bio: Optional[str]
+    chip_labels: Optional[list[str]]
+    deleted_at: Optional[datetime.datetime]
+    interests_diversification_rating: Optional[int]
+    linkedin_profile: Optional[str]
+    personal_site_url: Optional[str]
+    picture_ur: Optional[str]
+    public_holdings: Optional[bool]
+    public_performance: Optional[bool]
+    public_profile: Optional[bool]
+    public_trades: Optional[bool]
+    trading_strategies: Optional[list[str]]
+
+    created_at: Optional[datetime.datetime]
+    email_verified: Optional[bool]
+    is_claimed: Optional[bool]
+    is_deactivated: Optional[bool]
+    is_deleted: Optional[bool]
+    updated_at: Optional[datetime.datetime]
 
 
 class BroadcastRequests(Base, ToDict):

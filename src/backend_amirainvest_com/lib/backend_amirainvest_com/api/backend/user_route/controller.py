@@ -2,7 +2,6 @@ import datetime
 
 from fastapi import HTTPException, status
 from sqlalchemy import delete, insert, update
-from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
@@ -26,7 +25,7 @@ async def list_controller(session):
 
 
 @Session
-async def update_controller(session, user_id: str, user_data: UserUpdate) -> Row:
+async def update_controller(session, user_id: str, user_data: UserUpdate) -> Users:
     user_data_dict = user_data.dict(exclude_none=True)
     if user_data.is_deleted is True:
         user_data_dict["deleted_at"] = datetime.datetime.utcnow()

@@ -221,6 +221,7 @@ class UserSubscriptionsModel(BaseModel):
     is_deleted: Optional[bool] = False
 
 
+
 class UserMediaErrors(Base, ToDict):
     __tablename__ = "user_media_errors"
     id = Column(Integer, primary_key=True, unique=True)
@@ -445,7 +446,7 @@ class PostsModel(BaseModel):
 
     creator_id: str
 
-    platform: str
+    platform: MediaPlatform
 
     chip_labels: Optional[List[str]]
     html: Optional[str]

@@ -10,6 +10,7 @@ assert GetModel
 
 
 class CreateModel(BaseModel):
+    requestor_id: str
     provided_name: str
     platform: MediaPlatform
     platform_id: str

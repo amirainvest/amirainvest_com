@@ -21,5 +21,8 @@ async def get_like_content(session, search_term):
 
 @Session
 async def get_like_creator(session, search_term):
-    data = await session.execute(select(Users.name).filter(Users.name.ilike(f"%{search_term.lower()}%")).limit(50))
-    return data.scalars().all()
+    return (
+        await session.execute(
+            select(Users.first_name).filter(Users.first_name.ilike(f"%{search_term.lower()}%")).limit(50)
+        )
+    ).scalars().all()

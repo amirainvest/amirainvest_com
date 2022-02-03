@@ -13,40 +13,46 @@ async def test_not_authenticated_get_user_subscriptions():
     assert response.json() == {"detail": "Not authenticated"}
 
 
-async def test_get_subscriptions_for_subscriber():
-    subscriber = await UsersFactory()
-    creator = await UsersFactory()
-    await UserSubscriptionsFactory(creator_id=creator.id, subscriber_id=subscriber.id)
+async def test_get_subscriptions_for_subscriber(factory):
+    subscriber = await factory.gen("users")
+    creator = await factory.gen("users")
+    await factory.gen(
+        "user_subscriptions", {"user_subscriptions": {"creator_id": creator["users"].id, "subscriber_id":subscriber["users"].id}}
+    )
+    await UserSubscriptionsFactory(creator_id=creator["users"].id, subscriber_id=subscriber["users"].id)
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.get(
-            "/user_subscriptions/subscriber", params={"subscriber_id": subscriber.id}, headers=AUTH_HEADERS
+            "/user_subscriptions/subscriber", params={"subscriber_id": subscriber["users"].id}, headers=AUTH_HEADERS
         )
     assert response.status_code == 200
-    assert str(creator.id) in [x["creator_id"] for x in response.json()]
+    assert str(creator["users"].id) in [x["creator_id"] for x in response.json()]
 
 
-async def test_get_subscriptions_for_creator():
-    subscriber = await UsersFactory()
-    creator = await UsersFactory()
-    await UserSubscriptionsFactory(creator_id=creator.id, subscriber_id=subscriber.id)
+async def test_get_subscriptions_for_creator(factory):
+    subscriber = await factory.gen("users")
+    creator = await factory.gen("users")
+    await factory.gen(
+        "user_subscriptions",
+        {"user_subscriptions": {"creator_id": creator["users"].id, "subscriber_id": subscriber["users"].id}}
+    )
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.get(
-            "/user_subscriptions/creator", params={"creator_id": creator.id}, headers=AUTH_HEADERS
+            "/user_subscriptions/creator", params={"creator_id": creator["users"].id}, headers=AUTH_HEADERS
         )
     assert response.status_code == 200
-    assert str(subscriber.id) in [x["subscriber_id"] for x in response.json()]
+    assert str(subscriber["users"].id) in [x["subscriber_id"] for x in response.json()]
 
 
-async def test_create_subscription():
-    subscriber = await UsersFactory()
-    creator = await UsersFactory()
+async def test_create_subscription(factory):
+    subscriber = await factory.gen("users")
+    creator = await factory.gen("users")
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(
             "/user_subscriptions/subscribe",
             headers=AUTH_HEADERS,
             params={
-                "subscriber_id": str(subscriber.id),
-                "creator_id": str(creator.id),
+                "subscriber_id": str(subscriber["users"].id),
+                "creator_id": str(creator["users"].id),
             },
         )
     assert response.status_code == 200

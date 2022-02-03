@@ -26,6 +26,7 @@ async def create_user_subscription(session, subscriber_id: str, creator_id: str)
     subscription = UserSubscriptions(
         creator_id=creator_id,
         subscriber_id=subscriber_id,
+        subscription_level="standard",
         created_at=datetime.datetime.utcnow(),
         updated_at=datetime.datetime.utcnow(),
         is_deleted=False,

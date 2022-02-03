@@ -3,14 +3,14 @@ from typing import List, Optional
 
 from pydantic import BaseModel, root_validator
 
-from common_amirainvest_com.schemas.schema import PostsModel, PostsModel as GetModel
+from common_amirainvest_com.schemas.schema import PostsModel, MediaPlatform, PostsModel as GetModel
 
 
 assert GetModel
 
 
 class CreateModel(BaseModel):
-    platform: str
+    platform: MediaPlatform
     platform_user_id: Optional[str]
     platform_post_id: Optional[str]
     profile_img_url: Optional[str]
@@ -23,7 +23,7 @@ class CreateModel(BaseModel):
 
 class UpdateModel(CreateModel):
     id: int
-    platform: Optional[str]  # type: ignore
+    platform: Optional[MediaPlatform]  # type: ignore
 
 
 class FeedType(str, enum.Enum):

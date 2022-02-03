@@ -47,11 +47,17 @@ Or, do we want to use a request model with start/end times and query data that w
     security pricing. -- switch it out if we start having issues, leave for now
 ---------
 
+# Get current holdings
+# Get all most recent ticker prices based on holdings
+#
+
 Holdings
 {
     "holdings": [
         {
             "ticker": "string",
+            "ticker_price": "decimal",
+            "ticker_price_time": "decimal",
             "percentage of portfolio": "decimal",   # will be supplemented with IEX data (m val / port val)
             "max holding period": "int",            # max period that they've held the position in days (from data we have); will be supplemented with IEX data
             "return": "decimal",                    # calculated as % above or below average price
@@ -76,11 +82,11 @@ Trades
     "trades": [
         {
             "trade_date": "date",
-            "transaction_type": "string",       # DJ Question: Do we want to come up with our own type's here, or default to Plaids?
+            "transaction_type": "string",               # DJ Question: Do we want to come up with our own type's here, or default to Plaids?
             "ticker": "string",
             "transaction_price": "string",
-            "trans_market_value": "decimal",    # DJ Question: this just the transaction price at execution time?
-            "percent_change_in_position": "decimal" # if new position than 100%, otherwise just the delta
+            "trans_market_value": "decimal",            # DJ Question: this just the transaction price at execution time?
+            "percent_change_in_position": "decimal"     # if new position than 100%, otherwise just the delta
         }
     ],
     "portfolio_type": ('user' or 'creator')

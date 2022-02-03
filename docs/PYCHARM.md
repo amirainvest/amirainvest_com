@@ -8,7 +8,7 @@
 * Click `Add`
 * Click `Docker Compose`
 * In `Service` select `amirainvest_com_pycharm`
-* In `Python Interpreter Path` put `home/default/venv/bin/python`
+* In `Python Interpreter Path` put `/home/default/venv/bin/python`
 * Press `OK`
 * Click on the folder icon right of `Path Mappings`
 * CLick the `+` on the top left

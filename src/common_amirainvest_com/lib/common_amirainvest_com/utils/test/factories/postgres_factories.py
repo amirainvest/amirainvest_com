@@ -5,27 +5,6 @@ import sqlalchemy as sa
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeMeta
 
-from common_amirainvest_com.schemas.schema import Base
-
-# def test(global_session, factories):
-#     user = factories.Users(interests_value=True)
-#     factories.Users()
-#     # 2 users
-#
-#
-# def test_2(global_session, factories):
-#     bookmarks = factories.Bookmarks()
-#     user_id = bookmarks.user_id
-#     post_id = bookmarks.post_id
-from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
-from common_amirainvest_com.utils.decorators import Session
-
-
-"""
-Needs to be able to take a faker function in column info and run that to add default data
-Needs to take override data for column (via dict),
-TODO Why is posts id not incrementing.
-"""
 
 column_type_default = {
     sa.String: str,
@@ -40,9 +19,11 @@ class Factories:
         self._session: AsyncSession = session
         self._base = base
         self._table_data = {}
+        self._overrides = {}
 
-    # def __getitem__(self, item) -> t.Union[t.Callable, t.Coroutine]:
-    async def gen(self, item):
+    async def gen(self, item, overrides: t.Optional[t.Dict] = None):
+        if overrides is not None:
+            self._overrides = overrides
         main_table: sa.Table = self._get_table(item)
 
         tables = self._get_fk_tables(main_table.foreign_keys)
@@ -63,6 +44,7 @@ class Factories:
         return return_data
 
     async def _create_row(self, table: sa.Table):
+        overrides = self._overrides.get(table.name)
         row_dict = {}
         column: sa.Column
         for column in table.columns:
@@ -89,10 +71,10 @@ class Factories:
                 fk_pushed_table = self._table_data[fk_table]["pushed_instance"]
                 value = getattr(fk_pushed_table, fk_key)
             elif (
-                column.nullable is False
-                and column.default is None
-                and column.server_default is None
-                and column.autoincrement is not True
+                    column.nullable is False
+                    and column.default is None
+                    and column.server_default is None
+                    and column.autoincrement is not True
             ):
                 if type(column.type) == sa.Enum:
                     value = column.type.enums[0]
@@ -100,6 +82,11 @@ class Factories:
                     value = column_type_default[type(column.type)]()
             else:
                 continue
+
+            if overrides is not None:
+                override_value = overrides.get(key)
+                if override_value is not None:
+                    value = override_value
 
             row_dict[key] = value
 
@@ -137,18 +124,3 @@ class Factories:
                 return mapper.mapped_table
 
         raise ValueError(f"No table class with name {table_class_name}")
-
-
-@Session
-async def run(session):
-    factories = Factories(session=session, base=Base)
-    a = await factories.gen("bookmarks")
-    print(a)
-
-
-async def main():
-    await run()
-
-
-if __name__ == "__main__":
-    run_async_function_synchronously(main)

@@ -1,9 +1,10 @@
 import uuid
+from typing import List
 
 from fastapi import APIRouter, Depends, Security, status
 from backend_amirainvest_com.api.backend.notifications.controller import (
-    create_controller,
-    get_controller,
+    #create_controller,
+    list_controller,
     update_controller,
     create_settings_controller,
     get_settings_controller,
@@ -11,7 +12,7 @@ from backend_amirainvest_com.api.backend.notifications.controller import (
 )
 from backend_amirainvest_com.api.backend.notifications.model import (
     CreateModel, NotificationsModel, UpdateModel,
-    CreateSettingsModel, NotificationSettingsModel, UpdateSettingsModel
+    CreateSettingsModel, NotificationSettingsModel, UpdateSettingsModel, InitReturnSettingsModel
 )
 from backend_amirainvest_com.controllers.auth import auth_dep, auth_depends_user_id
 
@@ -21,16 +22,14 @@ router = APIRouter(prefix="/notifications", tags=["Notifications / Settings"] )#
 
 # Notifications are created from various jobs. They are read and updated via the API
 
-@router.post("/get", 
-    summary='Retrieve User Notifications', 
+@router.post("/list", 
+    summary='Retrieve All User Notifications', 
     description='This should run when you initialize the Notifications tab', status_code=status.HTTP_200_OK, 
-    response_model=NotificationsModel
+    response_model=List[NotificationsModel]
     )
-async def get_route(user_id: uuid.UUID):
-    return (
-        await get_controller(user_id)
-    )._asdict()
-
+async def list_route(user_id: uuid.UUID):
+    all_notifications = await list_controller(user_id)
+    return [notification.__dict__ for notification in all_notifications]
 
 @router.post("/update", 
     summary='Update User Notifications', 
@@ -58,7 +57,7 @@ async def update_route(user_id: uuid.UUID, update_data: UpdateModel):
 async def get_settings_route(user_id: uuid.UUID): 
     return (
         await get_settings_controller(user_id)
-    )._asdict()
+    ).__dict__
 
 @router.post("/settings/update", 
     summary='Updates user\'s notification settings',
@@ -78,12 +77,8 @@ async def update_settings_route(user_id: uuid.UUID, update_data: UpdateSettingsM
     summary='Create a settings record on creation of a new user',
     description='This runs when a new user profile is created. It creates a record in the settings table with their specific settings. All are True by default',
     status_code=status.HTTP_200_OK, 
-    response_model=NotificationSettingsModel
+    response_model=InitReturnSettingsModel
     )
 async def create_settings_controller(user_id: uuid.UUID, create_data: CreateSettingsModel):
-    return (
-        await create_settings_controller(
-            user_id,
-            create_data,
-        )
-    )._asdict()
+    settings_id = await create_settings_controller(user_id, create_data)
+    return InitReturnSettingsModel(id=settings_id)

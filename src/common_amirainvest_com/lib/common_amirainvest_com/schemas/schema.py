@@ -657,14 +657,14 @@ class SecurityPrices(Base, ToDict):
 
 
 class NotificationTypes(enum.Enum):
-    trade = "TRADE"
-    creator_join = "CREATOR JOINED"
-    amira_post = "AMIRA POST"
-    mention = "MENTION"
-    upvote = "UPVOTE"
-    shared_change = "SHARED WATCHLIST CHANGED"
-    watchlist_price = "WATCHLIST PRICE MOVEMENT"
-    shared_price = "SHARED WATCHLIST PRICE MOVEMENT"
+    trade = "trade"
+    creator_join = "creator_joined"
+    amira_post = "amira_post"
+    mention = "mention"
+    upvote = "upvote"
+    shared_change = "shared_watchlist_change"
+    watchlist_price = "watchlist_price_movement"
+    shared_price = "watchlist_price_movement"
 
 
 class Notifications(Base, ToDict):
@@ -678,12 +678,14 @@ class Notifications(Base, ToDict):
     is_deleted = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime, server_default=UTCNow())
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
+    #TODO: change mark_as_read to is_read and redirect_id to redirect
+    #TODO: update text to be "body" which has details. Will include redirect. Or change schema so front end doesn't parse
 
 
 class NotificationsModel(BaseModel):
     id: int
     user_id: uuid.UUID
-    notification_type: str
+    notification_type: NotificationTypes
     text : str
     redirect_id : str
     mark_as_read: Optional[bool]

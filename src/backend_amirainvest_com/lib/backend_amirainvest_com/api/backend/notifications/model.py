@@ -1,16 +1,16 @@
+import uuid
 from typing import List, Optional
 
 from pydantic import BaseModel
 
-from common_amirainvest_com.schemas.schema import NotificationsModel
-from common_amirainvest_com.schemas.schema import NotificationSettingsModel
+from common_amirainvest_com.schemas.schema import NotificationsModel, NotificationSettingsModel, NotificationTypes
 
 
 assert NotificationsModel
 assert NotificationSettingsModel
 
 class CreateModel(NotificationsModel):
-    notification_type: str  #from Enum defined in schamas
+    notification_type: NotificationTypes
     text : str
     redirect_id : str
     mark_as_read: Optional[bool]
@@ -21,7 +21,10 @@ class UpdateModel(CreateModel):
     mark_as_read: Optional[bool]
     is_deleted : Optional[bool]
 
-class CreateSettingsModel(NotificationSettingsModel):
+class InitReturnSettingsModel(BaseModel):
+    id: int
+
+class CreateSettingsModel(BaseModel):
     mention: Optional[bool]
     upvotes: Optional[bool]
     shared_change: Optional[bool]
@@ -29,7 +32,7 @@ class CreateSettingsModel(NotificationSettingsModel):
     shared_price: Optional[bool]
     email_trades: Optional[bool]
 
-class UpdateSettingsModel(CreateSettingsModel):
+class UpdateSettingsModel(BaseModel):
     id: int
     mention: Optional[bool]
     upvotes: Optional[bool]

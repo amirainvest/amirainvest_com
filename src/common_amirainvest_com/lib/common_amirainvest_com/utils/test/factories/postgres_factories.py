@@ -3,7 +3,7 @@ from decimal import Decimal
 
 import sqlalchemy as sa
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import DeclarativeMeta
+from sqlalchemy.orm import DeclarativeMeta, sessionmaker
 
 
 column_type_default = {
@@ -15,15 +15,21 @@ column_type_default = {
 
 
 class Factories:
-    def __init__(self, *, session: AsyncSession, base: DeclarativeMeta):
-        self._session: AsyncSession = session
+    def __init__(self, *, async_session_maker: sessionmaker, base: DeclarativeMeta):
+        self._session_maker: sessionmaker = async_session_maker
+        self._session: AsyncSession = async_session_maker()
         self._base = base
         self._table_data = {}
         self._overrides = {}
 
     async def gen(self, item, overrides: t.Optional[t.Dict] = None):
+        self._table_data = {}
+        self._overrides = {}
+        self._session = self._session_maker()
+
         if overrides is not None:
             self._overrides = overrides
+
         main_table: sa.Table = self._get_table(item)
 
         tables = self._get_fk_tables(main_table.foreign_keys)
@@ -49,6 +55,7 @@ class Factories:
         column: sa.Column
         for column in table.columns:
             key = column.key
+            value = None
             if column.info.get("factory") is not None:
                 factory = column.info["factory"]
                 generator = factory.get("generator")
@@ -64,24 +71,22 @@ class Factories:
             elif len(column.foreign_keys) != 0:
                 if len(column.foreign_keys) > 1:
                     raise ValueError("More than one FK")
-                fk = column.foreign_keys.pop()
+                fk = next(iter(column.foreign_keys))
                 fk_table = fk.column.table
                 fk_key = fk.column.key
 
                 fk_pushed_table = self._table_data[fk_table]["pushed_instance"]
                 value = getattr(fk_pushed_table, fk_key)
             elif (
-                    column.nullable is False
-                    and column.default is None
-                    and column.server_default is None
-                    and column.autoincrement is not True
+                column.nullable is False
+                and column.default is None
+                and column.server_default is None
+                and column.autoincrement is not True
             ):
                 if type(column.type) == sa.Enum:
                     value = column.type.enums[0]
                 else:
                     value = column_type_default[type(column.type)]()
-            else:
-                continue
 
             if overrides is not None:
                 override_value = overrides.get(key)
@@ -95,6 +100,8 @@ class Factories:
         self._session.add(self._table_data[table]["pushed_instance"])
         await self._session.flush()
         await self._session.refresh(self._table_data[table]["pushed_instance"])
+        await self._session.commit()
+        await self._session.close()
 
     def _table_to_declarative_meta(self, table: sa.Table) -> sa.orm.DeclarativeMeta:
         mappers = self._base.registry.mappers

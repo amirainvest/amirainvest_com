@@ -7,5 +7,5 @@ from common_amirainvest_com.utils.test.factories.postgres_factories import Facto
 
 @pytest.fixture(scope="function", autouse=True)
 async def factory(async_session_maker_test: sessionmaker) -> Factories:
-    factory = Factories(session=async_session_maker_test(), base=Base)
+    factory = Factories(async_session_maker=async_session_maker_test, base=Base)
     return factory

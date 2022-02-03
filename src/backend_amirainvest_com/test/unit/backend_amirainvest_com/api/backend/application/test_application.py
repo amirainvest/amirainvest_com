@@ -2,12 +2,12 @@ from fastapi import status
 from httpx import AsyncClient
 
 from backend_amirainvest_com.api.app import app
-from common_amirainvest_com.utils.test.factories.schema import ChipLabelsFactory, TradingStrategiesFactory
 
 
-async def test_config():
-    await ChipLabelsFactory(name="Test chip")
-    await TradingStrategiesFactory(name="Test trading")
+async def test_config(factory):
+    await factory.gen("chip_labels", {"chip_labels": {"name": "Test chip"}})
+    await factory.gen("trading_strategies", {"trading_strategies": {"name": "Test trading"}})
+    await factory.gen("securities", {"securities": {"is_benchmark": True, "human_readable_name": "Test benchmark"}})
 
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post("/application/config/get")
@@ -20,9 +20,9 @@ async def test_config():
     assert all([x in response_data for x in ["chip_labels", "benchmarks", "trading_strategies"]])
 
     assert type(response_data["chip_labels"]) == list
-    assert type(response_data["benchmarks"]) == list
     assert type(response_data["trading_strategies"]) == list
+    assert type(response_data["benchmarks"]) == list
 
     assert response_data["chip_labels"][0] == "Test chip"
-    assert response_data["benchmarks"][0] == "Test benchmark"
     assert response_data["trading_strategies"][0] == "Test trading"
+    assert response_data["benchmarks"][0] == "Test benchmark"

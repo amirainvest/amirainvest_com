@@ -1,12 +1,12 @@
 import typing as t
-import uuid
+from decimal import Decimal
 
 import sqlalchemy as sa
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeMeta
 
 from common_amirainvest_com.schemas.schema import Base
+
 # def test(global_session, factories):
 #     user = factories.Users(interests_value=True)
 #     factories.Users()
@@ -30,8 +30,8 @@ TODO Why is posts id not incrementing.
 column_type_default = {
     sa.String: str,
     sa.Integer: int,
-    sa.dialects.postgresql.UUID: uuid.uuid4,
     sa.Boolean: bool,
+    sa.DECIMAL: Decimal,
 }
 
 
@@ -57,15 +57,26 @@ class Factories:
         for table in self._table_data:
             await self._create_row(table)
 
-    async def _create_row(self, table: sa.Table, ):
+        return_data = {}
+        for table, values in self._table_data.items():
+            return_data[table.name] = values["pushed_instance"]
+        return return_data
+
+    async def _create_row(self, table: sa.Table):
         row_dict = {}
         column: sa.Column
         for column in table.columns:
             key = column.key
-            if column.info != {}:
-                generator = column.info["generator"]
+            if column.info.get("factory") is not None:
+                factory = column.info["factory"]
+                generator = factory.get("generator")
                 if generator is not None:
-                    value = generator()
+                    generator_function = generator[0]
+                    generator_function_args = generator[1]
+                    if generator_function_args is not None:
+                        value = generator_function(generator_function_args)
+                    else:
+                        value = generator_function()
                 else:
                     value = column.info["default"]
             elif len(column.foreign_keys) != 0:
@@ -77,8 +88,16 @@ class Factories:
 
                 fk_pushed_table = self._table_data[fk_table]["pushed_instance"]
                 value = getattr(fk_pushed_table, fk_key)
-            elif column.nullable is False and column.default is None and column.server_default is None:
-                value = column_type_default[type(column.type)]()
+            elif (
+                column.nullable is False
+                and column.default is None
+                and column.server_default is None
+                and column.autoincrement is not True
+            ):
+                if type(column.type) == sa.Enum:
+                    value = column.type.enums[0]
+                else:
+                    value = column_type_default[type(column.type)]()
             else:
                 continue
 
@@ -123,7 +142,7 @@ class Factories:
 @Session
 async def run(session):
     factories = Factories(session=session, base=Base)
-    a = await factories.gen("Bookmarks")
+    a = await factories.gen("bookmarks")
     print(a)
 
 
@@ -131,5 +150,5 @@ async def main():
     await run()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     run_async_function_synchronously(main)

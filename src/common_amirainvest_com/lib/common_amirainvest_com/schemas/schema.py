@@ -4,6 +4,7 @@ import typing as t
 import uuid
 from typing import List, Optional
 
+import faker
 from pydantic import BaseModel
 from sqlalchemy import (
     ARRAY,
@@ -41,9 +42,9 @@ def generate_uuid_string() -> str:
     return str(uuid.uuid4())
 
 
-class Info(BaseModel):
+class FactoryInfo(BaseModel):
     default: t.Union[bool, str, uuid.UUID, int, datetime.datetime]
-    generator: t.Optional[t.Callable]
+    generator: t.Optional[t.Tuple[t.Callable, t.Any]]
 
 
 class ToDict:
@@ -92,10 +93,24 @@ class Users(Base, ToDict):
 
     benchmark = Column(Integer, ForeignKey("securities.id"), nullable=False)
 
-    email = Column(String, unique=True, nullable=False)
-    username = Column(String, unique=True, nullable=False)
+    email = Column(
+        String,
+        unique=True,
+        nullable=False,
+        info={"factory": FactoryInfo(default="", generator=(faker.Faker().email, None)).dict()},
+    )
+    username = Column(
+        String,
+        unique=True,
+        nullable=False,
+        info={"factory": FactoryInfo(default="", generator=(faker.Faker().name, None)).dict()},
+    )
 
-    sub = Column(String, nullable=False, info=Info(default="fake_sub").dict())
+    sub = Column(
+        String,
+        nullable=False,
+        info={"factory": FactoryInfo(default="", generator=(faker.Faker().name, None)).dict()},
+    )
 
     first_name = Column(String, nullable=False)
     last_name = Column(String, nullable=False)
@@ -648,7 +663,9 @@ class PlaidSecurities(Base, ToDict):
     financial_institution_id = Column(Integer, ForeignKey("financial_institutions.id"))
 
     plaid_security_id = Column(String, unique=True)
-    ticker_symbol = Column(String, unique=True)
+    ticker_symbol = Column(
+        String, unique=True, info={"factory": FactoryInfo(default="", generator=(faker.Faker().name, None)).dict()}
+    )
 
     name = Column(String, nullable=False)
 
@@ -703,7 +720,12 @@ class Securities(Base, ToDict):
     is_benchmark = Column(Boolean, default=False, server_default=expression.false(), index=True)
 
     human_readable_name = Column(String, unique=True, info={"note": "This is manually populated for benchmarks"})
-    ticker_symbol: str = Column(String, unique=True, nullable=False)
+    ticker_symbol: str = Column(
+        String,
+        unique=True,
+        nullable=False,
+        info={"factory": FactoryInfo(default="", generator=(faker.Faker().name, None)).dict()},
+    )
 
     close_price = Column(DECIMAL(19, 4), nullable=False)
     name = Column(String, nullable=False)

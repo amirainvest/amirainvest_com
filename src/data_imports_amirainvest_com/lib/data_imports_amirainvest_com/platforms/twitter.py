@@ -6,7 +6,8 @@ import arrow
 import requests
 from bs4 import BeautifulSoup
 
-from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
+from common_amirainvest_com.schemas.schema import Tweets
+from common_amirainvest_com.utils.datetime_utils import parse_iso_8601_from_string
 from common_amirainvest_com.utils.logger import log
 from data_imports_amirainvest_com.consts import TWITTER_API_TOKEN_ENV, TWITTER_API_URL
 from data_imports_amirainvest_com.controllers import posts
@@ -112,6 +113,9 @@ class TwitterUser(PlatformUser):
         user = await get_user(self.creator_id)
         for raw_tweet in raw_tweets:
             if raw_tweet["id"] not in stored_tweet_ids:
+                created_at = (
+                    parse_iso_8601_from_string(raw_tweet.get("created_at")) if raw_tweet.get("created_at") else None
+                )
                 tweets.append(
                     Tweet(
                         **{
@@ -119,7 +123,7 @@ class TwitterUser(PlatformUser):
                             "twitter_username": self.username,
                             "tweet_id": raw_tweet.get("id"),
                             "text": raw_tweet.get("text"),
-                            "created_at": raw_tweet.get("created_at"),
+                            "created_at": created_at,
                             "entities": raw_tweet.get("entities", {}),
                             "language": raw_tweet.get("lang"),
                             "like_count": raw_tweet.get("like_count"),
@@ -142,8 +146,8 @@ class TwitterUser(PlatformUser):
                         "title": "",
                         "profile_url": "",
                         "chip_labels": user.chip_labels,
-                        "created_at": raw_tweet.get("created_at"),
-                        "updated_at": raw_tweet.get("created_at"),
+                        "created_at": created_at,
+                        "updated_at": created_at,
                     }
                 )
         return tweets, tweet_posts
@@ -165,7 +169,7 @@ class TwitterUser(PlatformUser):
             await create_twitter_user(self.__dict__)
         if tweets:
             for tweet in tweets:
-                await create_tweet(tweet.__dict__)
+                await create_tweet({k: v for k, v in tweet.__dict__.items() if k in Tweets.__dict__})
             for tweet_post in tweet_posts:
                 await posts.create_post(tweet_post)
                 posts.put_post_on_creators_redis_feeds(tweet_post)
@@ -229,7 +233,3 @@ async def load_user_data(twitter_username, creator_id):
     twitter_user = TwitterUser(twitter_username, creator_id)
     twitter_user.load_twitter_user_data()
     await twitter_user.load_platform_data()
-
-
-if __name__ == "__main__":
-    run_async_function_synchronously(load_user_data, "elonmusk", "2bedf591-5944-4c1d-b586-c56be7b7459f")

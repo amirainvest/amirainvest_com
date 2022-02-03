@@ -1,8 +1,5 @@
 name: Push containers
 
-env:
-  AWS_REGION: us-east-1
-
 on:
   workflow_dispatch:
   workflow_call:
@@ -19,18 +16,19 @@ jobs:
     outputs:
       environment: ${{ steps.params.outputs.environment }}
       microservice_list: ${{ steps.params.outputs.microservice_list }}
+      deploy_tf: ${{ steps.params.outputs.deploy_tf }}
+      run_deploy: ${{ steps.params.outputs.run_deploy }}
+      AWS_REGION: ${{ steps.params.outputs.AWS_REGION }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
       - name: Generate params
+        env:
+          GITHUB_CONTEXT: ${{ toJSON(github) }}
         id: params
-        shell: python
-        run: |
-          print_base = "::set-output name="
-          environment = "prod"
-          microservice_list = ["backend_amirainvest_com", "brokerage.lambda", "market_data.lambda"]
-
-          print(f"{print_base}environment::{environment}")
-          print(f"{print_base}microservice_list::{microservice_list!s}")
-
+        shell: bash
+        run: python ./bin/github_params.py
 
   build_and_push_container:
     needs: Params
@@ -45,12 +43,13 @@ jobs:
         with:
           ref: "main"
 
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ${{ needs.Params.outputs.AWS_REGION }}
 
       - name: Login to ECR
         run: aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 903791206266.dkr.ecr.us-east-1.amazonaws.com

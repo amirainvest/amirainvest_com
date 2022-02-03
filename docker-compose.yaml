@@ -145,7 +145,7 @@ services:
         ipv4_address: 169.254.170.6
 
 
-### Infrastructure containers
+  ### Infrastructure containers
   ecs-local-endpoints:
     # The Amazon ECS Local Container Endpoints Docker Image
     image: amazon/amazon-ecs-local-container-endpoints

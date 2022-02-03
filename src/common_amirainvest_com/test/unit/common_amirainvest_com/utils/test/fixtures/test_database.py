@@ -1,5 +1,3 @@
-import uuid
-
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
@@ -16,7 +14,7 @@ async def test_database_fixture(async_session_maker_test):
     user_1 = Users(sub="", name="", username="", picture_url="", email="", email_verified=True)
     session_test.add(user_1)
     await session_test.commit()
-    assert type(user_1.id) == uuid.UUID
+    assert type(user_1.id) == str
 
     users = (await session_test.execute(select(Users))).all()
     assert len(users) == 1

@@ -1,4 +1,3 @@
-import uuid
 from typing import List
 
 from fastapi import APIRouter, Depends, File, status, UploadFile
@@ -45,7 +44,7 @@ async def list_route(
 
 @router.post("/create", status_code=status.HTTP_200_OK, response_model=GetModel)
 async def create_route(
-    user_id: uuid.UUID,
+    user_id: str,
     post_data: CreateModel,
     token=Depends(auth_depends_user_id),
 ):
@@ -59,7 +58,7 @@ async def create_route(
 
 @router.post("/update", status_code=status.HTTP_200_OK, response_model=GetModel)
 async def update_route(
-    user_id: uuid.UUID,
+    user_id: str,
     post_data: UpdateModel,
     token=Depends(auth_depends_user_id),
 ):

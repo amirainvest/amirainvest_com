@@ -1,4 +1,3 @@
-import uuid
 from typing import List, Tuple
 
 from sqlalchemy import func, insert, update
@@ -37,7 +36,7 @@ async def get_controller(session: AsyncSession, post_id: int):
 
 
 @Session
-async def update_controller(session: AsyncSession, user_id: uuid.UUID, update_data: UpdateModel) -> Row:
+async def update_controller(session: AsyncSession, user_id: str, update_data: UpdateModel) -> Row:
     return (
         await (
             session.execute(
@@ -52,7 +51,7 @@ async def update_controller(session: AsyncSession, user_id: uuid.UUID, update_da
 
 
 @Session
-async def create_controller(session: AsyncSession, user_id: uuid.UUID, create_data: CreateModel) -> Row:
+async def create_controller(session: AsyncSession, user_id: str, create_data: CreateModel) -> Row:
     create_data_dict = create_data.dict(exclude_none=True)
     create_data_dict["creator_id"] = user_id
     # TODO add post to cache

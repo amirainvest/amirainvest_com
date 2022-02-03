@@ -28,7 +28,7 @@ def keep_message_alive(message, timeout: int = 60):
         message.change_visibility(VisibilityTimeout=timeout)
 
 
-def consume_queue(queue_name: str, func: t.Callable, timeout: int = 60):
+async def consume_queue(queue_name: str, func: t.Callable, timeout: int = 60):
     queue: Queue = sqs_resource.Queue(queue_name)
     while True:
         try:
@@ -37,7 +37,7 @@ def consume_queue(queue_name: str, func: t.Callable, timeout: int = 60):
             process.start()
             data = json.loads(message.body)
             try:
-                func(**data)
+                await func(**data)
             except Exception:
                 try:
                     raise Exception()

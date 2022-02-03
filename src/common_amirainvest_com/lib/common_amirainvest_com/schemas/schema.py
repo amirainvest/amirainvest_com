@@ -1,8 +1,10 @@
 import datetime
 import enum
+import typing as t
 import uuid
 from typing import List, Optional
 
+import faker
 from pydantic import BaseModel
 from sqlalchemy import (
     ARRAY,
@@ -17,7 +19,7 @@ from sqlalchemy import (
     text,
     UniqueConstraint,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.sql import expression
@@ -34,6 +36,15 @@ class UTCNow(expression.FunctionElement):  # type: ignore[name-defined]
 @compiles(UTCNow, "postgresql")
 def pg_utcnow(element, compiler, **kw):
     return "TIMEZONE('utc', CURRENT_TIMESTAMP)"
+
+
+def generate_uuid_string() -> str:
+    return str(uuid.uuid4())
+
+
+class FactoryInfo(BaseModel):
+    default: t.Union[bool, str, uuid.UUID, int, datetime.datetime]
+    generator: t.Optional[t.Tuple[t.Callable, t.Any]]
 
 
 class ToDict:
@@ -65,7 +76,7 @@ class MediaPlatform(enum.Enum):
 
 class JobsStatus(enum.Enum):
     pending = "pending"
-    running = "lower"
+    running = "running"
     succeeded = "succeeded"
     failed = "failed"
 
@@ -76,19 +87,34 @@ class Users(Base, ToDict):
         UUID(as_uuid=False),
         primary_key=True,
         unique=True,
-        default=uuid.uuid4(),
+        default=generate_uuid_string,
         server_default=text("uuid_generate_v4()"),
     )
 
-    email = Column(String, unique=True, nullable=False)
-    username = Column(String, unique=True, nullable=False)
+    benchmark = Column(Integer, ForeignKey("securities.id"), nullable=False)
 
-    sub = Column(String, unique=True)
+    email = Column(
+        String,
+        unique=True,
+        nullable=False,
+        info={"factory": FactoryInfo(default="", generator=(faker.Faker().email, None)).dict()},
+    )
+    username = Column(
+        String,
+        unique=True,
+        nullable=False,
+        info={"factory": FactoryInfo(default="", generator=(faker.Faker().name, None)).dict()},
+    )
+
+    sub = Column(
+        String,
+        nullable=False,
+        info={"factory": FactoryInfo(default="", generator=(faker.Faker().name, None)).dict()},
+    )
 
     first_name = Column(String, nullable=False)
     last_name = Column(String, nullable=False)
 
-    benchmark = Column(String)
     bio = Column(String)
     chip_labels = Column(ARRAY(String))
     deleted_at = Column(DateTime)
@@ -228,7 +254,7 @@ class UserFeedbackModel(BaseModel):
 
 class SubstackUsers(Base, ToDict):
     __tablename__ = "substack_users"
-    id = Column(Integer, primary_key=True, autoincrement=False)
+    id = Column(Integer, primary_key=True, autoincrement=True)
 
     username = Column(String, nullable=False)
     creator_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -242,7 +268,7 @@ class SubstackArticles(Base, ToDict):
     __tablename__ = "substack_articles"
     article_id = Column(String, primary_key=True, unique=True, nullable=False)
 
-    username = Column(String, ForeignKey("substack_users.username", ondelete="CASCADE"), nullable=False)
+    substack_user = Column(Integer, ForeignKey("substack_users.id", ondelete="CASCADE"), nullable=False)
 
     title = Column(String, nullable=False)
     summary = Column(String, nullable=False)
@@ -549,13 +575,25 @@ class FinancialInstitutions(Base, ToDict):
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
 
+class PlaidItems(Base, ToDict):
+    __tablename__ = "plaid_items"
+    id = Column(Integer, primary_key=True, unique=True, nullable=False, autoincrement=True)
+
+    user_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+
+    plaid_item_id = Column(String, unique=True, nullable=False)
+
+    institution_id = Column(Integer, ForeignKey("financial_institutions.id"))
+
+
 class FinancialAccounts(Base, ToDict):
     __tablename__ = "financial_accounts"
     id = Column(Integer, primary_key=True, unique=True, nullable=False, autoincrement=True)
 
     user_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    plaid_item_id = Column(Integer, ForeignKey("plaid_items.id"), nullable=False)
 
-    plaid_id = Column(String, unique=True)
+    plaid_id = Column(String, unique=True, nullable=False)
 
     available_to_withdraw = Column(DECIMAL(19, 4))
     current_funds = Column(DECIMAL(19, 4))
@@ -563,7 +601,6 @@ class FinancialAccounts(Base, ToDict):
     limit = Column(DECIMAL(19, 4))
     mask = Column(String)
     official_account_name = Column(String)
-    plaid_item_id = Column(String)
     sub_type = Column(String)
     type = Column(String)
     unofficial_currency_code = Column(String)
@@ -578,7 +615,7 @@ class FinancialAccountTransactions(Base, ToDict):
     id = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
 
     account_id = Column(Integer, ForeignKey("financial_accounts.id"), nullable=False)
-    security_id = Column(Integer, ForeignKey("securities.id"))
+    security_id = Column(Integer, ForeignKey("plaid_securities.id"))
 
     plaid_investment_transaction_id = Column(String, unique=True, nullable=False)
 
@@ -626,7 +663,9 @@ class PlaidSecurities(Base, ToDict):
     financial_institution_id = Column(Integer, ForeignKey("financial_institutions.id"))
 
     plaid_security_id = Column(String, unique=True)
-    ticker_symbol = Column(String, unique=True)
+    ticker_symbol = Column(
+        String, unique=True, info={"factory": FactoryInfo(default="", generator=(faker.Faker().name, None)).dict()}
+    )
 
     name = Column(String, nullable=False)
 
@@ -665,9 +704,10 @@ class BrokerageJobs(Base, ToDict):
 
     retries = Column(Integer, server_default="0", nullable=False)
 
-    params = Column(String)
-    started_at = Column(DateTime)
     ended_at = Column(DateTime)
+    error = Column(String)
+    params = Column(JSONB)
+    started_at = Column(DateTime)
 
     created_at = Column(DateTime, server_default=UTCNow())
 
@@ -676,9 +716,16 @@ class Securities(Base, ToDict):
     __tablename__ = "securities"
     id = Column(Integer, primary_key=True, unique=True, nullable=False, autoincrement=True)
 
-    collect = Column(Boolean, server_default=expression.false(), index=True)
+    collect = Column(Boolean, default=False, server_default=expression.false(), index=True)
+    is_benchmark = Column(Boolean, default=False, server_default=expression.false(), index=True)
 
-    ticker_symbol: str = Column(String, unique=True, nullable=False)
+    human_readable_name = Column(String, unique=True, info={"note": "This is manually populated for benchmarks"})
+    ticker_symbol: str = Column(
+        String,
+        unique=True,
+        nullable=False,
+        info={"factory": FactoryInfo(default="", generator=(faker.Faker().name, None)).dict()},
+    )
 
     close_price = Column(DECIMAL(19, 4), nullable=False)
     name = Column(String, nullable=False)
@@ -713,14 +760,7 @@ class SecurityPrices(Base, ToDict):
     price_time = Column(DateTime, nullable=False)
 
     created_at = Column(DateTime, server_default=UTCNow())
-    
-    
-class Benchmarks(Base, ToDict):
-    __tablename__ = "benchmarks"
-    id = Column(Integer, primary_key=True, unique=True, autoincrement=True)
-    ticker_symbol = Column(String, ForeignKey("securities.ticker_symbol"), nullable=False)
-    benchmark = Column(String, ForeignKey("users.benchmark"), nullable=False)
-    
+
 
 class TradingStrategies(Base, ToDict):
     __tablename__ = "trading_strategies"

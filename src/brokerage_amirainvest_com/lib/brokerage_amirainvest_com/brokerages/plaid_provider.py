@@ -119,13 +119,11 @@ class PlaidRepository:
                 type=sec.type.value if sec.type is not None else None,
                 iso_currency_code=sec.iso_currency_code,
                 unofficial_currency_code=sec.unofficial_currency_code,
+                financial_institution_id=None,
             )
 
-            try:
-                internal_institution_id = existing_institutions_dict[str(sec.institution_id)]
-                security_dao.institution_id = internal_institution_id
-            except KeyError:
-                security_dao.institution_id = None
+            if str(sec.institution_id) in existing_institutions_dict:
+                security_dao.financial_institution_id = existing_institutions_dict[str(sec.institution_id)]
 
             securities_to_insert.append(security_dao)
         session.add_all(securities_to_insert)

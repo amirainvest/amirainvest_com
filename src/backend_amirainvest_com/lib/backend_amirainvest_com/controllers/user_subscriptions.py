@@ -3,7 +3,7 @@ import datetime
 from sqlalchemy import delete, update
 from sqlalchemy.future import select
 
-from common_amirainvest_com.schemas.schema import UserSubscriptions
+from common_amirainvest_com.schemas.schema import SubscriptionLevel, UserSubscriptions
 from common_amirainvest_com.utils.decorators import Session
 
 
@@ -26,7 +26,7 @@ async def create_user_subscription(session, subscriber_id: str, creator_id: str)
     subscription = UserSubscriptions(
         creator_id=creator_id,
         subscriber_id=subscriber_id,
-        subscription_level="standard",
+        subscription_level=SubscriptionLevel.standard,
         created_at=datetime.datetime.utcnow(),
         updated_at=datetime.datetime.utcnow(),
         is_deleted=False,

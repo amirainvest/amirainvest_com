@@ -19,8 +19,8 @@ class Factories:
         self._session_maker: sessionmaker = async_session_maker
         self._session: AsyncSession = async_session_maker()
         self._base = base
-        self._table_data = {}
-        self._overrides = {}
+        self._table_data: dict = {}
+        self._overrides: dict = {}
 
     async def gen(self, item, overrides: t.Optional[t.Dict] = None):
         self._table_data = {}
@@ -76,7 +76,7 @@ class Factories:
                 fk_key = fk.column.key
 
                 fk_pushed_table = self._table_data[fk_table]["pushed_instance"]
-                value = getattr(fk_pushed_table, fk_key)
+                value = getattr(fk_pushed_table, fk_key)  # type: ignore
             elif (
                 column.nullable is False
                 and column.default is None
@@ -84,9 +84,9 @@ class Factories:
                 and column.autoincrement is not True
             ):
                 if type(column.type) == sa.Enum:
-                    value = column.type.enums[0]
+                    value = column.type.enums[0]  # type: ignore
                 else:
-                    value = column_type_default[type(column.type)]()
+                    value = column_type_default[type(column.type)]()  # type: ignore
 
             if overrides is not None:
                 override_value = overrides.get(key)
@@ -96,7 +96,7 @@ class Factories:
             row_dict[key] = value
 
         dm_table: sa.orm.DeclarativeMeta = self._table_data[table]["declarative_meta"]
-        self._table_data[table]["pushed_instance"] = dm_table(**row_dict)
+        self._table_data[table]["pushed_instance"] = dm_table(**row_dict)  # type: ignore
         self._session.add(self._table_data[table]["pushed_instance"])
         await self._session.flush()
         await self._session.refresh(self._table_data[table]["pushed_instance"])

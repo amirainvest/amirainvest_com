@@ -10,7 +10,6 @@ from backend_amirainvest_com.api.backend.post_route.controller import get_redis_
 from backend_amirainvest_com.api.backend.post_route.model import FeedType
 from common_amirainvest_com.schemas.schema import Posts, PostsModel
 from common_amirainvest_com.utils.test.factories.redis_factories import posts_redis_factory
-from common_amirainvest_com.utils.test.factories.schema import PostsFactory, UsersFactory, UserSubscriptionsFactory
 
 from ...config import AUTH_HEADERS
 
@@ -95,12 +94,10 @@ async def test_list_subscriber_feed(mock_auth, factory):
     creator = await factory.gen("users")
     subscriber = await factory.gen("users")
     await factory.gen(
-        "user_subscriptions", {
-            "user_subscriptions": {
-                "creator_id": creator["users"].id,
-                "subscriber_id": subscriber["users"].id
-            },
-        }
+        "user_subscriptions",
+        {
+            "user_subscriptions": {"creator_id": creator["users"].id, "subscriber_id": subscriber["users"].id},
+        },
     )
     await mock_auth(subscriber["users"].id)
     for _ in range(0, PAGE_SIZE):
@@ -128,12 +125,10 @@ async def test_list_subscriber_feed_no_cache(mock_auth, factory):
     creator = await factory.gen("users")
     subscriber = await factory.gen("users")
     await factory.gen(
-        "user_subscriptions", {
-            "user_subscriptions": {
-                "creator_id": creator["users"].id,
-                "subscriber_id": subscriber["users"].id
-            },
-        }
+        "user_subscriptions",
+        {
+            "user_subscriptions": {"creator_id": creator["users"].id, "subscriber_id": subscriber["users"].id},
+        },
     )
     await mock_auth(subscriber["users"].id)
 
@@ -167,12 +162,10 @@ async def test_list_empty_subscriber_feed(mock_auth, factory):
     creator = await factory.gen("users")
     subscriber = await factory.gen("users")
     await factory.gen(
-        "user_subscriptions", {
-            "user_subscriptions": {
-                "creator_id": creator["users"].id,
-                "subscriber_id": subscriber["users"].id
-            },
-        }
+        "user_subscriptions",
+        {
+            "user_subscriptions": {"creator_id": creator["users"].id, "subscriber_id": subscriber["users"].id},
+        },
     )
     await mock_auth(subscriber["users"].id)
 
@@ -223,7 +216,7 @@ async def test_get_creator_feed_no_cache(factory):
     creator = await factory.gen("users")
 
     for _ in range(0, PAGE_SIZE):
-        post = await factory.gen("posts", {"posts": {"creator_id": creator["users"].id}})
+        await factory.gen("posts", {"posts": {"creator_id": creator["users"].id}})
 
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(

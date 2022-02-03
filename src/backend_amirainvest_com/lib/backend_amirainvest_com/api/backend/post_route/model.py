@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel, root_validator
 
-from common_amirainvest_com.schemas.schema import PostsModel, MediaPlatform, PostsModel as GetModel
+from common_amirainvest_com.schemas.schema import MediaPlatform, PostsModel, PostsModel as GetModel
 
 
 assert GetModel

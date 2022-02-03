@@ -23,12 +23,13 @@ async def test_create(async_session_maker_test, factory):
                     "provided_name": "Elon Musk",
                     "platform": "twitter",
                     "platform_id": "elonmusk",
-                    "requestor_id": requestor["users"].id
+                    "requestor_id": requestor["users"].id,
                 }
             ),
         )
     response_data = response.json()
     from pprint import pprint
+
     pprint(response.text)
     assert response.status_code == 201
 

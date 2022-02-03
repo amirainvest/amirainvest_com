@@ -31,7 +31,7 @@ async def get_like_creator(search_term: str):
             "last_name": user.last_name,
             "user_id": user.id,
             "benchmark": user.benchmark,
-            "chip_labels": user.chip_labels
+            "chip_labels": user.chip_labels,
         }
         for user in matching_users
     ]

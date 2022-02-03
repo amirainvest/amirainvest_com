@@ -1,6 +1,7 @@
+import uuid
 from decimal import Decimal
-from arrow import Arrow
 
+from arrow import Arrow
 from pydantic import BaseModel, validator
 
 
@@ -16,16 +17,21 @@ class Holding(BaseModel):
     market_value: Decimal
 
     @validator("ticker_price_time")
-    def format_start_date(cls, value):
+    def format_ticker_price_time(cls, value):
         if value is None:
             return None
         return value.datetime
 
     @validator("buy_date")
-    def format_start_date(cls, value):
+    def format_buy_date(cls, value):
         if value is None:
             return None
         return value.datetime
 
     class Config:
         arbitrary_types_allowed = True
+
+
+class PortfolioValue(BaseModel):
+    user_id: uuid.UUID
+    value: Decimal

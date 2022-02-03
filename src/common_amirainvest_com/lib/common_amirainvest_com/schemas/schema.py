@@ -1,6 +1,7 @@
 import datetime
 import enum
 import uuid
+from decimal import Decimal
 from typing import List, Optional
 
 from pydantic import BaseModel
@@ -544,7 +545,7 @@ class FinancialAccountTransactions(Base, ToDict):
     plaid_investment_transaction_id = Column(String, unique=True, nullable=False)
     posting_date = Column(DateTime, nullable=False)
     name = Column(String, nullable=False)
-    quantity = Column(DECIMAL, nullable=False)
+    quantity: Decimal = Column(DECIMAL, nullable=False)
     value_amount = Column(DECIMAL(19, 4), nullable=False)
     price = Column(DECIMAL(19, 4), nullable=False)
     fees = Column(DECIMAL(19, 4))

@@ -4,14 +4,16 @@ import os
 from enum import Enum
 from json import JSONDecodeError
 
+import pkg_resources
 import plaid  # type: ignore
-import redis
 import sentry_sdk
 from sentry_sdk.integrations.redis import RedisIntegration
 from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 from sentry_sdk.utils import BadDsn
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
+
+import redis
 
 
 __all__ = [
@@ -35,6 +37,7 @@ __all__ = [
     "IEX_URL",
     "IEX_PUBLISHABLE",
     "IEX_SECRET",
+    "async_engine",
 ]
 
 
@@ -78,6 +81,7 @@ try:
         request_bodies="always",
         integrations=integrations,
         debug=True if DEBUG == "true" else False,
+        release=pkg_resources.get_distribution("common_amirainvest_com").version,
     )
 except (BadDsn, JSONDecodeError):
     if ENVIRONMENT != Environments.local.value:
@@ -139,8 +143,7 @@ async_session_maker = sessionmaker(
 )
 
 # https://github.com/redis/redis-py
-_redis_connection_pool = redis.ConnectionPool(**WEBCACHE_DICT)
-WEBCACHE = redis.Redis(connection_pool=_redis_connection_pool, health_check_interval=30)
+WEBCACHE = redis.Redis(health_check_interval=30, ssl=True, ssl_cert_reqs=None, **WEBCACHE_DICT)
 
 if __name__ == "__main__":
     print(decode_env_var("brokerages"))

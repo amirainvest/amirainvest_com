@@ -3,6 +3,7 @@ import datetime
 from typing import List
 
 from common_amirainvest_com.schemas.schema import Securities, SecurityPrices
+from common_amirainvest_com.utils.consts import async_engine
 from common_amirainvest_com.utils.logger import log
 from market_data_amirainvest_com.iex import get_stock_quote_prices
 from market_data_amirainvest_com.models.iex import StockQuote
@@ -51,6 +52,8 @@ async def run():
     except Exception as err:
         log.exception(err)
         raise err
+    finally:
+        await async_engine.dispose()
 
 
 def round_time_to_minute_floor(tm: datetime.datetime) -> datetime.datetime:
@@ -64,9 +67,5 @@ def get_security_id(securities: list[Securities], symbol: str) -> int:
     return -1
 
 
-async def main():
-    await run()
-
-
 def handler(event, context):
-    asyncio.run(main())
+    asyncio.run(run())

@@ -63,12 +63,9 @@ class Users(Base, ToDict):
     personal_site_url = Column(String)
     linkedin_profile = Column(String)
     email_verified = Column(Boolean, default=False)
-    interests_value = Column(Boolean)
-    interests_growth = Column(Boolean)
-    interests_long_term = Column(Boolean)
-    interests_short_term = Column(Boolean)
     interests_diversification_rating = Column(Integer)
     benchmark = Column(String)
+    trading_strategies = Column(ARRAY(String))
     chip_labels = Column(ARRAY(String))
     public_profile = Column(Boolean)
     public_performance = Column(Boolean)
@@ -94,12 +91,9 @@ class UsersModel(BaseModel):
     personal_site_url: Optional[str]
     linkedin_profile: Optional[str]
     email_verified: bool
-    interests_value: Optional[bool]
-    interests_growth: Optional[bool]
-    interests_long_term: Optional[bool]
-    interests_short_term: Optional[bool]
     interests_diversification_rating: Optional[int]
     benchmark: Optional[str]
+    trading_strategies: Optional[List[str]]
     chip_labels: Optional[List[str]]
     public_profile: Optional[bool]
     public_performance: Optional[bool]
@@ -111,6 +105,24 @@ class UsersModel(BaseModel):
     deleted_at: Optional[datetime.datetime]
     created_at: Optional[datetime.datetime]
     updated_at: Optional[datetime.datetime]
+
+
+class Benchmarks(Base):
+    __tablename__ = "benchmarks"
+    id = Column(Integer, primary_key=True, unique=True)
+    name = Column(String)
+
+
+class TradingStrategies(Base):
+    __tablename__ = "trading_strategies"
+    id = Column(Integer, primary_key=True, unique=True)
+    name = Column(String)
+
+
+class ChipLabels(Base):
+    __tablename__ = "chip_labels"
+    id = Column(Integer, primary_key=True, unique=True)
+    name = Column(String)
 
 
 class BroadcastRequests(Base, ToDict):
@@ -177,6 +189,23 @@ class UserMediaErrors(Base, ToDict):
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
     creator: Users = relationship("Users", backref="user_media_errors", passive_deletes=True, cascade="all,delete")
+
+
+class UserFeedback(Base, ToDict):
+    __tablename__ = "user_feedback"
+    id = Column(Integer, primary_key=True, unique=True)
+    user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    text = Column(String, nullable=False)
+    created_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
+
+    user: Users = relationship("Users", backref="user_feedback", passive_deletes=True, cascade="all,delete")
+
+
+class UserFeedbackModel(BaseModel):
+    id: int
+    user_id: uuid.UUID
+    text: str
+    created_at: Optional[datetime.datetime]
 
 
 class SubstackUsers(Base, ToDict):
@@ -450,21 +479,27 @@ class BookmarkModel(BaseModel):
     is_deleted: bool
 
 
+class HuskPlatforms(enum.Enum):
+    youtube = "YouTube"
+    substack = "Substack"
+    twitter = "Twitter"
+
+
 class HuskRequests(Base, ToDict):
     __tablename__ = "husk_requests"
     id = Column(Integer, primary_key=True, unique=True)
-    twitter_user_id = Column(String)
-    youtube_channel_id = Column(String)
-    substack_username = Column(String)
+    provided_name = Column(String, nullable=False)
+    platform_id = Column(String, nullable=False)
+    platform = Column(Enum(HuskPlatforms), nullable=False)
     created_at = Column(DateTime, server_default=UTCNow())
     fulfilled = Column(Boolean)
 
 
 class HuskRequestsModel(BaseModel):
     id: int
-    twitter_user_id: Optional[str]
-    youtube_channel_id: Optional[str]
-    substack_username: Optional[str]
+    provided_name: str
+    platform: HuskPlatforms
+    platform_id: str
     created_at: Optional[datetime.datetime]
     fulfilled: Optional[bool]
 

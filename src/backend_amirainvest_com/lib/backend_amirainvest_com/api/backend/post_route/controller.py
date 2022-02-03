@@ -1,12 +1,12 @@
 import uuid
 from typing import List, Tuple
 
-import redis  # noqa: F401
 from sqlalchemy import func, insert, update
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
+import redis  # noqa: F401
 from backend_amirainvest_com.api.backend.post_route.model import (
     CreateModel,
     FeedType,

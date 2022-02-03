@@ -15,21 +15,25 @@ class ListModel(BaseModel):
 
 
 class UserUpdate(BaseModel):
-    name: Optional[str]
+    first_name: Optional[str]
+    last_name: Optional[str]
+    benchmark: Optional[int]
     bio: Optional[str]
-    personal_site_url: Optional[str]
+    chip_labels: Optional[List[str]]
+    interests_diversification_rating: Optional[int]
     linkedin_profile: Optional[str]
+    personal_site_url: Optional[str]
+    picture_url: Optional[str]
+    public_holdings: Optional[bool]
+    public_performance: Optional[bool]
+    public_profile: Optional[bool]
+    public_trades: Optional[bool]
+
     interests_value: Optional[bool]
     interests_growth: Optional[bool]
     interests_long_term: Optional[bool]
     interests_short_term: Optional[bool]
-    interests_diversification_rating: Optional[int]
-    benchmark: Optional[str]
-    chip_labels: Optional[List[str]]
-    public_profile: Optional[bool]
-    public_performance: Optional[bool]
-    public_holdings: Optional[bool]
-    public_trades: Optional[bool]
+
     is_deactivated: Optional[bool]
     is_deleted: Optional[bool]
 
@@ -39,9 +43,11 @@ class InitReturnModel(BaseModel):
 
 
 class InitPostModel(BaseModel):
-    name: str
+    first_name: str
+    last_name: str
     username: str
     email: str
+    benchmark: int
 
 
 class Http409Enum(Enum):

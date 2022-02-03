@@ -48,7 +48,8 @@ async def search_users(token=Depends(auth_depends_user_id)):
 @router.post("/update", status_code=status.HTTP_200_OK, response_model=UsersModel)
 async def update_route(user_data: UserUpdate, token=Depends(auth_depends_user_id)):
     user_id = token["https://amirainvest.com/user_id"]
-    return (await update_controller(user_id=user_id, user_data=user_data))._asdict()
+    response = await update_controller(user_id=user_id, user_data=user_data)
+    return response._asdict()
 
 
 @router.post("/upload/profile_picture", status_code=status.HTTP_200_OK, response_model=UsersModel)

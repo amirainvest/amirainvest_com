@@ -460,14 +460,8 @@ class Bookmarks(Base, ToDict):
     post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(DateTime, server_default=UTCNow())
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
-    is_deleted = Column(Boolean, nullable=False)
-
-    user: Users = relationship(
-        "Users", backref="bookmarker", passive_deletes=True, cascade="all,delete", foreign_keys=[user_id]
-    )
-    post: Posts = relationship(
-        "Posts", backref="bookmarked_post", passive_deletes=True, cascade="all,delete", foreign_keys=[post_id]
-    )
+    # TODO check how this delete works. Currently we delete the record. Change to is_delete = True instead
+    # TODO when adding a bookmark check if it already exists, if it does change is_deleted don't add a new one
 
 
 class BookmarkModel(BaseModel):

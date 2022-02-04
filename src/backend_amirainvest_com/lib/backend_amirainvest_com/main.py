@@ -20,7 +20,7 @@ class ProductionUvicornWorker(UvicornWorker):
 
 
 def local_run():
-    uvicorn.run(app, port=5000, host="0.0.0.0", reload=True)
+    uvicorn.run("main:app", port=5000, host="0.0.0.0", reload=True)
 
 
 if __name__ == "__main__":

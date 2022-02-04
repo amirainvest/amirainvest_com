@@ -154,7 +154,7 @@ class UsersModel(BaseModel):
     interests_diversification_rating: Optional[int]
     linkedin_profile: Optional[str]
     personal_site_url: Optional[str]
-    picture_ur: Optional[str]
+    picture_url: Optional[str]
     public_holdings: Optional[bool]
     public_performance: Optional[bool]
     public_profile: Optional[bool]

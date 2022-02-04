@@ -1,9 +1,7 @@
 import datetime
-import uuid
 
 from fastapi import HTTPException, status
 from sqlalchemy import delete, insert, update
-from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
@@ -27,7 +25,7 @@ async def list_controller(session):
 
 
 @Session
-async def update_controller(session, user_id: str, user_data: UserUpdate) -> Row:
+async def update_controller(session, user_id: str, user_data: UserUpdate) -> Users:
     user_data_dict = user_data.dict(exclude_none=True)
     if user_data.is_deleted is True:
         user_data_dict["deleted_at"] = datetime.datetime.utcnow()
@@ -78,7 +76,7 @@ async def handle_user_create(user_data: dict):
 
 
 @Session
-async def create_controller(session: AsyncSession, user_data: InitPostModel, sub: str) -> uuid.UUID:
+async def create_controller(session: AsyncSession, user_data: InitPostModel, sub: str) -> str:
     result = (await session.execute(select(Users.id, Users.email).where(Users.sub == sub))).one_or_none()
 
     if result is None:
@@ -111,5 +109,5 @@ async def create_controller(session: AsyncSession, user_data: InitPostModel, sub
 
 
 @Session
-async def delete_controller(session: AsyncSession, user_id: uuid.UUID, sub: str):
+async def delete_controller(session: AsyncSession, user_id: str, sub: str):
     await session.execute(delete(Users).where(Users.id == user_id).where(Users.sub == sub))

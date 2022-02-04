@@ -1,5 +1,4 @@
 import abc
-import uuid
 from typing import Optional
 
 from common_amirainvest_com.dynamo.models import BrokerageUser
@@ -7,14 +6,14 @@ from common_amirainvest_com.dynamo.models import BrokerageUser
 
 class BrokerageInterface(abc.ABC):
     @abc.abstractmethod
-    async def collect_investment_history(self, user_id: uuid.UUID, item_id: str):
+    async def collect_investment_history(self, user_id: str, item_id: str):
         """
         Gets the history of a transaction...?
         """
         ...
 
     @abc.abstractmethod
-    async def collect_current_holdings(self, user_id: uuid.UUID, item_id: str):
+    async def collect_current_holdings(self, user_id: str, item_id: str):
         """
         Gets a list of institutions
         """

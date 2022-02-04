@@ -1,4 +1,3 @@
-import uuid
 from typing import List
 
 from fastapi import APIRouter, Depends, File, HTTPException, status, UploadFile
@@ -28,7 +27,7 @@ router = APIRouter(prefix="/user", tags=["User"])
 
 
 @router.post("/get", status_code=status.HTTP_200_OK, response_model=UsersModel)
-async def get_route(user_id: uuid.UUID, token=Depends(auth_depends_user_id)):
+async def get_route(user_id: str, token=Depends(auth_depends_user_id)):
     return (
         await get_controller(
             user_id,
@@ -49,12 +48,13 @@ async def search_users(token=Depends(auth_depends_user_id)):
 @router.post("/update", status_code=status.HTTP_200_OK, response_model=UsersModel)
 async def update_route(user_data: UserUpdate, token=Depends(auth_depends_user_id)):
     user_id = token["https://amirainvest.com/user_id"]
-    return (await update_controller(user_id=user_id, user_data=user_data))._asdict()
+    response = await update_controller(user_id=user_id, user_data=user_data)
+    return response._asdict()
 
 
 @router.post("/upload/profile_picture", status_code=status.HTTP_200_OK, response_model=UsersModel)
 async def upload_profile_picture_route(
-    user_id: uuid.UUID, image: UploadFile = File(...), token=Depends(auth_depends_user_id)
+    user_id: str, image: UploadFile = File(...), token=Depends(auth_depends_user_id)
 ):
     s3_file_url = uploads.upload_profile_photo(image.file.read(), image.filename, user_id)
     user = await get_controller(
@@ -90,6 +90,6 @@ async def create_route(user_data: InitPostModel, token=Depends(auth_depends)):
 
 
 @router.post("/delete", status_code=status.HTTP_200_OK)
-async def delete_route(user_id: uuid.UUID, token=Depends(auth_depends_user_id)):
+async def delete_route(user_id: str, token=Depends(auth_depends_user_id)):
     sub = token["sub"]
     await delete_controller(user_id, sub)

@@ -149,7 +149,7 @@ class Users(Base, ToDict):
 
 class UsersModel(BaseModel):
     id: str
-    
+
     email: str
     username: str
 
@@ -773,34 +773,34 @@ class SecurityPrices(Base, ToDict):
 
 
 class Notifications(Base, ToDict):
-    __tablename__ = 'notifications'
+    __tablename__ = "notifications"
     id = Column(BigInteger, primary_key=True, unique=True, nullable=False)
     user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     notification_type = Column(Enum(NotificationTypes), nullable=False)
-    text = Column(String, nullable = False)
-    redirect_id = Column(String, nullable = False)
+    text = Column(String, nullable=False)
+    redirect_id = Column(String, nullable=False)
     mark_as_read = Column(Boolean, default=False, nullable=False)
     is_deleted = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime, server_default=UTCNow())
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
-    #TODO: change mark_as_read to is_read and redirect_id to redirect
-    #TODO: update text to be "body" which has details. Will include redirect. Or change schema so front end doesn't parse
+    # TODO: change mark_as_read to is_read and redirect_id to redirect
+    # TODO: update text to be "body" which has details. Will include redirect. Or change schema so front end doesn't parse
 
 
 class NotificationsModel(BaseModel):
     id: int
     user_id: uuid.UUID
     notification_type: NotificationTypes
-    text : str
-    redirect_id : str
+    text: str
+    redirect_id: str
     mark_as_read: Optional[bool]
-    is_deleted : Optional[bool]
+    is_deleted: Optional[bool]
     created_at: Optional[datetime.datetime]
     updated_at: Optional[datetime.datetime]
 
 
 class NotificationSettings(Base, ToDict):
-    __tablename__ = 'notification_settings'
+    __tablename__ = "notification_settings"
     id = Column(BigInteger, primary_key=True, unique=True, nullable=False)
     user_id: uuid.UUID = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     mention = Column(Boolean, default=True, nullable=False)
@@ -812,7 +812,7 @@ class NotificationSettings(Base, ToDict):
 
 
 class NotificationSettingsModel(BaseModel):
-    id : int
+    id: int
     user_id: uuid.UUID
     mention: Optional[bool]
     upvotes: Optional[bool]

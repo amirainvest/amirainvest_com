@@ -37,7 +37,7 @@ router = APIRouter(
     status_code=status.HTTP_200_OK,
     response_model=List[NotificationsModel],
 )
-async def list_route(user_id: uuid.UUID):
+async def list_route(user_id: str):
     all_notifications = await list_controller(user_id)
     return [notification.__dict__ for notification in all_notifications]
 
@@ -49,7 +49,7 @@ async def list_route(user_id: uuid.UUID):
     status_code=status.HTTP_200_OK,
     response_model=NotificationsModel,
 )
-async def update_route(user_id: uuid.UUID, update_data: UpdateModel):
+async def update_route(user_id: str, update_data: UpdateModel):
     return (
         await update_controller(
             user_id,
@@ -68,7 +68,7 @@ async def update_route(user_id: uuid.UUID, update_data: UpdateModel):
     status_code=status.HTTP_200_OK,
     response_model=NotificationSettingsModel,
 )
-async def get_settings_route(user_id: uuid.UUID):
+async def get_settings_route(user_id: str):
     return (await get_settings_controller(user_id)).__dict__
 
 
@@ -79,7 +79,7 @@ async def get_settings_route(user_id: uuid.UUID):
     status_code=status.HTTP_200_OK,
     response_model=NotificationSettingsModel,
 )
-async def update_settings_route(user_id: uuid.UUID, update_data: UpdateSettingsModel):
+async def update_settings_route(user_id: str, update_data: UpdateSettingsModel):
     return (
         await update_settings_controller(
             user_id,
@@ -95,6 +95,6 @@ async def update_settings_route(user_id: uuid.UUID, update_data: UpdateSettingsM
     status_code=status.HTTP_200_OK,
     response_model=InitReturnSettingsModel,
 )
-async def create_settings_controller(user_id: uuid.UUID, create_data: CreateSettingsModel):
+async def create_settings_route(user_id: str, create_data: CreateSettingsModel):
     settings_id = await create_settings_controller(user_id, create_data)
     return InitReturnSettingsModel(id=settings_id)

@@ -17,7 +17,7 @@ from common_amirainvest_com.utils.decorators import Session
 
 # notifications controllers
 @Session
-async def list_controller(session: AsyncSession, user_id: uuid.UUID):
+async def list_controller(session: AsyncSession, user_id: str):
     return (
         (
             await session.execute(
@@ -30,7 +30,7 @@ async def list_controller(session: AsyncSession, user_id: uuid.UUID):
 
 
 @Session
-async def update_controller(session: AsyncSession, user_id: uuid.UUID, update_data: UpdateModel) -> Row:
+async def update_controller(session: AsyncSession, user_id: str, update_data: UpdateModel) -> Row:
     return (
         await (
             session.execute(
@@ -61,7 +61,7 @@ async def update_controller(session: AsyncSession, user_id: uuid.UUID, update_da
 
 
 @Session
-async def get_settings_controller(session: AsyncSession, user_id: uuid.UUID):
+async def get_settings_controller(session: AsyncSession, user_id: str):
     return (
         (await (session.execute(select(NotificationSettings).where(NotificationSettings.user_id == user_id))))
         .scalars()
@@ -71,7 +71,7 @@ async def get_settings_controller(session: AsyncSession, user_id: uuid.UUID):
 
 @Session
 async def update_settings_controller(
-    session: AsyncSession, user_id: uuid.UUID, update_data: UpdateSettingsModel
+    session: AsyncSession, user_id: str, update_data: UpdateSettingsModel
 ) -> Row:
     return (
         await (
@@ -88,10 +88,10 @@ async def update_settings_controller(
 
 @Session
 async def create_settings_controller(
-    session: AsyncSession, user_id: uuid.UUID, create_data: CreateSettingsModel
+    session: AsyncSession, user_id: str, create_data: CreateSettingsModel
 ) -> Row:
     result = (
-        await session.execute(select(NotificationSettings.id).where(NotificationSettings.user_id == user_id))
+        await session.execute(select(NotificationSettings.id).where(NotificationSettings.user_id == str(user_id)))
     ).one_or_none()
 
     if result is None:

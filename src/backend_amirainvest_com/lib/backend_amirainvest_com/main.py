@@ -1,6 +1,8 @@
 import uvicorn  # type: ignore
 from uvicorn.workers import UvicornWorker  # type: ignore
 
+from backend_amirainvest_com.api.app import app
+
 
 class ProductionUvicornWorker(UvicornWorker):
     CONFIG_KWARGS = {

@@ -18,9 +18,7 @@ FROM base as final
 RUN python -m venv $VIRTUALENV_PATH
 RUN /home/default/venv/bin/python -m pip install --upgrade pip
 RUN pip install poetry
-#RUN pip install debugpy
-#RUN apt update && apt upgrade
-#RUN apt-get install gdb
+
 
 COPY --chown=default:default poetry.lock pyproject.toml ./
 

@@ -91,7 +91,7 @@ class Users(Base, ToDict):
         server_default=text("uuid_generate_v4()"),
     )
 
-    benchmark = Column(Integer, ForeignKey("securities.id"), nullable=False)
+    benchmark = Column(Integer, ForeignKey("securities.id"), nullable=True)
 
     email = Column(
         String,
@@ -138,7 +138,6 @@ class Users(Base, ToDict):
 
 class UsersModel(BaseModel):
     id: str
-    benchmark: int
 
     email: str
     username: str
@@ -149,12 +148,13 @@ class UsersModel(BaseModel):
     last_name: str
 
     bio: Optional[str]
+    benchmark: Optional[int]
     chip_labels: Optional[list[str]]
     deleted_at: Optional[datetime.datetime]
     interests_diversification_rating: Optional[int]
     linkedin_profile: Optional[str]
     personal_site_url: Optional[str]
-    picture_ur: Optional[str]
+    picture_url: Optional[str]
     public_holdings: Optional[bool]
     public_performance: Optional[bool]
     public_profile: Optional[bool]

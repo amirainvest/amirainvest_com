@@ -19,6 +19,7 @@ RUN python -m venv $VIRTUALENV_PATH
 RUN /home/default/venv/bin/python -m pip install --upgrade pip
 RUN pip install poetry
 
+
 COPY --chown=default:default poetry.lock pyproject.toml ./
 
 COPY --chown=default:default ./src/common_amirainvest_com/pyproject.toml ./src/common_amirainvest_com/

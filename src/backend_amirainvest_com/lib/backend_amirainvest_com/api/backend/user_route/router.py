@@ -40,7 +40,14 @@ async def get_route(user_id: str, token=Depends(auth_depends_user_id)):
 async def search_users(token=Depends(auth_depends_user_id)):
     all_users = await list_controller()
     return [
-        {"name": user.name, "user_id": user.id, "benchmark": user.benchmark, "chip_labels": user.chip_labels}
+        {
+            "username": user.username,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "user_id": user.id,
+            "benchmark": user.benchmark,
+            "chip_labels": user.chip_labels,
+        }
         for user in all_users
     ]
 

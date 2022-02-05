@@ -9,7 +9,9 @@ from backend_amirainvest_com.utils.model import ErrorMessageModelBase, StatusDet
 class ListModel(BaseModel):
     user_id: str
 
-    name: Optional[str]
+    username: Optional[str]
+    first_name: Optional[str]
+    last_name: Optional[str]
     benchmark: Optional[str]
     chip_labels: Optional[List[str]]
 
@@ -47,7 +49,7 @@ class InitPostModel(BaseModel):
     last_name: str
     username: str
     email: str
-    benchmark: int
+    benchmark: Optional[int]
 
 
 class Http409Enum(Enum):

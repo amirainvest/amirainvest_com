@@ -775,7 +775,7 @@ class SecurityPrices(Base, ToDict):
 class Notifications(Base, ToDict):
     __tablename__ = "notifications"
     id = Column(BigInteger, primary_key=True, unique=True, nullable=False)
-    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     notification_type = Column(Enum(NotificationTypes), nullable=False)
     body = Column(String, nullable=False)
     redirect = Column(String, nullable=False)
@@ -783,8 +783,7 @@ class Notifications(Base, ToDict):
     is_deleted = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime, server_default=UTCNow())
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
-    # TODO: change mark_as_read to is_read and redirect_id to redirect
-    # TODO: update text to be "body" which has details. Will include redirect. Or change schema so front end doesn't parse
+    # TODO: update body to be a dict if needed
 
 
 class NotificationsModel(BaseModel):
@@ -802,7 +801,7 @@ class NotificationsModel(BaseModel):
 class NotificationSettings(Base, ToDict):
     __tablename__ = "notification_settings"
     id = Column(BigInteger, primary_key=True, unique=True, nullable=False)
-    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     mention = Column(Boolean, default=True, nullable=False)
     upvote = Column(Boolean, default=True, nullable=False)
     watchlist_price = Column(Boolean, default=True, nullable=False)

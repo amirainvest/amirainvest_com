@@ -1,17 +1,14 @@
-import uuid
-
 from sqlalchemy import insert, update
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from backend_amirainvest_com.api.backend.notifications.model import (
-    CreateModel,
+from backend_amirainvest_com.api.backend.notifications.model import (  # CreateModel,
     CreateSettingsModel,
     UpdateModel,
     UpdateSettingsModel,
 )
-from common_amirainvest_com.schemas.schema import Notifications, NotificationSettings, NotificationTypes
+from common_amirainvest_com.schemas.schema import Notifications, NotificationSettings
 from common_amirainvest_com.utils.decorators import Session
 
 
@@ -21,7 +18,7 @@ async def list_controller(session: AsyncSession, user_id: str):
     return (
         (
             await session.execute(
-                select(Notifications).where(Notifications.user_id == user_id).where(Notifications.is_deleted == False)
+                select(Notifications).where(Notifications.user_id == user_id).where(Notifications.is_deleted.is_(False))
             )
         )
         .scalars()
@@ -45,7 +42,7 @@ async def update_controller(session: AsyncSession, user_id: str, update_data: Up
 
 
 # @Session
-# async def create_controller(session: AsyncSession, user_id: uuid.UUID, create_data: CreateModel) -> Row:
+# async def create_controller(session: AsyncSession, user_id: str, create_data: CreateModel) -> Row:
 #     create_data_dict = create_data.dict(exclude_none=True)
 #     create_data_dict["user_id"] = user_id
 #     return (
@@ -70,9 +67,7 @@ async def get_settings_controller(session: AsyncSession, user_id: str):
 
 
 @Session
-async def update_settings_controller(
-    session: AsyncSession, user_id: str, update_data: UpdateSettingsModel
-) -> Row:
+async def update_settings_controller(session: AsyncSession, user_id: str, update_data: UpdateSettingsModel) -> Row:
     return (
         await (
             session.execute(
@@ -87,9 +82,7 @@ async def update_settings_controller(
 
 
 @Session
-async def create_settings_controller(
-    session: AsyncSession, user_id: str, create_data: CreateSettingsModel
-) -> Row:
+async def create_settings_controller(session: AsyncSession, user_id: str, create_data: CreateSettingsModel) -> Row:
     result = (
         await session.execute(select(NotificationSettings.id).where(NotificationSettings.user_id == str(user_id)))
     ).one_or_none()

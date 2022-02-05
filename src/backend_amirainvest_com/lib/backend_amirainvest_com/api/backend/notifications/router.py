@@ -1,7 +1,6 @@
-import uuid
 from typing import List
 
-from fastapi import APIRouter, Depends, Security, status
+from fastapi import APIRouter, Security, status  # , Depends
 
 from backend_amirainvest_com.api.backend.notifications.controller import (  # create_controller,
     create_settings_controller,
@@ -10,8 +9,7 @@ from backend_amirainvest_com.api.backend.notifications.controller import (  # cr
     update_controller,
     update_settings_controller,
 )
-from backend_amirainvest_com.api.backend.notifications.model import (
-    CreateModel,
+from backend_amirainvest_com.api.backend.notifications.model import (  # CreateModel,
     CreateSettingsModel,
     InitReturnSettingsModel,
     NotificationSettingsModel,
@@ -19,12 +17,12 @@ from backend_amirainvest_com.api.backend.notifications.model import (
     UpdateModel,
     UpdateSettingsModel,
 )
-from backend_amirainvest_com.controllers.auth import auth_dep, auth_depends_user_id
+from backend_amirainvest_com.controllers.auth import auth_dep  # , auth_depends_user_id
 
 
 router = APIRouter(
-    prefix="/notifications", tags=["Notifications / Settings"]
-)  # , dependencies=[Security(auth_dep, scopes=[])])
+    prefix="/notifications", tags=["Notifications / Settings"], dependencies=[Security(auth_dep, scopes=[])]
+)
 
 
 # Notifications are created from various jobs. They are read and updated via the API
@@ -75,7 +73,7 @@ async def get_settings_route(user_id: str):
 @router.post(
     "/settings/update",
     summary="Updates user's notification settings",
-    description="This should run when a user makes a change to any of their notification settings within their account profile",
+    description="Runs when user makes change to their notification settings",
     status_code=status.HTTP_200_OK,
     response_model=NotificationSettingsModel,
 )
@@ -91,7 +89,7 @@ async def update_settings_route(user_id: str, update_data: UpdateSettingsModel):
 @router.post(
     "/settings/create",
     summary="Create a settings record on creation of a new user",
-    description="This runs when a new user profile is created. It creates a record in the settings table with their specific settings. All are True by default",
+    description="This runs when a new user profile is created",
     status_code=status.HTTP_200_OK,
     response_model=InitReturnSettingsModel,
 )

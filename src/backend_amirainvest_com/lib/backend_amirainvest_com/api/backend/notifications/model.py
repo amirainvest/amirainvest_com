@@ -1,5 +1,4 @@
-import uuid
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -18,7 +17,7 @@ class CreateModel(NotificationsModel):
     is_deleted: Optional[bool]
 
 
-class UpdateModel(CreateModel):
+class UpdateModel(BaseModel):
     id: int
     is_read: Optional[bool]
     is_deleted: Optional[bool]

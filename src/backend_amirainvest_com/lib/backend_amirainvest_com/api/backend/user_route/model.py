@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import List, Optional
+#import uuid
 
 from pydantic import BaseModel
 
@@ -7,7 +8,7 @@ from backend_amirainvest_com.utils.model import ErrorMessageModelBase, StatusDet
 
 
 class ListModel(BaseModel):
-    user_id: uuid.UUID
+    user_id: str #uuid.UUID
 
     name: Optional[str]
     benchmark: Optional[str]

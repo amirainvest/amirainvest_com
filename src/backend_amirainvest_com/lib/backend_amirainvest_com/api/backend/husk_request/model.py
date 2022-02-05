@@ -3,15 +3,16 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from common_amirainvest_com.schemas.schema import HuskPlatforms, HuskRequestsModel as GetModel
+from common_amirainvest_com.schemas.schema import HuskRequestsModel as GetModel, MediaPlatform
 
 
 assert GetModel
 
 
 class CreateModel(BaseModel):
+    requestor_id: str
     provided_name: str
-    platform: HuskPlatforms
+    platform: MediaPlatform
     platform_id: str
     created_at: Optional[datetime.datetime]
     fulfilled: Optional[bool]

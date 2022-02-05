@@ -26,6 +26,12 @@ async def get_like_content(search_term: str):
 async def get_like_creator(search_term: str):
     matching_users = await search.get_like_creator(search_term=search_term)
     return [
-        {"name": user.name, "user_id": user.id, "benchmark": user.benchmark, "chip_labels": user.chip_labels}
+        {
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "user_id": user.id,
+            "benchmark": user.benchmark,
+            "chip_labels": user.chip_labels,
+        }
         for user in matching_users
     ]

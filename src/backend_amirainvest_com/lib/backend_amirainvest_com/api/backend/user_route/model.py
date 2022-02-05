@@ -6,9 +6,8 @@ from pydantic import BaseModel
 from backend_amirainvest_com.utils.model import ErrorMessageModelBase, StatusDetailModel
 
 
-
 class ListModel(BaseModel):
-    user_id: str 
+    user_id: str
 
     username: Optional[str]
     first_name: Optional[str]

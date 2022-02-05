@@ -58,6 +58,7 @@ async def auth_depends(data=Security(auth_dep, scopes=[])):
 async def auth_depends_user_id(data=Security(auth_dep, scopes=[])):
     if "https://amirainvest.com/user_id" not in data:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authenticated")
+    data["https://amirainvest.com/user_id"] = str(data["https://amirainvest.com/user_id"])
     return data
 
 

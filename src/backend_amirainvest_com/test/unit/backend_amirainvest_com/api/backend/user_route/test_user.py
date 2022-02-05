@@ -8,7 +8,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend_amirainvest_com.api.app import app
 from common_amirainvest_com.schemas.schema import Users
-from common_amirainvest_com.utils.test.factories.schema import UsersFactory
 
 from ...config import AUTH_HEADERS
 
@@ -20,50 +19,59 @@ async def test_not_authenticated():
     assert response.json() == {"detail": "Not authenticated"}
 
 
-async def test_get():
-    user = await UsersFactory()
+async def test_get(factory):
+    user = await factory.gen("users")
     async with AsyncClient(app=app, base_url="http://test") as async_client:
-        response = await async_client.post("/user/get", params={"user_id": user.id}, headers=AUTH_HEADERS)
+        response = await async_client.post("/user/get", params={"user_id": user["users"].id}, headers=AUTH_HEADERS)
         response_data = response.json()
         print(response_data)
 
 
-async def test_update(async_session_maker_test, mock_auth):
+async def test_update(async_session_maker_test, mock_auth, factory):
     session_test: AsyncSession = async_session_maker_test()
     sub_data = "fake"
 
-    user = await UsersFactory()
-    await mock_auth(user.id)
+    user = await factory.gen("users")
+    user_id = user["users"].id
+    await mock_auth(user_id)
 
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(
             "/user/update",
             headers=AUTH_HEADERS,
-            params={"user_id": str(user.id)},
             data=json.dumps(
-                {"is_deleted": True, "name": "Test Name 2", "username": "Test Username 2", "sub": sub_data}
+                {
+                    "is_deleted": True,
+                    "first_name": "FirstTest",
+                    "last_name": "LastTest",
+                    "username": "TestUser",
+                    "sub": sub_data,
+                }
             ),
         )
 
         assert response.status_code == status.HTTP_200_OK
         response_data = response.json()
-
-        data = (await session_test.execute(select(Users).where(Users.id == user.id))).scalars().first()
+        data = (await session_test.execute(select(Users).where(Users.id == user_id))).scalars().first()
+        assert data is not None
 
         assert response_data["is_deleted"] is True
         assert data.is_deleted is True
 
-        assert response_data["name"] == "Test Name 2"
-        assert data.name == "Test Name 2"
+        assert response_data["first_name"] == "FirstTest"
+        assert data.first_name == "FirstTest"
 
-        assert response_data["username"] == "Test Username"
-        assert data.username == "Test Username"
+        assert response_data["last_name"] == "LastTest"
+        assert data.last_name == "LastTest"
+
+        assert response_data["username"] == user["users"].username
+        assert data.username == user["users"].username
 
         assert response_data["sub"] != sub_data
         assert data.sub != sub_data
 
 
-async def test_create(async_session_maker_test, monkeypatch):
+async def test_create(async_session_maker_test, monkeypatch, factory):
     from backend_amirainvest_com.utils import auth0_utils
 
     async def update_user_app_metadata_mock(*args, **kwargs):
@@ -72,29 +80,31 @@ async def test_create(async_session_maker_test, monkeypatch):
     monkeypatch.setattr(auth0_utils, "update_user_app_metadata", update_user_app_metadata_mock)
 
     session_test: AsyncSession = async_session_maker_test()
-
+    security = await factory.gen("securities")
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(
             "/user/create",
             headers=AUTH_HEADERS,
             data=json.dumps(
                 {
-                    "name": "test_name test_last_name",
+                    "first_name": "test_first",
+                    "last_name": "test_last",
                     "username": "test_username",
                     "email": "test@gmail.com",
+                    "benchmark": security["securities"].id,
                 }
             ),
         )
 
-    response_data = response.json()
+        response_data = response.json()
 
-    assert response.status_code == status.HTTP_201_CREATED
+        assert response.status_code == status.HTTP_201_CREATED
 
-    user_id = response_data["id"]
-    assert (await session_test.execute(select(Users).where(Users.id == user_id))).one()
+        user_id = response_data["id"]
+        assert (await session_test.execute(select(Users).where(Users.id == user_id))).one()
 
 
-async def test_create_multiple(async_session_maker_test, monkeypatch: pytest.MonkeyPatch):
+async def test_create_multiple(async_session_maker_test, monkeypatch: pytest.MonkeyPatch, factory):
     from backend_amirainvest_com.utils import auth0_utils
 
     async def update_user_app_metadata_mock(*args, **kwargs):
@@ -103,16 +113,18 @@ async def test_create_multiple(async_session_maker_test, monkeypatch: pytest.Mon
     monkeypatch.setattr(auth0_utils, "update_user_app_metadata", update_user_app_metadata_mock)
 
     session_test: AsyncSession = async_session_maker_test()
-
+    security = await factory.gen("securities")
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response_1 = await async_client.post(
             "/user/create",
             headers=AUTH_HEADERS,
             data=json.dumps(
                 {
-                    "name": "test_name test_last_name",
+                    "first_name": "test_first",
+                    "last_name": "test_last",
                     "username": "test_username",
                     "email": "test@gmail.com",
+                    "benchmark": security["securities"].id,
                 }
             ),  # type: ignore
         )
@@ -122,9 +134,11 @@ async def test_create_multiple(async_session_maker_test, monkeypatch: pytest.Mon
             headers=AUTH_HEADERS,
             data=json.dumps(
                 {
-                    "name": "test_name test_last_name",
+                    "first_name": "test_first",
+                    "last_name": "test_last",
                     "username": "test_username",
                     "email": "test@gmail.com",
+                    "benchmark": security["securities"].id,
                 }
             ),  # type: ignore
         )
@@ -142,7 +156,7 @@ async def test_create_multiple(async_session_maker_test, monkeypatch: pytest.Mon
     assert (await session_test.execute(select(Users).where(Users.id == user_id_2))).one()
 
 
-async def test_create_multiple_missmatch_email(monkeypatch):
+async def test_create_multiple_missmatch_email(monkeypatch, factory):
     from backend_amirainvest_com.utils import auth0_utils
 
     async def update_user_app_metadata_mock(*args, **kwargs):
@@ -150,15 +164,18 @@ async def test_create_multiple_missmatch_email(monkeypatch):
 
     monkeypatch.setattr(auth0_utils, "update_user_app_metadata", update_user_app_metadata_mock)
 
+    security = await factory.gen("securities")
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response_1 = await async_client.post(
             "/user/create",
             headers=AUTH_HEADERS,
             data=json.dumps(
                 {
-                    "name": "test_name test_last_name",
+                    "first_name": "test_first",
+                    "last_name": "test_last",
                     "username": "test_username",
                     "email": "test@gmail.com",
+                    "benchmark": security["securities"].id,
                 }
             ),
         )
@@ -168,9 +185,11 @@ async def test_create_multiple_missmatch_email(monkeypatch):
             headers=AUTH_HEADERS,
             data=json.dumps(
                 {
-                    "name": "test_name test_last_name",
+                    "first_name": "test_name",
+                    "last_name": "test_last_name",
                     "username": "test_username",
                     "email": "test_bad@gmail.com",
+                    "benchmark": security["securities"].id,
                 }
             ),
         )
@@ -179,7 +198,7 @@ async def test_create_multiple_missmatch_email(monkeypatch):
     assert response_2.status_code == status.HTTP_409_CONFLICT
 
 
-async def test_delete(async_session_maker_test, monkeypatch):
+async def test_delete(async_session_maker_test, monkeypatch, factory):
     from backend_amirainvest_com.utils import auth0_utils
 
     async def update_user_app_metadata_mock(*args, **kwargs):
@@ -189,18 +208,22 @@ async def test_delete(async_session_maker_test, monkeypatch):
 
     session_test: AsyncSession = async_session_maker_test()
 
+    security = await factory.gen("securities")
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response_1 = await async_client.post(
             "/user/create",
             headers=AUTH_HEADERS,
             data=json.dumps(
                 {
-                    "name": "test_name test_last_name",
+                    "first_name": "test_first",
+                    "last_name": "test_last_name",
                     "username": "test_username",
                     "email": "test@gmail.com",
+                    "benchmark": security["securities"].id,
                 }
             ),
         )
+
         await async_client.post(
             "/user/delete",
             headers=AUTH_HEADERS,

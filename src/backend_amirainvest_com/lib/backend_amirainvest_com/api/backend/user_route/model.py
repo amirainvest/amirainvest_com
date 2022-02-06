@@ -1,6 +1,5 @@
-import typing as t
-import uuid
 from enum import Enum
+from typing import List, Optional
 
 from pydantic import BaseModel
 
@@ -41,39 +40,47 @@ class ListInputModel(BaseModel):
 class ListReturnModel(BaseModel):
     user_id: str
 
-    name: t.Optional[str]
-    benchmark: t.Optional[str]
-    chip_labels: t.Optional[t.List[str]]
+    username: Optional[str]
+    first_name: Optional[str]
+    last_name: Optional[str]
+    benchmark: Optional[str]
+    chip_labels: Optional[List[str]]
 
 
 class UserUpdate(BaseModel):
-    name: t.Optional[str]
-    bio: t.Optional[str]
-    personal_site_url: t.Optional[str]
-    linkedin_profile: t.Optional[str]
-    interests_value: t.Optional[bool]
-    interests_growth: t.Optional[bool]
-    interests_long_term: t.Optional[bool]
-    interests_short_term: t.Optional[bool]
-    interests_diversification_rating: t.Optional[int]
-    benchmark: t.Optional[str]
-    chip_labels: t.Optional[t.List[str]]
-    public_profile: t.Optional[bool]
-    public_performance: t.Optional[bool]
-    public_holdings: t.Optional[bool]
-    public_trades: t.Optional[bool]
-    is_deactivated: t.Optional[bool]
-    is_deleted: t.Optional[bool]
+    first_name: Optional[str]
+    last_name: Optional[str]
+    benchmark: Optional[int]
+    bio: Optional[str]
+    chip_labels: Optional[List[str]]
+    interests_diversification_rating: Optional[int]
+    linkedin_profile: Optional[str]
+    personal_site_url: Optional[str]
+    picture_url: Optional[str]
+    public_holdings: Optional[bool]
+    public_performance: Optional[bool]
+    public_profile: Optional[bool]
+    public_trades: Optional[bool]
+
+    interests_value: Optional[bool]
+    interests_growth: Optional[bool]
+    interests_long_term: Optional[bool]
+    interests_short_term: Optional[bool]
+
+    is_deactivated: Optional[bool]
+    is_deleted: Optional[bool]
 
 
 class InitReturnModel(BaseModel):
-    id: uuid.UUID
+    id: str
 
 
 class InitPostModel(BaseModel):
-    name: str
+    first_name: str
+    last_name: str
     username: str
     email: str
+    benchmark: Optional[int]
 
 
 class Http409Enum(Enum):

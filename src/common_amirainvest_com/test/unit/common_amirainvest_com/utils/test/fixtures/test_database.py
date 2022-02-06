@@ -1,9 +1,7 @@
-import uuid
-
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from common_amirainvest_com.schemas.schema import Users
+from common_amirainvest_com.schemas.schema import Securities, Users
 from common_amirainvest_com.utils.consts import WEBCACHE
 
 
@@ -13,10 +11,22 @@ async def test_database_fixture(async_session_maker_test):
     """
     session_test: AsyncSession = async_session_maker_test()
 
-    user_1 = Users(sub="", name="", username="", picture_url="", email="", email_verified=True)
+    benchmark = Securities(ticker_symbol="NA", close_price=0, name="", open_price=0)
+    session_test.add(benchmark)
+    await session_test.flush()
+    user_1 = Users(
+        sub="",
+        benchmark=benchmark.id,
+        first_name="",
+        last_name="",
+        username="",
+        picture_url="",
+        email="",
+        email_verified=True,
+    )
     session_test.add(user_1)
     await session_test.commit()
-    assert type(user_1.id) == uuid.UUID
+    assert type(user_1.id) == str
 
     users = (await session_test.execute(select(Users))).all()
     assert len(users) == 1

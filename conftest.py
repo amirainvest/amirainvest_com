@@ -1,6 +1,7 @@
 pytest_plugins = [
     "common_amirainvest_com.utils.test.fixtures.database",
     "common_amirainvest_com.utils.test.fixtures.auth",
+    "common_amirainvest_com.utils.test.fixtures.factories",
 ]
 
 import pathlib

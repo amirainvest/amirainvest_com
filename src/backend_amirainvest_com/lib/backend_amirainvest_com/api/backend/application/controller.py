@@ -2,7 +2,7 @@ import asyncio
 
 from sqlalchemy import select
 
-from common_amirainvest_com.schemas.schema import Benchmarks, ChipLabels, TradingStrategies
+from common_amirainvest_com.schemas.schema import ChipLabels, Securities, TradingStrategies
 from common_amirainvest_com.utils.decorators import Session
 
 
@@ -13,7 +13,15 @@ async def get_trading_strategies(session):
 
 @Session
 async def get_benchmarks(session):
-    return (await session.execute(select(Benchmarks.name))).scalars().all()
+    return (
+        (
+            await session.execute(
+                select(Securities.human_readable_name).where(Securities.is_benchmark == True)  # noqa: E712
+            )
+        )
+        .scalars()
+        .all()
+    )
 
 
 @Session

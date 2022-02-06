@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from brokerage_amirainvest_com.brokerages import plaid_provider
 from brokerage_amirainvest_com.dynamo import TokenProvider
 from brokerage_amirainvest_com.providers import Providers
@@ -10,13 +8,13 @@ from common_amirainvest_com.utils.consts import PLAID_CLIENT_ID, PLAID_SECRET
 
 async def holdings_change(provider_service: Providers, brokerage: Brokerage, user_id: str, token_identifier: str):
     await provider_service.collect_current_holdings(
-        provider_key=brokerage.value, user_id=UUID(user_id), item_id=token_identifier
+        provider_key=brokerage.value, user_id=(user_id), item_id=token_identifier
     )
 
 
 async def investments_change(provider_service: Providers, brokerage: Brokerage, user_id: str, token_identifier: str):
     await provider_service.collect_investment_history(
-        provider_key=brokerage.value, user_id=UUID(user_id), item_id=token_identifier
+        provider_key=brokerage.value, user_id=(user_id), item_id=token_identifier
     )
 
 
@@ -24,10 +22,10 @@ async def upsert_brokerage_account(
     provider_service: Providers, brokerage: Brokerage, user_id: str, token_identifier: str
 ):
     await provider_service.collect_current_holdings(
-        provider_key=brokerage.value, user_id=UUID(user_id), item_id=token_identifier
+        provider_key=brokerage.value, user_id=(user_id), item_id=token_identifier
     )
     await provider_service.collect_investment_history(
-        provider_key=brokerage.value, user_id=UUID(user_id), item_id=token_identifier
+        provider_key=brokerage.value, user_id=(user_id), item_id=token_identifier
     )
 
 

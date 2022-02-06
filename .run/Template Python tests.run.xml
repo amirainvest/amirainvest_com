@@ -3,7 +3,7 @@
     <module name="amirainvest_com" />
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
-    <option name="SDK_HOME" value="docker-compose://[$PROJECT_DIR$/docker-compose.yaml, $PROJECT_DIR$/docker-compose.interactive.yaml]:amirainvest_com/$USER_HOME$/default/venv/bin/python" />
+    <option name="SDK_HOME" value="docker-compose://[$PROJECT_DIR$/docker-compose.yaml]:amirainvest_com_pycharm/$PROJECT_DIR$/../../../default/venv/bin/python" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
     <option name="IS_MODULE_SDK" value="false" />
     <option name="ADD_CONTENT_ROOTS" value="true" />

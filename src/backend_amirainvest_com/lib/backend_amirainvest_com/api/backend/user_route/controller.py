@@ -26,7 +26,7 @@ async def list_controller(session, list_request: model.ListInputModel):
             query = query.filter(getattr(Users, filter_.attribute.value).ilike(f"%{filter_.value.lower()}%"))
 
     if list_request.sort is not None:
-        query.order_by(getattr(getattr(Users, list_request.sort.value), list_request.sort.order.value))
+        query.order_by(getattr(getattr(Users, list_request.sort.attribute.value), list_request.sort.order.value))
 
     data = await session.execute(query)
     return data.scalars().all()

@@ -137,6 +137,9 @@ class Users(Base, ToDict):
 
 
 class UsersModel(BaseModel):
+    class Config:
+        orm_mode = True
+
     id: str
 
     email: str

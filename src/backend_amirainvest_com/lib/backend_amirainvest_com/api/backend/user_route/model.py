@@ -3,7 +3,11 @@ from enum import Enum
 
 from pydantic import BaseModel
 
-from backend_amirainvest_com.utils.model import ErrorMessageModelBase, StatusDetailModel
+from backend_amirainvest_com.utils.model import ErrorMessageModelBase, ListModelBase, StatusDetailModel
+from common_amirainvest_com.schemas.schema import UsersModel as GetReturnModel
+
+
+assert GetReturnModel
 
 
 class SearchableAttributes(Enum):
@@ -32,19 +36,13 @@ class SortModel(BaseModel):
 
 
 class ListInputModel(BaseModel):
-    filters: t.List[Filters]
+    filters: t.List[Filters] = []
     sort: t.Optional[SortModel]
     limit: int = 50
 
 
-class ListReturnModel(BaseModel):
-    user_id: str
-
-    username: t.Optional[str]
-    first_name: t.Optional[str]
-    last_name: t.Optional[str]
-    benchmark: t.Optional[str]
-    chip_labels: t.Optional[t.List[str]]
+class ListReturnModel(ListModelBase[GetReturnModel]):
+    pass
 
 
 class UserUpdate(BaseModel):

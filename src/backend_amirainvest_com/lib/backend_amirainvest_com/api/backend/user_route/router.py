@@ -1,5 +1,3 @@
-from typing import List
-
 from fastapi import APIRouter, Depends, File, HTTPException, status, UploadFile
 
 from backend_amirainvest_com.api.backend.user_route.controller import (
@@ -10,6 +8,7 @@ from backend_amirainvest_com.api.backend.user_route.controller import (
     update_controller,
 )
 from backend_amirainvest_com.api.backend.user_route.model import (
+    GetReturnModel,
     Http400Model,
     Http409Enum,
     Http409Model,
@@ -21,13 +20,12 @@ from backend_amirainvest_com.api.backend.user_route.model import (
 )
 from backend_amirainvest_com.controllers import uploads
 from backend_amirainvest_com.controllers.auth import auth_depends, auth_depends_user_id
-from common_amirainvest_com.schemas.schema import UsersModel
 
 
 router = APIRouter(prefix="/user", tags=["User"])
 
 
-@router.post("/get", status_code=status.HTTP_200_OK, response_model=UsersModel)
+@router.post("/get", status_code=status.HTTP_200_OK, response_model=GetReturnModel)
 async def get_route(user_id: str, token=Depends(auth_depends_user_id)):
     return (
         await get_controller(
@@ -37,30 +35,24 @@ async def get_route(user_id: str, token=Depends(auth_depends_user_id)):
 
 
 # TODO add test
-@router.post("/list", status_code=200, response_model=List[ListReturnModel])
-async def search_users(list_request: ListInputModel, token=Depends(auth_depends_user_id)):
+@router.post("/list", status_code=200, response_model=ListReturnModel, response_model_exclude_none=True)
+async def list_route(list_request: ListInputModel, token=Depends(auth_depends_user_id)):
     all_users = await list_controller(list_request)
-    return [
-        {
-            "username": user.username,
-            "first_name": user.first_name,
-            "last_name": user.last_name,
-            "user_id": user.id,
-            "benchmark": user.benchmark,
-            "chip_labels": user.chip_labels,
-        }
-        for user in all_users
-    ]
+    results = ListReturnModel(
+        results=all_users,
+        result_count=len(all_users),
+    )
+    return results
 
 
-@router.post("/update", status_code=status.HTTP_200_OK, response_model=UsersModel)
+@router.post("/update", status_code=status.HTTP_200_OK, response_model=GetReturnModel)
 async def update_route(user_data: UserUpdate, token=Depends(auth_depends_user_id)):
     user_id = token["https://amirainvest.com/user_id"]
     response = await update_controller(user_id=user_id, user_data=user_data)
     return response._asdict()
 
 
-@router.post("/upload/profile_picture", status_code=status.HTTP_200_OK, response_model=UsersModel)
+@router.post("/upload/profile_picture", status_code=status.HTTP_200_OK, response_model=GetReturnModel)
 async def upload_profile_picture_route(
     user_id: str, image: UploadFile = File(...), token=Depends(auth_depends_user_id)
 ):

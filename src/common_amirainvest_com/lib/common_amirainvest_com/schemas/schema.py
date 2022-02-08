@@ -2,6 +2,7 @@ import datetime
 import enum
 import typing as t
 import uuid
+from decimal import Decimal
 from typing import List, Optional
 
 import faker
@@ -632,7 +633,7 @@ class FinancialAccountTransactions(Base, ToDict):
     name = Column(String, nullable=False)
     posting_date = Column(DateTime, nullable=False)
     price = Column(DECIMAL(19, 4), nullable=False)
-    quantity = Column(DECIMAL, nullable=False)
+    quantity: Decimal = Column(DECIMAL, nullable=False)
     subtype = Column(String, nullable=False)
     type = Column(String, nullable=False)
     value_amount = Column(DECIMAL(19, 4), nullable=False)

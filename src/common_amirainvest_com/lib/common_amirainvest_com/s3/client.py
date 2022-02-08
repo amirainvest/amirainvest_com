@@ -1,4 +1,5 @@
 from io import BytesIO
+from typing import Optional
 
 import boto3
 import botocore.exceptions
@@ -23,6 +24,17 @@ class S3:
     async def download_object(self, local_filepath: str, bucket: str, key: str):
         with open(local_filepath, "wb") as data:
             self.resource.meta.client.download_fileobj(bucket, key, data)
+
+    async def get_all_objects(self, bucket_name: str, prefix: Optional[str], start_after: Optional[str]):
+        response = self.resource.meta.client.list_objects_v2(
+            Bucket=bucket_name,
+            Prefix=prefix if prefix is not None else "",
+            StartAfter=start_after if start_after is not None else "",
+        )
+
+        if "Contents" not in response:
+            return None
+        return response["Contents"]
 
     async def validate_object_exists(self, bucket: str, key: str) -> bool:
         try:

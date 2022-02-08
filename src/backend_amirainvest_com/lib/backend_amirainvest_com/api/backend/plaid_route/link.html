@@ -17,6 +17,7 @@
         const onSuccessRender = (public_token) => {
             const urlParams = new URLSearchParams(window.location.search)
             const amiraUserId = urlParams.get('user_id');
+            console.log("Inserting: ", amiraUserId)
             $.post(`/plaid/link?user_id=${amiraUserId}`, {
                 public_token: public_token,
             }, function () {

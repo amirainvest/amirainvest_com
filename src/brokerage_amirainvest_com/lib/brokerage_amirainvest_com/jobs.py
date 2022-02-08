@@ -1,5 +1,4 @@
 import datetime
-import uuid
 from typing import Optional
 
 from sqlalchemy import update
@@ -35,15 +34,13 @@ async def start_job(session: AsyncSession, job_id: int) -> Optional[BrokerageJob
     if len(running_jobs_response.scalars().all()) > 0:
         return None
 
-    await session.execute(
-        update(BrokerageJobs).where(BrokerageJobs.id == job_id).values(status=BrokerageJobsStatus.running)
-    )
+    await session.execute(update(BrokerageJobs).where(BrokerageJobs.id == job_id).values(status=JobsStatus.running))
 
     return job
 
 
 @Session
-async def add_job(session: AsyncSession, user_id: uuid.UUID, params: Optional[dict]) -> BrokerageJobs:
+async def add_job(session: AsyncSession, user_id: str, params: Optional[dict]) -> BrokerageJobs:
     job = BrokerageJobs(
         user_id=user_id,
         status=JobsStatus.pending,
@@ -58,7 +55,7 @@ async def add_job(session: AsyncSession, user_id: uuid.UUID, params: Optional[di
 
 
 @Session
-async def end_job(session: AsyncSession, job_id: int, job_status: BrokerageJobsStatus, error: Optional[str]):
+async def end_job(session: AsyncSession, job_id: int, job_status: JobsStatus, error: Optional[str]):
     data = await session.execute(select(BrokerageJobs).where(BrokerageJobs.id == job_id))
     job = data.scalar()
     if job is None:

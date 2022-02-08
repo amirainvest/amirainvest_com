@@ -1,6 +1,5 @@
 import asyncio
 from typing import Optional
-from uuid import UUID
 
 from brokerage_amirainvest_com.brokerages import plaid_provider
 from brokerage_amirainvest_com.dynamo import TokenProvider
@@ -14,7 +13,7 @@ async def holdings_change(
     provider_service: Providers, brokerage: Brokerage, user_id: str, token_identifier: str, job_id: Optional[int]
 ):
     await provider_service.collect_current_holdings(
-        provider_key=brokerage.value, user_id=UUID(user_id), item_id=token_identifier, job_id=job_id
+        provider_key=brokerage.value, user_id=user_id, item_id=token_identifier, job_id=job_id
     )
 
 
@@ -22,7 +21,7 @@ async def investments_change(
     provider_service: Providers, brokerage: Brokerage, user_id: str, token_identifier: str, job_id: Optional[int]
 ):
     await provider_service.collect_investment_history(
-        provider_key=brokerage.value, user_id=UUID(user_id), item_id=token_identifier, job_id=job_id
+        provider_key=brokerage.value, user_id=user_id, item_id=token_identifier, job_id=job_id
     )
 
 
@@ -30,10 +29,10 @@ async def upsert_brokerage_account(
     provider_service: Providers, brokerage: Brokerage, user_id: str, token_identifier: str, job_id: Optional[int]
 ):
     await provider_service.collect_current_holdings(
-        provider_key=brokerage.value, user_id=UUID(user_id), item_id=token_identifier, job_id=job_id
+        provider_key=brokerage.value, user_id=user_id, item_id=token_identifier, job_id=job_id
     )
     await provider_service.collect_investment_history(
-        provider_key=brokerage.value, user_id=UUID(user_id), item_id=token_identifier, job_id=job_id
+        provider_key=brokerage.value, user_id=user_id, item_id=token_identifier, job_id=job_id
     )
 
 

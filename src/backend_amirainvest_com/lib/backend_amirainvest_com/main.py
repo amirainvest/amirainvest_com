@@ -2,10 +2,6 @@ import uvicorn  # type: ignore
 from uvicorn.workers import UvicornWorker  # type: ignore
 
 
-# from backend_amirainvest_com.api.app import app
-# NOTE: aboves ^ is key for local run, but causes flake to fail. Commenting but keeping
-
-
 class ProductionUvicornWorker(UvicornWorker):
     CONFIG_KWARGS = {
         "host": "0.0.0.0",
@@ -22,7 +18,7 @@ class ProductionUvicornWorker(UvicornWorker):
 
 
 def local_run():
-    uvicorn.run("main:app", port=5000, host="0.0.0.0", reload=True)
+    uvicorn.run("backend_amirainvest_com.main:app", port=5000, host="0.0.0.0", reload=True)
 
 
 if __name__ == "__main__":

@@ -20,8 +20,7 @@ from backend_amirainvest_com.api.backend.notifications.model import (  # CreateM
 from backend_amirainvest_com.controllers.auth import auth_depends_user_id
 
 
-router = APIRouter(
-    prefix="/notifications", tags=["Notifications / Settings"])
+router = APIRouter(prefix="/notifications", tags=["Notifications / Settings"])
 
 
 # Notifications are created from various jobs. They are read and updated via the API
@@ -50,8 +49,8 @@ async def list_route(token=Depends(auth_depends_user_id)):
 async def update_route(user_id: str, update_data: UpdateModel, token=Depends(auth_depends_user_id)):
     return (
         await update_controller(
-            user_id = token["https://amirainvest.com/user_id"],
-            update_data = update_data,
+            user_id=token["https://amirainvest.com/user_id"],
+            update_data=update_data,
         )
     )._asdict()
 
@@ -81,8 +80,8 @@ async def get_settings_route(token=Depends(auth_depends_user_id)):
 async def update_settings_route(update_data: UpdateSettingsModel, token=Depends(auth_depends_user_id)):
     return (
         await update_settings_controller(
-            user_id = token["https://amirainvest.com/user_id"],
-            update_data = update_data,
+            user_id=token["https://amirainvest.com/user_id"],
+            update_data=update_data,
         )
     )._asdict()
 
@@ -96,9 +95,6 @@ async def update_settings_route(update_data: UpdateSettingsModel, token=Depends(
 )
 async def create_settings_route(create_data: CreateSettingsModel, token=Depends(auth_depends_user_id)):
     settings_id = await (
-        create_settings_controller(
-            user_id = token["https://amirainvest.com/user_id"],
-            create_data = create_data
-            )
+        create_settings_controller(user_id=token["https://amirainvest.com/user_id"], create_data=create_data)
     )
     return InitReturnSettingsModel(id=settings_id)

@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Form, Request, Security, status
+from fastapi import APIRouter, Depends, Form, Request, status
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 
-from backend_amirainvest_com.controllers.auth import auth_dep
+from backend_amirainvest_com.controllers.auth import auth_depends_user_id
 from backend_amirainvest_com.controllers.plaid_controller import exchange_public_for_access_token, generate_link_token
 from common_amirainvest_com.dynamo.models import BrokerageUser
 from common_amirainvest_com.dynamo.utils import add_brokerage_user, get_brokerage_user, update_brokerage_user
@@ -11,19 +11,19 @@ from common_amirainvest_com.sqs.models import Brokerage, BrokerageDataActions, B
 from common_amirainvest_com.sqs.utils import add_message_to_queue
 
 
-router = APIRouter(prefix="/plaid", tags=["Plaid"], dependencies=[Security(auth_dep, scopes=[])])
-templates = Jinja2Templates(directory="./templates")
+router = APIRouter(prefix="/plaid", tags=["Plaid"])
+templates = Jinja2Templates(directory="src/backend_amirainvest_com/lib/backend_amirainvest_com/api/backend/plaid_route")
 
 
 @router.get("/link", status_code=status.HTTP_200_OK, response_class=HTMLResponse)
-async def get_link(request: Request, user_id: str):
+async def get_link(request: Request, user_id: str, token=Depends(auth_depends_user_id)):
     link_token = generate_link_token(user_id)
     return templates.TemplateResponse("link.html", {"request": request, "link_token": link_token})
 
 
 # TODO Could move most of the logic to controller
 @router.post("/link", status_code=status.HTTP_200_OK, response_class=JSONResponse)
-async def post_link(user_id: str, public_token: str = Form(...)):
+async def post_link(user_id: str, public_token: str = Form(...), token=Depends(auth_depends_user_id)):
     exchange_response = exchange_public_for_access_token(public_token)
     access_token = exchange_response["access_token"]
     item_id = exchange_response["item_id"]
@@ -40,11 +40,6 @@ async def post_link(user_id: str, public_token: str = Form(...)):
             )
         )
     else:
-        # TODO check if item and access token already match and update/sqs message
-        # TODO How can we reconcile an account id changing if the name of a account changes, or we lose the
-        #   access token and must re-connect
-        # TODO Validate error codes from Plaid and step through how we should reconcile them
-        # TODO How can we get a list of institutions from Plaid?
         plaid_tokens = brokerage_user.plaid_access_tokens
         plaid_tokens[item_id] = access_token
         brokerage_user.plaid_access_tokens = plaid_tokens

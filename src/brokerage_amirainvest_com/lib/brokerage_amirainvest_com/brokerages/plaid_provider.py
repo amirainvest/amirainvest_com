@@ -38,6 +38,7 @@ from brokerage_amirainvest_com.repository import (
     get_accounts_by_plaid_ids,
     get_institutions_by_plaid_ids,
     get_investment_transactions_by_plaid_id,
+    get_item_ids_by_user_id,
     get_securities_by_plaid_ids,
 )
 from common_amirainvest_com.schemas.schema import (
@@ -45,6 +46,7 @@ from common_amirainvest_com.schemas.schema import (
     FinancialAccounts,
     FinancialAccountTransactions,
     FinancialInstitutions,
+    PlaidItems,
     PlaidSecurities,
     PlaidSecurityPrices,
 )
@@ -58,6 +60,13 @@ __all__ = ["PlaidRepository", "PlaidHttp", "PlaidProvider"]
 class PlaidRepository:
     def __init__(self):
         pass
+
+    @Session
+    async def add_plaid_item(self, session: AsyncSession, user_id: str, item_id: str, institution_id: int):
+        result = await session.execute(select(PlaidItems).where(PlaidItems.plaid_item_id == item_id))
+        if result.one_or_none() is not None:
+            return
+        session.add(PlaidItems(user_id=user_id, plaid_item_id=item_id, institution_id=None))
 
     @Session
     async def add_institutions(self, session: AsyncSession, institutions: list[Institution]):
@@ -137,30 +146,38 @@ class PlaidRepository:
         for account in accounts:
             plaid_account_ids.add(account.account_id)
 
+        # Get all current accounts so we don't accidentally re-ingest again
         current_accounts = await get_accounts_by_plaid_ids(plaid_account_ids)
         plaid_to_internal_id = {}
         for acc in current_accounts:
             plaid_to_internal_id[acc.plaid_id] = acc.id
 
+        item_ids = await get_item_ids_by_user_id(user_id)
+        item_id_map = {}
+        for item in item_ids:
+            item_id_map[item.plaid_item_id] = item
+
         accounts_to_insert = []
         for acc in accounts:
             if acc.account_id in plaid_to_internal_id:
                 continue
+
+            internal_item_id = item_id_map[acc.item_id].id
             accounts_to_insert.append(
                 FinancialAccounts(
                     user_id=user_id,
-                    plaid_item_id=acc.item_id,
+                    plaid_item_id=internal_item_id,
                     plaid_id=acc.account_id,
-                    official_account_name=acc.official_name,
-                    user_assigned_account_name=acc.name,
                     available_to_withdraw=acc.available,
                     current_funds=acc.current,
-                    mask=acc.mask,
-                    type=acc.type.value,
-                    sub_type=acc.subtype,
-                    limit=acc.limit,
                     iso_currency_code=acc.iso_currency_code,
+                    limit=acc.limit,
+                    mask=acc.mask,
+                    official_account_name=acc.official_name,
+                    sub_type=acc.subtype,
+                    type=acc.type.value,
                     unofficial_currency_code=acc.unofficial_currency_code,
+                    user_assigned_account_name=acc.name,
                 )
             )
         session.add_all(accounts_to_insert)
@@ -426,9 +443,9 @@ class PlaidProvider(BrokerageInterface):
 
     async def collect_investment_history(self, user_id: str, item_id: str):
         investment_history = await self.http_client.get_investment_history(user_id=user_id, item_id=item_id)
-
         await self.repository.add_securities(securities=list(investment_history.securities.values()))
         await self.repository.add_security_prices(securities=list(investment_history.securities.values()))
+        await self.repository.add_plaid_item(user_id=user_id, item_id=item_id, institution_id=0)
         await self.repository.add_accounts(user_id=user_id, accounts=investment_history.accounts)
         await self.repository.add_investment_transactions(
             investment_transactions=investment_history.investment_transactions
@@ -452,6 +469,7 @@ class PlaidProvider(BrokerageInterface):
 
         await self.repository.add_securities(securities=list(holdings_information.securities.values()))
         await self.repository.add_security_prices(securities=list(holdings_information.securities.values()))
+        await self.repository.add_plaid_item(user_id=user_id, item_id=item_id, institution_id=0)
         await self.repository.add_accounts(user_id=user_id, accounts=holdings_information.accounts)
         await self.repository.add_holdings(
             holdings=holdings_information.holdings,

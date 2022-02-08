@@ -1,6 +1,3 @@
-import uuid
-
-from arrow import Arrow
 from fastapi import APIRouter, Depends, status
 
 from backend_amirainvest_com.api.backend.portfolio.controller import (
@@ -17,25 +14,25 @@ router = APIRouter(prefix="/portfolio", tags=["Portfolio"])
 
 
 @router.post("/summary", status_code=status.HTTP_200_OK)
-async def get_summary(user_id: uuid.UUID, token=Depends(auth_depends_user_id)):
+async def get_summary(user_id: str, token=Depends(auth_depends_user_id)):
     pass
 
 
 @router.post("/holdings", status_code=status.HTTP_200_OK, response_model=list[Holding], responses={})
-async def route_get_holdings(user_id: uuid.UUID, token=Depends(auth_depends_user_id)):
+async def route_get_holdings(user_id: str, token=Depends(auth_depends_user_id)):
     response = []
     holdings = await get_holdings(user_id=user_id)
     portfolio = await get_portfolio_value(user_id=user_id)
-    for cur_holding in holdings:
-        security = await get_ticker_symbol_by_plaid_id(cur_holding.security_id)
-        buy_date = await get_buy_date(user_id, security.security_id, cur_holding.quantity)
+    for holding in holdings:
+        security = await get_ticker_symbol_by_plaid_id(holding.security_id)
+        buy_date = await get_buy_date(user_id, security.security_id, holding.quantity)
 
-        market_value = cur_holding.ticker_price * cur_holding.quantity
+        market_value = holding.ticker_price * holding.quantity
         response.append(
             Holding(
                 ticker=security.ticker,
-                ticker_price=cur_holding.ticker_price,
-                ticker_price_time=Arrow.fromdatetime(cur_holding.ticker_price_time),
+                ticker_price=holding.ticker_price,
+                ticker_price_time=holding.ticker_price_time,
                 percentage_of_portfolio=market_value / portfolio.value,
                 buy_date=buy_date,
                 market_value=market_value,
@@ -45,5 +42,5 @@ async def route_get_holdings(user_id: uuid.UUID, token=Depends(auth_depends_user
 
 
 @router.post("/trading-history", status_code=status.HTTP_200_OK)
-async def get_trading_history(user_id: uuid.UUID, token=Depends(auth_depends_user_id)):
+async def get_trading_history(user_id: str, token=Depends(auth_depends_user_id)):
     pass

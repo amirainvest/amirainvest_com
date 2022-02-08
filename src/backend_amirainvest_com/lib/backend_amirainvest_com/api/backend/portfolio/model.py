@@ -1,35 +1,20 @@
 import uuid
+from datetime import datetime
 from decimal import Decimal
 
-from arrow import Arrow
-from pydantic import BaseModel, validator
+from pydantic import BaseModel
 
 
 class Holding(BaseModel):
     ticker: str
     ticker_price: Decimal
-    ticker_price_time: Arrow
+    ticker_price_time: datetime
     # market value / portfolio value
     percentage_of_portfolio: Decimal
     # Use this to calculate holding period
-    buy_date: Arrow
+    buy_date: datetime
     # Market value of the position num shares * market price
     market_value: Decimal
-
-    @validator("ticker_price_time")
-    def format_ticker_price_time(cls, value):
-        if value is None:
-            return None
-        return value.datetime
-
-    @validator("buy_date")
-    def format_buy_date(cls, value):
-        if value is None:
-            return None
-        return value.datetime
-
-    class Config:
-        arbitrary_types_allowed = True
 
 
 class PortfolioValue(BaseModel):

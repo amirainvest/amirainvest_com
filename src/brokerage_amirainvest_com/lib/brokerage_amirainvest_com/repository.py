@@ -7,6 +7,7 @@ from common_amirainvest_com.schemas.schema import (
     FinancialAccounts,
     FinancialAccountTransactions,
     FinancialInstitutions,
+    PlaidItems,
     PlaidSecurities,
 )
 from common_amirainvest_com.utils.decorators import Session
@@ -41,6 +42,12 @@ async def get_institutions_by_plaid_ids(session: AsyncSession, ids: list[str]) -
 @Session
 async def get_accounts_by_plaid_ids(session: AsyncSession, ids: list[str]) -> list[FinancialAccounts]:
     result = await session.execute(select(FinancialAccounts).where(FinancialAccounts.plaid_id.in_(ids)))
+    return result.scalars().all()
+
+
+@Session
+async def get_item_ids_by_user_id(session: AsyncSession, user_id: str) -> list[PlaidItems]:
+    result = await session.execute(select(PlaidItems).where(PlaidItems.user_id == user_id))
     return result.scalars().all()
 
 

@@ -39,12 +39,15 @@ def upgrade():
     sa.Column('redirect', sa.String(), nullable=False),
     sa.Column('is_read', sa.Boolean(), nullable=False),
     sa.Column('is_deleted', sa.Boolean(), nullable=False),
+    sa.Column('profile_url', sa.String(), nullable=True),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text("TIMEZONE('utc', CURRENT_TIMESTAMP)"), nullable=True),
     sa.Column('updated_at', sa.DateTime(), server_default=sa.text("TIMEZONE('utc', CURRENT_TIMESTAMP)"), nullable=True),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('id')
     )
+    op.create_unique_constraint(None, 'notification_settings', ['id'])
+    op.create_unique_constraint(None, 'notifications', ['id'])
     # ### end Alembic commands ###
 
 

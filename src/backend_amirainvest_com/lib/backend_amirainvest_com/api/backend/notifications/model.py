@@ -15,6 +15,7 @@ class CreateModel(NotificationsModel):
     redirect: str
     is_read: Optional[bool]
     is_deleted: Optional[bool]
+    profile_url: Optional[str]
 
 
 class UpdateModel(BaseModel):

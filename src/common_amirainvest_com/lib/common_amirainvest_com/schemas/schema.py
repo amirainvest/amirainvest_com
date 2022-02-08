@@ -781,6 +781,7 @@ class Notifications(Base, ToDict):
     redirect = Column(String, nullable=False)
     is_read = Column(Boolean, default=False, nullable=False)
     is_deleted = Column(Boolean, default=False, nullable=False)
+    profile_url = Column(String, nullable=True)
     created_at = Column(DateTime, server_default=UTCNow())
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
     # TODO: update body to be a dict if needed
@@ -794,6 +795,7 @@ class NotificationsModel(BaseModel):
     redirect: str
     is_read: Optional[bool]
     is_deleted: Optional[bool]
+    profile_url: Optional[str]
     created_at: Optional[datetime.datetime]
     updated_at: Optional[datetime.datetime]
 

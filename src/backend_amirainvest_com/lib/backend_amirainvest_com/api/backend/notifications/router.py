@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, Security, status  # , Depends
+from fastapi import APIRouter, Depends, status
 
 from backend_amirainvest_com.api.backend.notifications.controller import (  # create_controller,
     create_settings_controller,
@@ -17,12 +17,11 @@ from backend_amirainvest_com.api.backend.notifications.model import (  # CreateM
     UpdateModel,
     UpdateSettingsModel,
 )
-from backend_amirainvest_com.controllers.auth import auth_dep  # , auth_depends_user_id
+from backend_amirainvest_com.controllers.auth import auth_depends_user_id
 
 
 router = APIRouter(
-    prefix="/notifications", tags=["Notifications / Settings"], dependencies=[Security(auth_dep, scopes=[])]
-)
+    prefix="/notifications", tags=["Notifications / Settings"])
 
 
 # Notifications are created from various jobs. They are read and updated via the API
@@ -35,7 +34,8 @@ router = APIRouter(
     status_code=status.HTTP_200_OK,
     response_model=List[NotificationsModel],
 )
-async def list_route(user_id: str):
+async def list_route(token=Depends(auth_depends_user_id)):
+    user_id = token["https://amirainvest.com/user_id"]
     all_notifications = await list_controller(user_id)
     return [notification.__dict__ for notification in all_notifications]
 
@@ -47,11 +47,11 @@ async def list_route(user_id: str):
     status_code=status.HTTP_200_OK,
     response_model=NotificationsModel,
 )
-async def update_route(user_id: str, update_data: UpdateModel):
+async def update_route(user_id: str, update_data: UpdateModel, token=Depends(auth_depends_user_id)):
     return (
         await update_controller(
-            user_id,
-            update_data,
+            user_id = token["https://amirainvest.com/user_id"],
+            update_data = update_data,
         )
     )._asdict()
 
@@ -66,7 +66,8 @@ async def update_route(user_id: str, update_data: UpdateModel):
     status_code=status.HTTP_200_OK,
     response_model=NotificationSettingsModel,
 )
-async def get_settings_route(user_id: str):
+async def get_settings_route(token=Depends(auth_depends_user_id)):
+    user_id = token["https://amirainvest.com/user_id"]
     return (await get_settings_controller(user_id)).__dict__
 
 
@@ -77,11 +78,11 @@ async def get_settings_route(user_id: str):
     status_code=status.HTTP_200_OK,
     response_model=NotificationSettingsModel,
 )
-async def update_settings_route(user_id: str, update_data: UpdateSettingsModel):
+async def update_settings_route(update_data: UpdateSettingsModel, token=Depends(auth_depends_user_id)):
     return (
         await update_settings_controller(
-            user_id,
-            update_data,
+            user_id = token["https://amirainvest.com/user_id"],
+            update_data = update_data,
         )
     )._asdict()
 
@@ -93,6 +94,11 @@ async def update_settings_route(user_id: str, update_data: UpdateSettingsModel):
     status_code=status.HTTP_200_OK,
     response_model=InitReturnSettingsModel,
 )
-async def create_settings_route(user_id: str, create_data: CreateSettingsModel):
-    settings_id = await create_settings_controller(user_id, create_data)
+async def create_settings_route(create_data: CreateSettingsModel, token=Depends(auth_depends_user_id)):
+    settings_id = await (
+        create_settings_controller(
+            user_id = token["https://amirainvest.com/user_id"],
+            create_data = create_data
+            )
+    )
     return InitReturnSettingsModel(id=settings_id)

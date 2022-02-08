@@ -35,10 +35,10 @@ async def work(security: Securities, year: int):
 
 async def prune_securities_list(year: int, securities: list[Securities]) -> list[Securities]:
     s3 = S3()
-    all_objects = await s3.get_all_objects(AMIRA_SECURITIES_HISTORICAL_PRICES_BUCKET)
+    all_objects = await s3.get_all_objects(AMIRA_SECURITIES_HISTORICAL_PRICES_BUCKET, start_after=None, prefix=None)
     current_securities: dict[str, None] = {}
     for obj in all_objects:
-        current_securities[obj.key] = None
+        current_securities[obj["Key"]] = None
 
     sec_list = []
     for sec in securities:

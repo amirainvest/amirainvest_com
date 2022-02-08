@@ -1,5 +1,6 @@
 import csv
 from datetime import datetime
+from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -82,6 +83,12 @@ async def add_to_s3(historical_prices: list[HistoricalPrice], symbol: str, year:
 
 
 @Session
+async def get_security_by_ticker_symbol(session: AsyncSession, ticker: str) -> Optional[Securities]:
+    response = await session.execute(select(Securities).where(Securities.ticker_symbol == ticker))
+    return response.scalar()
+
+
+@Session
 async def _security_price_time_exists(session: AsyncSession, security_id: int, price_time: datetime) -> bool:
     response = await session.execute(
         select(SecurityPrices).where(SecurityPrices.security_id == security_id, SecurityPrices.price_time == price_time)
@@ -116,13 +123,17 @@ def group_securities(securities: list[Securities], num_group: int) -> list[list[
 async def add_to_db(session: AsyncSession, security_id: int, historical_prices: list[HistoricalPrice]):
     price_times = []
     for h in historical_prices:
-        price_times.append(h.date)
+        if h.date is None:
+            continue
+        date = datetime.strptime(h.date, "%Y-%m-%d")
+        price_times.append(date)
 
     response = await session.execute(
         select(SecurityPrices).where(
             SecurityPrices.price_time.in_(price_times), SecurityPrices.security_id == security_id
         )
     )
+
     current_price_times = response.scalars().all()
 
     price_time_map: dict[datetime, None] = {}
@@ -140,7 +151,9 @@ async def add_to_db(session: AsyncSession, security_id: int, historical_prices: 
         security_prices.append(
             SecurityPrices(
                 security_id=security_id,
-                price=p.fClose,  # fClose = Fully Adjusted Close, close is split adjusted and uClose is unadjusted close
+                # fClose = Fully Adjusted Close, close is split adjusted and uClose is unadjusted close
+                # we use close though as we default to everything being fully-adjusted
+                price=p.close,
                 price_time=date,
             )
         )

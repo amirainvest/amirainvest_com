@@ -6,7 +6,7 @@ from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from common_amirainvest_com.schemas.schema import BrokerageJobs, BrokerageJobsStatus
+from common_amirainvest_com.schemas.schema import BrokerageJobs, JobsStatus
 from common_amirainvest_com.utils.decorators import Session
 
 
@@ -28,7 +28,7 @@ async def start_job(session: AsyncSession, job_id: int) -> Optional[BrokerageJob
         select(BrokerageJobs).where(
             BrokerageJobs.params == job.params,
             BrokerageJobs.user_id == job.user_id,
-            BrokerageJobs.status == BrokerageJobsStatus.running,
+            BrokerageJobs.status == JobsStatus.running,
         )
     )
 
@@ -46,7 +46,7 @@ async def start_job(session: AsyncSession, job_id: int) -> Optional[BrokerageJob
 async def add_job(session: AsyncSession, user_id: uuid.UUID, params: Optional[dict]) -> BrokerageJobs:
     job = BrokerageJobs(
         user_id=user_id,
-        status=BrokerageJobsStatus.pending,
+        status=JobsStatus.pending,
         retries=0,
         params=params,
     )

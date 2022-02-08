@@ -43,9 +43,8 @@ async def create_subscription(subscriber_id: str, creator_id: str):
         user_subscription = await user_subscriptions.create_user_subscription(subscriber_id, creator_id)
     else:
         user_subscription.is_deleted = False
-        user_subscription = await user_subscriptions.update_user_subscription(user_subscription.__dict__)
-    user_subscription = user_subscription.__dict__
-    return user_subscription
+        user_subscription = await user_subscriptions.update_user_subscription(user_subscription.dict())
+    return user_subscription.dict()
 
 
 @router.put("/unsubscribe", status_code=200, response_model=UserSubscriptionsModel)

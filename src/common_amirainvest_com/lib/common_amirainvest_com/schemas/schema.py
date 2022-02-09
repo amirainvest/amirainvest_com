@@ -848,3 +848,9 @@ class ChipLabels(Base, ToDict):
     __tablename__ = "chip_labels"
     id = Column(Integer, primary_key=True, unique=True, autoincrement=True)
     name = Column(String, nullable=False)
+
+
+class MarketHolidays(Base, ToDict):
+    __tablename__ = "market_holidays"
+    date: datetime
+    settlementdate: datetime

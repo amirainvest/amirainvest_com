@@ -19,6 +19,12 @@ class BrokerageInterface(abc.ABC):
         """
         ...
 
+    @abc.abstractmethod
+    async def compute_holdings_history(self, user_id: str, item_id: str):
+        """
+        Compute the holdings history
+        """
+
 
 class TokenRepositoryInterface(abc.ABC):
     @abc.abstractmethod

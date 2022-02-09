@@ -491,6 +491,9 @@ class PlaidProvider(BrokerageInterface):
             # API would time out when we successively hit api -- hacky back-off
             time.sleep(5)
 
+    async def compute_holdings_history(self, user_id: str, item_id: str):
+
+
 
 def plaid_account_to_account(pa: PlaidAccount, item_id: str) -> Account:
     return Account(

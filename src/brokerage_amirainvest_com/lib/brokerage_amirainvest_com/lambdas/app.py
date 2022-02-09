@@ -71,7 +71,7 @@ async def run(event):
         log.exception(err)
         raise err
     finally:
-        await async_engine.dispose
+        await async_engine.dispose()
 
 
 def handler(event, context):

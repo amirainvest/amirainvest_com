@@ -667,6 +667,20 @@ class FinancialAccountCurrentHoldings(Base, ToDict):
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
 
+class FinancialAccountHoldingsHistory(Base, ToDict):
+    __tablename__ = "financial_account_holdings_history"
+
+    id = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
+    account_id = Column(Integer, ForeignKey("financial_accounts.id"), nullable=False)
+    plaid_security_id = Column(Integer, ForeignKey("plaid_securities.id"), nullable=False)
+    user_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+
+    price = Column(DECIMAL(19, 4), nullable=False)
+    quantity = Column(DECIMAL(19, 4), nullable=False)
+
+    iso_currency_code = Column(String)
+
+
 class PlaidSecurities(Base, ToDict):
     __tablename__ = "plaid_securities"
     id = Column(Integer, primary_key=True, unique=True, nullable=False, autoincrement=True)

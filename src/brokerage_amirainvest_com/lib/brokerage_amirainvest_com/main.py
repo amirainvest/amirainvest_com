@@ -6,7 +6,7 @@ from common_amirainvest_com.utils.consts import PLAID_CLIENT_ID, PLAID_SECRET
 
 
 user_id = "f6b8bdfc-5a9d-11ec-bc23-0242ac1a0002"
-brokerage_item_id = "xbP3YOwYVYS8RjYBevk3uo8jZE5q0LhMQga16"
+brokerage_item_id = "8rVvO9V7w3FmXMyN4AkeUdzg9yDZqNfyoooLL"
 action = "COLLECT_INVESTMENT_HISTORY"
 if __name__ == "__main__":
     token_repository = TokenProvider()

@@ -8,9 +8,12 @@ def update_all_poetry_lock_files():
 
     subprocess.run("poetry update", shell=True, check=True, cwd=project_root)
     for directory in os.scandir(src_root):
-        dir_name = directory.name
-        poetry_package_dir = os.path.join(src_root, dir_name)
-        subprocess.run("poetry update", shell=True, check=True, cwd=poetry_package_dir)
+        try:
+            dir_name = directory.name
+            poetry_package_dir = os.path.join(src_root, dir_name)
+            subprocess.run("poetry update", shell=True, check=True, cwd=poetry_package_dir)
+        except Exception as e:
+            print(e)
 
 
 if __name__ == '__main__':

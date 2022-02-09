@@ -3,14 +3,13 @@ from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from common_amirainvest_com.dynamo.utils import create_table
 from common_amirainvest_com.schemas.schema import (
     FinancialAccounts,
     FinancialAccountTransactions,
     FinancialInstitutions,
+    PlaidItems,
     PlaidSecurities,
 )
-from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
 from common_amirainvest_com.utils.decorators import Session
 
 
@@ -47,6 +46,12 @@ async def get_accounts_by_plaid_ids(session: AsyncSession, ids: list[str]) -> li
 
 
 @Session
+async def get_item_ids_by_user_id(session: AsyncSession, user_id: str) -> list[PlaidItems]:
+    result = await session.execute(select(PlaidItems).where(PlaidItems.user_id == user_id))
+    return result.scalars().all()
+
+
+@Session
 async def get_investment_transactions_by_plaid_id(
     session: AsyncSession, ids: list[str]
 ) -> list[FinancialAccountTransactions]:
@@ -56,11 +61,3 @@ async def get_investment_transactions_by_plaid_id(
         )
     )
     return result.scalars().all()
-
-
-async def test():
-    await create_table("brokerage_users", "user_id")
-
-
-if __name__ == "__main__":
-    run_async_function_synchronously(test)

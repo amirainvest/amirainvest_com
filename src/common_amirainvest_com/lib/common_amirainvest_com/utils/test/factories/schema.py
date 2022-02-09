@@ -5,12 +5,12 @@ https://factoryboy.readthedocs.io/en/stable/index.html
 import factory
 
 from common_amirainvest_com.schemas.schema import (
-    Benchmarks,
     Bookmarks,
     BroadcastRequests,
     ChipLabels,
     HuskRequests,
     Posts,
+    Securities,
     SubstackArticles,
     SubstackUsers,
     TradingStrategies,
@@ -50,11 +50,6 @@ class TradingStrategiesFactory(FactoryBase):
         model = TradingStrategies
 
 
-class BenchmarksFactory(FactoryBase):
-    class Meta:
-        model = Benchmarks
-
-
 class ChipLabelsFactory(FactoryBase):
     class Meta:
         model = ChipLabels
@@ -64,13 +59,25 @@ class UsersFactory(FactoryBase):
     class Meta:
         model = Users
 
+    benchmark = 1
     sub = factory.Faker("name")
-    name = "Test Name"
-    username = "Test Username"
+    first_name = "test_first_name"
+    last_name = "test_last_name"
+    username = factory.Faker("name")
     picture_url = "https://test.com"
     email = factory.Faker("email")
     email_verified = True
     is_deleted = False
+
+
+class SecuritiesFactory(FactoryBase):
+    class Meta:
+        model = Securities
+
+    ticker_symbol = factory.Faker("name")
+    name = factory.Faker("name")
+    close_price = 0
+    open_price = 0
 
 
 class UserFeedbackFactory(FactoryBase):

@@ -191,15 +191,17 @@ services:
       - "6379:6379"
     networks:
       - local
-    command: ["redis-server" ,"/usr/local/etc/redis/redis.conf"]
+    command: [ "redis-server" ,"/usr/local/etc/redis/redis.conf" ]
 
   dynamo:
     image: amazon/dynamodb-local
+    command: -jar DynamoDBLocal.jar -sharedDb -dbPath /home/dynamodblocal
+    volumes:
+      - dynamodb_data:/home/dynamodblocal
     ports:
       - "8000:8000"
     networks:
       - local
-    command: [ "-jar", "DynamoDBLocal.jar", "-sharedDb", "-inMemory" ]
 
 networks:
   local:
@@ -214,3 +216,4 @@ networks:
 
 volumes:
   common_postgres_data:
+  dynamodb_data:

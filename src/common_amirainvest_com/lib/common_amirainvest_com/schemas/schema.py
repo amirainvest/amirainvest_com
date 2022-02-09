@@ -773,6 +773,14 @@ class SecurityPrices(Base, ToDict):
     created_at = Column(DateTime, server_default=UTCNow())
 
 
+class MarketHolidays(Base, ToDict):
+    __tablename__ = "market_holidays"
+    id = Column(Integer, primary_key=True, unique=True, nullable=False, autoincrement=True)
+
+    holiday_date = Column(DateTime, nullable=False, unique=True)
+    settlement_date = Column(DateTime, nullable=False)
+
+
 class Notifications(Base, ToDict):
     __tablename__ = "notifications"
     id = Column(BigInteger, primary_key=True, unique=True, nullable=False)

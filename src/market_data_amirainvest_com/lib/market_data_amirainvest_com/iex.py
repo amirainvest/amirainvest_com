@@ -4,7 +4,10 @@ from typing import Union
 import httpx
 
 from common_amirainvest_com.utils.consts import IEX_SECRET, IEX_URL
-from market_data_amirainvest_com.models.iex import Company, HistoricalPrice, StockQuote, Symbol
+from market_data_amirainvest_com.models.iex import (
+    Company, HistoricalPrice, StockQuote, Symbol, MarketHoliday,
+    MarketHolidayDirection,
+)
 
 
 class HistoricalPriceEnum(enum.Enum):
@@ -84,6 +87,18 @@ async def get_supported_securities_list() -> list[Symbol]:
         arr = []
         for item in response:
             arr.append(Symbol(**item))
+        return arr
+
+
+async def get_market_holidays(holiday_direction: MarketHolidayDirection) -> list[MarketHoliday]:
+    request_url = f"{IEX_URL}/ref-data/us/dates/holiday/{holiday_direction.value}?token={IEX_SECRET}"
+    async with httpx.AsyncClient() as client:
+        r = await client.get(request_url, timeout=20.0)
+        validate_response(r.status_code, r.text)
+        response = r.json()
+        arr = []
+        for item in response:
+            arr.append(MarketHoliday(**item))
         return arr
 
 

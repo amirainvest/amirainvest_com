@@ -7,7 +7,7 @@ from sqlalchemy.future import select
 
 from common_amirainvest_com.s3.client import S3
 from common_amirainvest_com.s3.consts import AMIRA_SECURITIES_HISTORICAL_PRICES_BUCKET
-from common_amirainvest_com.schemas.schema import Securities, SecurityPrices
+from common_amirainvest_com.schemas.schema import Securities, SecurityPrices, MarketHolidays
 from common_amirainvest_com.utils.decorators import Session
 from market_data_amirainvest_com.iex import HistoricalPrice
 
@@ -175,3 +175,21 @@ async def get_securities_collect_true(session: AsyncSession) -> list[Securities]
 @Session
 async def add_securities_prices(session: AsyncSession, security_prices: list[SecurityPrices]):
     session.add_all(security_prices)
+
+
+@Session
+async def add_market_holidays(session: AsyncSession, market_holidays: list[MarketHolidays]):
+    dates = []
+    for mh in market_holidays:
+        dates.append(mh.holiday_date)
+    response = await session.execute(select(MarketHolidays).where(MarketHolidays.holiday_date.in_(dates)))
+    date_dict: dict[datetime, None] = {}
+    for mh in response.scalars().all():
+        date_dict[mh.holiday_date] = None
+
+    insertable = []
+    for mh in market_holidays:
+        if mh.holiday_date in date_dict:
+            continue
+        insertable.append(mh)
+    session.add_all(insertable)

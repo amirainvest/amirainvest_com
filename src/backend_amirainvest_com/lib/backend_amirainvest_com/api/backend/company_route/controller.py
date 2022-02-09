@@ -1,3 +1,4 @@
+from datetime import datetime
 from common_amirainvest_com.schemas.schema import Securities, SecurityPrices
 from common_amirainvest_com.utils.decorators import Session
 from sqlalchemy import asc, desc
@@ -22,7 +23,7 @@ async def toggle_company_on(session: AsyncSession, security_id: int):
 
 
 @Session
-async def get_minute_pricing(session: AsyncSession, security_id: int):
+async def get_minute_pricing(session: AsyncSession, security_id: int) -> list[SecurityPrices]:
     response = await session.execute(
         select(SecurityPrices)
             .where(
@@ -36,11 +37,22 @@ async def get_minute_pricing(session: AsyncSession, security_id: int):
     )
     return response.scalars().all()
 
+
+""""
+A couple ways we could fetch all pricing
+1. Build a query and do a CTE and get all max records closest to x minute
+2. When we are fetching real-time pricing if price is on the hour / minute
+    -- add to db array(or chuck into another process that will ingest it)
+3.
+"""
+
+
 @Session
 async def get_hourly_pricing(session: AsyncSession, security_id: int):
     response = await session.execute(
-        
+
     )
+
 
 async def r():
     res = await get_minute_pricing(24)

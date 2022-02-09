@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, Form, Request, status
+from fastapi import APIRouter, Depends, Request, status
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 
+from backend_amirainvest_com.api.backend.plaid_route.models import PlaidTokenRequest
 from backend_amirainvest_com.controllers.auth import auth_depends_user_id
 from backend_amirainvest_com.controllers.plaid_controller import exchange_public_for_access_token, generate_link_token
 from common_amirainvest_com.dynamo.models import BrokerageUser
@@ -9,16 +10,15 @@ from common_amirainvest_com.dynamo.utils import add_brokerage_user, get_brokerag
 from common_amirainvest_com.sqs.consts import BROKERAGE_DATA_QUEUE_URL
 from common_amirainvest_com.sqs.models import Brokerage, BrokerageDataActions, BrokerageDataChange
 from common_amirainvest_com.sqs.utils import add_message_to_queue
-from backend_amirainvest_com.api.backend.plaid_route.models import PlaidTokenRequest
 
 
 router = APIRouter(prefix="/plaid", tags=["Plaid"])
 templates = Jinja2Templates(directory="src/backend_amirainvest_com/lib/backend_amirainvest_com/api/backend/plaid_route")
 
 
-@router.get('/', status_code=status.HTTP_200_OK)
+@router.get("/", status_code=status.HTTP_200_OK)
 async def get_plaid(request: Request):
-    return templates.TemplateResponse('login.html', {'request': request})
+    return templates.TemplateResponse("login.html", {"request": request})
 
 
 @router.post("/link", status_code=status.HTTP_200_OK, response_class=HTMLResponse)

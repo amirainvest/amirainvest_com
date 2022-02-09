@@ -2,6 +2,7 @@ from typing import Optional
 
 import requests
 
+from common_amirainvest_com.schemas.schema import MediaPlatform, SubscriptionLevel
 from common_amirainvest_com.utils.datetime_utils import parse_iso_8601_from_string
 from common_amirainvest_com.utils.logger import log
 from data_imports_amirainvest_com.consts import YOUTUBE_API_KEY_ENV, YOUTUBE_API_URL
@@ -107,7 +108,6 @@ class YouTuber(PlatformUser):
         videos = []
         video_posts = []
         stored_videos = await self.get_stored_youtube_videos_from_database()
-        user = await get_user(self.creator_id)
         log.info(f"Getting videos for {self.channel_username}")
         next_token = True
         found_existing = False
@@ -145,15 +145,18 @@ class YouTuber(PlatformUser):
                     video_posts.append(
                         {
                             "creator_id": self.creator_id,
-                            "platform": "youtube",
-                            "platform_user_id": self.channel_id,
-                            "platform_post_id": video_data["contentDetails"]["videoId"],
-                            "profile_img_url": self.profile_img_url,
-                            "text": video_data["snippet"]["title"],
-                            "html": "",
+                            "subscription_level": SubscriptionLevel.standard,
                             "title": video_data["snippet"]["title"],
-                            "profile_url": "",
-                            "chip_labels": user.chip_labels,
+                            "content": f"https://www.youtube.com/embed/{video_data['contentDetails']['videoId']}",
+                            "photos": [],
+                            "platform": MediaPlatform.youtube,
+                            "platform_display_name": self.channel_username,
+                            "platform_user_id": self.channel_id,
+                            "platform_img_url": self.profile_img_url,
+                            "platform_profile_url": f"https://www.youtube.com/channel/{self.channel_id}",
+                            "twitter_handle": None,
+                            "platform_post_id": video_data["contentDetails"]["videoId"],
+                            "platform_post_url": f"https://www.youtube.com/{video_data['contentDetails']['videoId']}",
                             "created_at": created_at,
                             "updated_at": created_at,
                         }

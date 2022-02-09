@@ -4,22 +4,23 @@ from sqlalchemy import func, insert, update
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+import asyncio
 
 import redis  # noqa: F401
 from backend_amirainvest_com.api.backend.post_route.model import (
     CreateModel,
     FeedType,
     ListInputModel,
-    PostsModel,
     UpdateModel,
+    GetModel as PostsModel
 )
+from common_amirainvest_com.controllers.creator import get_creator_attributes
 from backend_amirainvest_com.utils.s3 import S3
 from common_amirainvest_com.s3.consts import AMIRA_POST_PHOTOS_S3_BUCKET
 from common_amirainvest_com.schemas.schema import Bookmarks, Posts, UserSubscriptions
 from common_amirainvest_com.utils.consts import WEBCACHE
 from common_amirainvest_com.utils.decorators import Session
 from common_amirainvest_com.utils.generic_utils import get_past_datetime
-from backend_amirainvest_com.controllers.creator import get_creator_attributes
 
 
 PAGE_SIZE = 30
@@ -185,7 +186,8 @@ async def get_subscriber_posts(
     page_size: int = PAGE_SIZE,
     last_loaded_post_id: int = 0,
     hours_ago: int = MAX_HOURS_AGO,
-) -> List[Posts]:
+) -> List[PostsModel]:
+    posts = []
     query = (
         select(Posts)
         .join(UserSubscriptions, UserSubscriptions.creator_id == Posts.creator_id)
@@ -193,7 +195,10 @@ async def get_subscriber_posts(
     )
     query = latest_posts(query, page_size=page_size, last_loaded_post_id=last_loaded_post_id, hours_ago=hours_ago)
     data = await session.execute(query)
-    return data.scalars().all()
+    for post in data.scalars().all():
+        post_attributes = await get_post_attributes(post)
+        posts.append(PostsModel.parse_obj({**post_attributes, **post}))
+    return posts
 
 
 @Session
@@ -203,11 +208,15 @@ async def get_creator_posts(
     page_size: int = PAGE_SIZE,
     last_loaded_post_id: int = 0,
     hours_ago: int = MAX_HOURS_AGO,
-) -> List[Posts]:
+) -> List[PostsModel]:
+    posts = []
     query = select(Posts).where(Posts.creator_id == creator_id)
     query = latest_posts(query, page_size=page_size, last_loaded_post_id=last_loaded_post_id, hours_ago=hours_ago)
     data = await session.execute(query)
-    return data.scalars().all()
+    for post in data.scalars().all():
+        post_attributes = await get_post_attributes(post)
+        posts.append(PostsModel.parse_obj({**post_attributes, **post}))
+    return posts
 
 
 @Session
@@ -216,7 +225,8 @@ async def get_discovery_posts(
     page_size: int = PAGE_SIZE,
     last_loaded_post_id: int = 0,
     hours_ago: int = MAX_HOURS_AGO,
-) -> List[Posts]:
+) -> List[PostsModel]:
+    posts = []
     query = select(Posts).where(
         Posts.creator_id.in_(
             select(UserSubscriptions.creator_id)
@@ -227,7 +237,10 @@ async def get_discovery_posts(
     )
     query = latest_posts(query, last_loaded_post_id, hours_ago, page_size)
     data = await session.execute(query)
-    return data.scalars().all()
+    for post in data.scalars().all():
+        post_attributes = await get_post_attributes(post)
+        posts.append(PostsModel.parse_obj({**post_attributes, **post}))
+    return posts
 
 
 @Session
@@ -241,9 +254,8 @@ async def get_is_bookmarked(session: AsyncSession, post_id: int):
     return False
 
 
-@Session
-async def get_post_attributes(session: AsyncSession, post: PostsModel):
-    # PLATFORM DISPLAY NAME
-    # TWITTER HANDLE
-    creator_object = get_creator_attributes(post.creator_id)
-    is_bookmarked = get_is_bookmarked(post.id)
+async def get_post_attributes(post: PostsModel):
+    creator, is_bookmarked = await asyncio.gather(
+        get_creator_attributes(post.creator.id), get_is_bookmarked(post.id)
+    )
+    return {"creator": creator, "is_bookmarked": is_bookmarked}

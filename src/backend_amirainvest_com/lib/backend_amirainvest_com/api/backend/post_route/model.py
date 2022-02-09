@@ -1,24 +1,54 @@
 import enum
+import datetime
 from typing import List, Optional
 
 from pydantic import BaseModel, root_validator
 
-from common_amirainvest_com.schemas.schema import MediaPlatform, PostsModel, PostsModel as GetModel
+from common_amirainvest_com.schemas.schema import MediaPlatform, SubscriptionLevel, PostsModel
+from common_amirainvest_com.models.creator import Creator
 
 
-assert GetModel
+class GetModel(BaseModel):
+    id: int
+
+    creator: Creator
+    subscription_level: SubscriptionLevel = SubscriptionLevel.standard
+
+    title: str
+    content: str
+    photos: List[str]
+
+    platform: MediaPlatform
+    platform_display_name: str
+    platform_user_id: str
+    platform_img_url: str
+    platform_profile_url: str
+    twitter_handle: str
+
+    platform_post_id: str
+    platform_post_url: str
+
+    created_at: Optional[datetime.datetime]
+    updated_at: Optional[datetime.datetime]
 
 
 class CreateModel(BaseModel):
-    platform: MediaPlatform
-    platform_user_id: Optional[str]
-    platform_post_id: Optional[str]
-    profile_img_url: Optional[str]
-    text: Optional[str]
-    html: Optional[str]
+    creator_id: str
+    subscription_level: SubscriptionLevel = SubscriptionLevel.standard
+
     title: Optional[str]
-    chip_labels: Optional[List[str]]
-    profile_url: Optional[str]
+    content: str
+    photos: Optional[List[str]]
+
+    platform: MediaPlatform
+    platform_display_name: Optional[str]
+    platform_user_id: Optional[str]
+    platform_img_url: Optional[str]
+    platform_profile_url: Optional[str]
+    twitter_handle: Optional[str]
+
+    platform_post_id: Optional[str]
+    platform_post_url: Optional[str]
 
 
 class UpdateModel(CreateModel):
@@ -47,7 +77,7 @@ class ListInputModel(BaseModel):
 
 
 class ListReturnModel(BaseModel):
-    posts: List[PostsModel]
+    posts: List[GetModel]
     feed_type: FeedType
 
     class Config:

@@ -17,6 +17,7 @@ from data_imports_amirainvest_com.controllers.substack_articles import (
 from data_imports_amirainvest_com.controllers.substack_users import create_substack_user
 from data_imports_amirainvest_com.controllers.users import get_user
 from data_imports_amirainvest_com.platforms.platforms import PlatformUser
+from common_amirainvest_com.schemas.schema import SubscriptionLevel, MediaPlatform
 
 
 class SubstackUser(PlatformUser):
@@ -34,7 +35,6 @@ class SubstackUser(PlatformUser):
         articles = []
         article_posts = []
         existing_articles = await get_substack_articles_for_username(self.username)
-        user = await get_user(self.creator_id)
         for article in feedparser.parse(self.user_url).entries:
             if article["id"] not in [x.article_id for x in existing_articles]:
                 summary = BeautifulSoup(article["summary"], features="html.parser").get_text()
@@ -53,17 +53,18 @@ class SubstackUser(PlatformUser):
                 article_posts.append(
                     {
                         "creator_id": self.creator_id,
-                        "platform": "substack",
-                        "platform_user_id": self.username,
-                        "platform_post_id": article["id"],
-                        "profile_img_url": "",
-                        "text": summary,
-                        "html": "",
+                        "subscription_level": SubscriptionLevel.standard,
                         "title": article["title"],
-                        "profile_url": "",
-                        "chip_labels": user.chip_labels,
-                        "created_at": created_at,
-                        "updated_at": created_at,
+                        "content": summary,
+                        "photos": [],
+                        "platform": MediaPlatform.substack,
+                        "platform_display_name": self.username,
+                        "platform_user_id": self.username,
+                        "platform_img_url": "",
+                        "platform_profile_url": self.user_url,
+                        "twitter_handle": None,
+                        "platform_post_id": article["id"],
+                        "platform_post_url": article["link"],
                     }
                 )
         return articles, article_posts

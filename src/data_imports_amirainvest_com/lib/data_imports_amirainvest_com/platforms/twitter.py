@@ -6,7 +6,7 @@ import arrow
 import requests
 from bs4 import BeautifulSoup
 
-from common_amirainvest_com.schemas.schema import Tweets
+from common_amirainvest_com.schemas.schema import Tweets, SubscriptionLevel, MediaPlatform
 from common_amirainvest_com.utils.datetime_utils import parse_iso_8601_from_string
 from common_amirainvest_com.utils.logger import log
 from data_imports_amirainvest_com.consts import TWITTER_API_TOKEN_ENV, TWITTER_API_URL
@@ -110,14 +110,12 @@ class TwitterUser(PlatformUser):
         tweet_posts = []
         stored_tweets = await self.get_stored_creator_tweets()
         stored_tweet_ids = [x.tweet_id for x in stored_tweets]
-        user = await get_user(self.creator_id)
         for raw_tweet in raw_tweets:
             if raw_tweet["id"] not in stored_tweet_ids:
                 created_at = (
                     parse_iso_8601_from_string(raw_tweet.get("created_at")) if raw_tweet.get("created_at") else None
                 )
-                tweets.append(
-                    Tweet(
+                tweet = Tweet(
                         **{
                             "twitter_user_id": self.twitter_user_id,
                             "twitter_username": self.username,
@@ -133,21 +131,25 @@ class TwitterUser(PlatformUser):
                             "tweet_url": f"https://twitter.com/{self.username}/status/{raw_tweet.get('id')}",
                         }
                     )
-                )
+                tweets.append(tweet)
                 tweet_posts.append(
                     {
                         "creator_id": self.creator_id,
-                        "platform": "twitter",
+                        "subscription_level": SubscriptionLevel.standard,
+
+                        "title": None,
+                        "content": tweet.embedded_url,
+                        "photos": [],
+
+                        "platform": MediaPlatform.twitter,
+                        "platform_display_name": self.name,
                         "platform_user_id": self.twitter_user_id,
-                        "platform_post_id": raw_tweet.get("id"),
-                        "profile_img_url": "",
-                        "text": raw_tweet.get("text"),
-                        "html": "",
-                        "title": "",
-                        "profile_url": "",
-                        "chip_labels": user.chip_labels,
-                        "created_at": created_at,
-                        "updated_at": created_at,
+                        "platform_img_url": self.profile_img_url,
+                        "platform_profile_url": self.profile_url,
+                        "twitter_handle": self.username,
+
+                        "platform_post_id": tweet.tweet_id,
+                        "platform_post_url": tweet.tweet_url
                     }
                 )
         return tweets, tweet_posts

@@ -246,3 +246,19 @@ async def test_list(factory):
     list_response_json = list_response.json()
 
     assert list_response_json["result_count"] == 2
+
+async def test_list_(factory):
+    await factory.gen("users")
+    await factory.gen("users")
+
+    async with AsyncClient(app=app, base_url="http://test") as async_client:
+        list_response = await async_client.post(
+            "/user/list",
+            headers=AUTH_HEADERS,
+            data=json.dumps(
+                {}
+            ),
+        )
+
+    list_response_json = list_response.json()
+    assert list_response_json["result_count"] == 2

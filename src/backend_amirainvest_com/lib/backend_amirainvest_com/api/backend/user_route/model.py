@@ -11,7 +11,8 @@ assert GetReturnModel
 
 
 class SearchableAttributes(Enum):
-    name = "name"
+    first_name = "first_name"
+    last_name = 'last_bame'
     username = "username"
 
 

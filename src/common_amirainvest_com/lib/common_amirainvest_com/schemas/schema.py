@@ -603,6 +603,14 @@ class WatchlistFollows(Base, ToDict):
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
 
+class WatchlistFollowsModel(BaseModel):
+    id: int
+    follower_id: str
+    watchlist_id: int
+    created_at: Optional[datetime.datetime]
+    updated_at: Optional[datetime.datetime]
+
+
 class FinancialInstitutions(Base, ToDict):
     __tablename__ = "financial_institutions"
     id = Column(Integer, primary_key=True, unique=True, nullable=False, autoincrement=True)

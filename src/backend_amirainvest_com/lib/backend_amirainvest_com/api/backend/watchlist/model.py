@@ -1,9 +1,11 @@
 import datetime
 import uuid
 from typing import List, Optional
+from enum import Enum
 
 from pydantic import BaseModel
 
+from backend_amirainvest_com.utils.model import ErrorMessageModelBase, StatusDetailModel
 from common_amirainvest_com.schemas.schema import WatchlistsModel as GetModel
 
 
@@ -11,7 +13,6 @@ assert GetModel
 
 
 class CreateModel(BaseModel):
-    creator_id: uuid.UUID
     name: str
     tickers: List[str]
     note: Optional[str]
@@ -28,3 +29,12 @@ class UpdateModel(BaseModel):
 
 class DeleteModel(BaseModel):
     id: int
+
+
+# class Http409Enum(Enum):
+#     creator_user_missmatch = StatusDetailModel(
+#         sub_status_code = 0, message="Can not create a watchlist for another user"
+#     )
+
+# class Http409Model(ErrorMessageModelBase[Http409Enum]):
+#     pass

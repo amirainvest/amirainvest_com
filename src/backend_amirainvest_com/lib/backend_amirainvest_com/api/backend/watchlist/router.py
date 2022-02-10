@@ -17,10 +17,7 @@ from backend_amirainvest_com.controllers.auth import auth_depends_user_id
 router = APIRouter(prefix="/watchlist", tags=["Watchlist"])
 
 
-@router.post(
-    "/create", 
-    status_code=status.HTTP_201_CREATED,
-    response_model=GetModel)
+@router.post("/create", status_code=status.HTTP_201_CREATED, response_model=GetModel)
 async def create_route(watchlist_data: CreateModel, token=Depends(auth_depends_user_id)):
     creator_id = token["https://amirainvest.com/user_id"]
     return await create_controller(watchlist_data, creator_id)

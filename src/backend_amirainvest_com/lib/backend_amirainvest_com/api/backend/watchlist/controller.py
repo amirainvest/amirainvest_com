@@ -13,9 +13,7 @@ from common_amirainvest_com.utils.decorators import Session
 async def create_controller(session: AsyncSession, watchlist_data: CreateModel, creator_id: str):
     watchlist_data_dict = watchlist_data.dict(exclude_none=True)
     watchlist_data_dict["creator_id"] = creator_id
-    return (
-        await session.execute(insert(Watchlists).values(**watchlist_data_dict).returning(Watchlists))
-    ).fetchone()
+    return (await session.execute(insert(Watchlists).values(**watchlist_data_dict).returning(Watchlists))).fetchone()
 
 
 @Session
@@ -35,7 +33,9 @@ async def list_controller(session: AsyncSession, creator_id: str, user_id: str) 
         # GETS CREATOR WATCHLISTS
         return [
             x.dict()
-            for x in (await session.execute(select(Watchlists).where(Watchlists.creator_id == creator_id))).scalars().all()
+            for x in (await session.execute(select(Watchlists).where(Watchlists.creator_id == creator_id)))
+            .scalars()
+            .all()
         ]
 
 
@@ -57,9 +57,5 @@ async def update_controller(session: AsyncSession, watchlist_data: UpdateModel, 
 @Session
 async def delete_controller(session: AsyncSession, watchlist_id: int, user_id: str) -> None:
     await (
-        session.execute(
-            delete(Watchlists)
-            .where(Watchlists.id == watchlist_id)
-            .where(Watchlists.creator_id == user_id)
-            )
-        )
+        session.execute(delete(Watchlists).where(Watchlists.id == watchlist_id).where(Watchlists.creator_id == user_id))
+    )

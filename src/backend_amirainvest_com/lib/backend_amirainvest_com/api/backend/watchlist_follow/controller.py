@@ -10,19 +10,22 @@ from common_amirainvest_com.utils.decorators import Session
 
 
 @Session
-async def create_controller(session: AsyncSession, watchlist_follow_data: CreateModel):
+async def create_controller(session: AsyncSession, watchlist_follow_data: CreateModel, user_id: str):
+    watchlist_follow_data_dict = watchlist_follow_data.dict(exclude_none=True)
+    watchlist_follow_data_dict["follower_id"] = user_id
     return (
-        await session.execute(
-            insert(WatchlistFollows).values(**watchlist_follow_data.dict(exclude_none=True)).returning(WatchlistFollows)
-        )
+        await session.execute(insert(WatchlistFollows).values(**watchlist_follow_data_dict).returning(WatchlistFollows))
     ).fetchone()
 
 
 @Session
-async def get_controller(session: AsyncSession, watchlist_follow_id: int):
+async def get_controller(session: AsyncSession, watchlist_follow_id: int, user_id: str):
     watchlist, watchlist_follow = (
         await session.execute(
-            select(Watchlists, WatchlistFollows).join(Watchlists).where(WatchlistFollows.id == watchlist_follow_id)
+            select(Watchlists, WatchlistFollows)
+            .join(Watchlists)
+            .where(WatchlistFollows.id == watchlist_follow_id)
+            .where(WatchlistFollows.follower_id == user_id)
         )
     ).one()
     return {
@@ -33,13 +36,13 @@ async def get_controller(session: AsyncSession, watchlist_follow_id: int):
 
 
 @Session
-async def list_controller(session: AsyncSession, follower_id: uuid.UUID) -> List[FollowedWatchlistModel]:
+async def list_controller(session: AsyncSession, user_id: str) -> List[FollowedWatchlistModel]:
     # GETS FOLLOWERS WATCHLISTS
     return [
         x.dict()
         for x in (
             await session.execute(
-                select(Watchlists, WatchlistFollows).join(Watchlists).where(WatchlistFollows.follower_id == follower_id)
+                select(Watchlists, WatchlistFollows).join(Watchlists).where(WatchlistFollows.follower_id == user_id)
             )
         )
         .scalars()
@@ -48,5 +51,9 @@ async def list_controller(session: AsyncSession, follower_id: uuid.UUID) -> List
 
 
 @Session
-async def delete_controller(session: AsyncSession, watchlist_follow_id: int) -> None:
-    await session.execute(delete(WatchlistFollows).where(WatchlistFollows.id == watchlist_follow_id))
+async def delete_controller(session: AsyncSession, watchlist_follow_id: int, user_id: str) -> None:
+    await session.execute(
+        delete(WatchlistFollows)
+        .where(WatchlistFollows.id == watchlist_follow_id)
+        .where(WatchlistFollows.follower_id == user_id)
+    )

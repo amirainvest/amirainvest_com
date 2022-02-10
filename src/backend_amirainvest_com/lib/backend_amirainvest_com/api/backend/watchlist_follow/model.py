@@ -1,5 +1,4 @@
 import datetime
-import uuid
 from typing import List, Optional
 
 from pydantic import BaseModel
@@ -11,14 +10,12 @@ assert GetModel
 
 
 class CreateModel(BaseModel):
-    follower_id: uuid.UUID
     watchlist_id: int
     created_at: Optional[datetime.datetime]
     updated_at: Optional[datetime.datetime]
 
 
 class FollowedWatchlistModel(BaseModel):
-    creator_id: uuid.UUID
     id: int
     name: str
     note: Optional[str]

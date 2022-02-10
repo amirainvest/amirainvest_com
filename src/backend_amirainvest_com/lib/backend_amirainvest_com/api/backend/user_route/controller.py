@@ -4,8 +4,10 @@ from fastapi import HTTPException, status
 from sqlalchemy import delete, insert, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.sql import functions
 
 from backend_amirainvest_com.api.backend.user_route import model
+from backend_amirainvest_com.api.backend.user_route.model import SearchableAttributes
 from backend_amirainvest_com.controllers.data_imports import add_data_import_data_to_sqs_queue
 from backend_amirainvest_com.utils import auth0_utils
 from common_amirainvest_com.schemas.schema import Users
@@ -21,12 +23,22 @@ async def get_controller(session, user_id: str) -> Users:
 @Session
 async def list_controller(session, list_request: model.ListInputModel):
     query = select(Users)
+
     for filter_ in list_request.filters:
+        if filter_.attribute == SearchableAttributes.full_name:
+            column_to_query = functions.concat(Users.first_name, Users.last_name)
+        else:
+            column_to_query = getattr(Users, filter_.attribute.value)
+
         if filter_.filter_type == model.FilterTypes.substring_match:
-            query = query.filter(getattr(Users, filter_.attribute.value).ilike(f"%{filter_.value.lower()}%"))
+            query = query.filter(column_to_query.ilike(f"%{filter_.value.lower()}%"))
 
     if list_request.sort is not None:
-        query.order_by(getattr(getattr(Users, list_request.sort.attribute.value), list_request.sort.order.value))
+        if list_request.sort.attribute == SearchableAttributes.full_name:
+            column_to_sort = functions.concat(Users.first_name, Users.last_name)
+        else:
+            column_to_sort = getattr(Users, list_request.sort.attribute.value)
+        query = query.order_by(getattr(column_to_sort, list_request.sort.order.value)())
 
     data = await session.execute(query)
     return data.scalars().all()

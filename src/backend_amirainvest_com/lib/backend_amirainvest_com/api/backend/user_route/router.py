@@ -34,7 +34,6 @@ async def get_route(user_id: str, token=Depends(auth_depends_user_id)):
     ).__dict__
 
 
-# TODO add test
 @router.post("/list", status_code=200, response_model=ListReturnModel, response_model_exclude_none=True)
 async def list_route(list_request: ListInputModel, token=Depends(auth_depends_user_id)):
     all_users = await list_controller(list_request)

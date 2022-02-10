@@ -1,26 +1,19 @@
-from typing import Optional
-
 from brokerage_amirainvest_com.brokerages.interfaces import BrokerageInterface
 from brokerage_amirainvest_com.jobs import add_job, end_job, get_job, start_job
-from common_amirainvest_com.schemas.schema import BrokerageJobs, JobsStatus
-from brokerage_amirainvest_com.brokerages import plaid_provider
-from common_amirainvest_com.utils.consts import PLAID_CLIENT_ID, PLAID_SECRET
-from brokerage_amirainvest_com.dynamo import TokenProvider
+from common_amirainvest_com.schemas.schema import JobsStatus
 
 
 def manage_job(fnc):
     async def handle_job(*args, **kwargs):
-        job_id = kwargs['job_id']
-        item_id = kwargs['item_id']
-        user_id = kwargs['user_id']
-        provider_key = kwargs['provider_key']
+        job_id = kwargs["job_id"]
+        item_id = kwargs["item_id"]
+        user_id = kwargs["user_id"]
+        provider_key = kwargs["provider_key"]
         func_name = fnc.__name__
 
         try:
             if job_id is None:
-                job = await add_job(
-                    user_id, {"item_id": item_id, "provider_key": provider_key, "func": func_name}
-                )
+                job = await add_job(user_id, {"item_id": item_id, "provider_key": provider_key, "func": func_name})
             else:
                 job = await get_job(job_id)
             job = await start_job(job.id)
@@ -45,12 +38,13 @@ class Providers:
 
     @manage_job
     async def collect_institutions(self, provider_key: str, user_id: str, item_id: str):
-        try:
-            provider = self.providers_dict[provider_key]
-            provider.__class__ = plaid_provider.PlaidProvider
-            await provider.collect_institutions()
-        except Exception as err:
-            raise err
+        pass
+        # try:
+        #     # provider = self.providers_dict[provider_key]
+        #     # provider.__class__ = plaid_provider.PlaidProvider
+        #     # await provider.collect_institutions()
+        # except Exception as err:
+        #     raise err
 
     @manage_job
     async def collect_investment_history(self, provider_key: str, user_id: str, item_id: str):

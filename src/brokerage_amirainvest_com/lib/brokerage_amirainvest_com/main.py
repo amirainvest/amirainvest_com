@@ -44,11 +44,11 @@ if __name__ == "__main__":
             item_id=brokerage_item_id,
             job_id=None,
         )
-    elif action == 'COMPUTE_HOLDINGS_HISTORY':
+    elif action == "COMPUTE_HOLDINGS_HISTORY":
         run_async_function_synchronously(
             provider_service.compute_holdings_history,
             provider_service="plaid",
             user_id=user_id,
             item_id=brokerage_item_id,
-            job_id=None
+            job_id=None,
         )

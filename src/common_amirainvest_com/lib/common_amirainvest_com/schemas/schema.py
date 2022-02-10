@@ -1,4 +1,5 @@
 import datetime
+import decimal
 import enum
 import typing as t
 import uuid
@@ -636,7 +637,7 @@ class FinancialAccountTransactions(Base, ToDict):
     quantity: Decimal = Column(DECIMAL, nullable=False)
     subtype = Column(String, nullable=False)
     type = Column(String, nullable=False)
-    value_amount = Column(DECIMAL(19, 4), nullable=False)
+    value_amount: decimal.Decimal = Column(DECIMAL(19, 4), nullable=False)
 
     fees = Column(DECIMAL(19, 4))
     iso_currency_code = Column(String)
@@ -650,13 +651,13 @@ class FinancialAccountCurrentHoldings(Base, ToDict):
     __table_args__ = (UniqueConstraint("account_id", "plaid_security_id"),)
     id = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
 
-    account_id = Column(Integer, ForeignKey("financial_accounts.id"), nullable=False)
+    account_id: int = Column(Integer, ForeignKey("financial_accounts.id"), nullable=False)
     plaid_security_id = Column(Integer, ForeignKey("plaid_securities.id"), nullable=False)
     user_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
 
     institution_value = Column(DECIMAL(19, 4), nullable=False)
     latest_price = Column(DECIMAL(19, 4), nullable=False)
-    quantity = Column(DECIMAL(19, 4), nullable=False)
+    quantity: decimal.Decimal = Column(DECIMAL(19, 4), nullable=False)
 
     cost_basis = Column(DECIMAL(19, 4))
     iso_currency_code = Column(String)
@@ -673,12 +674,12 @@ class FinancialAccountHoldingsHistory(Base, ToDict):
     id = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
     account_id = Column(Integer, ForeignKey("financial_accounts.id"), nullable=False)
     plaid_security_id = Column(Integer, ForeignKey("plaid_securities.id"), nullable=False)
+    security_id = Column(Integer, ForeignKey("securities.id"))
     user_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
 
     price = Column(DECIMAL(19, 4), nullable=False)
-    quantity = Column(DECIMAL(19, 4), nullable=False)
-
-    iso_currency_code = Column(String)
+    price_time = Column(DateTime)
+    quantity: decimal.Decimal = Column(DECIMAL(19, 4), nullable=False)
 
 
 class PlaidSecurities(Base, ToDict):
@@ -852,5 +853,6 @@ class ChipLabels(Base, ToDict):
 
 class MarketHolidays(Base, ToDict):
     __tablename__ = "market_holidays"
-    date: datetime
-    settlementdate: datetime
+    id = Column(Integer, primary_key=True, unique=True, autoincrement=True)
+    date = Column(DateTime, unique=True, nullable=False)
+    settlement_date = Column(DateTime, nullable=False)

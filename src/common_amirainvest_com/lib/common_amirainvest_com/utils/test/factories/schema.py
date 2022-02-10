@@ -20,10 +20,29 @@ from common_amirainvest_com.schemas.schema import (
     UserMediaErrors,
     Users,
     UserSubscriptions,
+    WatchlistFollows,
+    Watchlists,
     YouTubers,
     YouTubeVideos,
 )
 from common_amirainvest_com.utils.test.factories.base import FactoryBase
+
+
+class WatchlistsFollowsFactory(FactoryBase):
+    class Meta:
+        model = WatchlistFollows
+
+    follower_id = ""
+    watchlist_id = ""
+
+
+class WatchlistsFactory(FactoryBase):
+    class Meta:
+        model = Watchlists
+
+    creator_id = ""
+    name = ""
+    tickers = ["APPL", "TSLA"]
 
 
 class TradingStrategiesFactory(FactoryBase):

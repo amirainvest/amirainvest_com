@@ -24,6 +24,7 @@ class BrokerageDataChange(BaseModel):
     brokerage: Brokerage
     user_id: str
     token_identifier: str
+    job_id: Optional[int]
     action: BrokerageDataActions
     start_date: Optional[Arrow]
     end_date: Optional[Arrow]

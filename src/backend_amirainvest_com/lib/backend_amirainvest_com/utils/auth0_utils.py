@@ -4,6 +4,7 @@ import httpx
 from fastapi import HTTPException, status
 
 from backend_amirainvest_com.api.backend.user_route.model import Http400Enum
+from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
 from common_amirainvest_com.utils.consts import (
     AUTH0_MANAGEMENT_API_AUDIENCE,
     AUTH0_MANAGEMENT_CLIENT_ID,
@@ -51,3 +52,11 @@ async def update_user_app_metadata(sub: str, app_metadata: dict):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=Http400Enum.auth0_app_metadata_failed.value.dict(),
         )
+
+
+async def r():
+    print(await _get_auth0_management_api_token())
+
+
+if __name__ == "__main__":
+    run_async_function_synchronously(r)

@@ -1,11 +1,8 @@
 import datetime
-import uuid
-from enum import Enum
 from typing import List, Optional
 
 from pydantic import BaseModel
 
-from backend_amirainvest_com.utils.model import ErrorMessageModelBase, StatusDetailModel
 from common_amirainvest_com.schemas.schema import WatchlistsModel as GetModel
 
 

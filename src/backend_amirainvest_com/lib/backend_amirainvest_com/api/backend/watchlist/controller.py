@@ -1,4 +1,3 @@
-import uuid
 from typing import List
 
 from sqlalchemy import delete, insert, select, update

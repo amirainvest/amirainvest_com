@@ -197,7 +197,15 @@ async def get_subscriber_posts(
     data = await session.execute(query)
     for post in data.scalars().all():
         post_attributes = await get_post_attributes(post)
-        posts.append(PostsModel.parse_obj({**post_attributes, **post}))
+        from pprint import pprint
+        pprint({**post_attributes, **post.dict()})
+        posts.append(
+            PostsModel(
+                **{
+                    **post_attributes, **post.dict()
+                }
+            )
+        )
     return posts
 
 
@@ -215,7 +223,13 @@ async def get_creator_posts(
     data = await session.execute(query)
     for post in data.scalars().all():
         post_attributes = await get_post_attributes(post)
-        posts.append(PostsModel.parse_obj({**post_attributes, **post}))
+        posts.append(
+            PostsModel(
+                **{
+                    **post_attributes, **post.dict()
+                }
+            )
+        )
     return posts
 
 
@@ -239,7 +253,13 @@ async def get_discovery_posts(
     data = await session.execute(query)
     for post in data.scalars().all():
         post_attributes = await get_post_attributes(post)
-        posts.append(PostsModel.parse_obj({**post_attributes, **post}))
+        posts.append(
+            PostsModel(
+                **{
+                    **post_attributes, **post.dict()
+                }
+            )
+        )
     return posts
 
 
@@ -255,5 +275,5 @@ async def get_is_bookmarked(session: AsyncSession, post_id: int):
 
 
 async def get_post_attributes(post: PostsModel):
-    creator, is_bookmarked = await asyncio.gather(get_creator_attributes(post.creator.id), get_is_bookmarked(post.id))
+    creator, is_bookmarked = await asyncio.gather(get_creator_attributes(post.creator_id), get_is_bookmarked(post.id))
     return {"creator": creator, "is_bookmarked": is_bookmarked}

@@ -14,19 +14,19 @@ class GetModel(BaseModel):
     creator: Creator
     subscription_level: SubscriptionLevel = SubscriptionLevel.standard
 
-    title: str
-    content: str
-    photos: List[str]
+    title: Optional[str]
+    content: Optional[str]
+    photos: Optional[List[str]]
 
     platform: MediaPlatform
-    platform_display_name: str
-    platform_user_id: str
-    platform_img_url: str
-    platform_profile_url: str
-    twitter_handle: str
+    platform_display_name: Optional[str]
+    platform_user_id: Optional[str]
+    platform_img_url: Optional[str]
+    platform_profile_url: Optional[str]
+    twitter_handle: Optional[str]
 
-    platform_post_id: str
-    platform_post_url: str
+    platform_post_id: Optional[str]
+    platform_post_url: Optional[str]
 
     created_at: Optional[datetime.datetime]
     updated_at: Optional[datetime.datetime]

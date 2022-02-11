@@ -29,6 +29,8 @@ from sqlalchemy.types import DateTime
 
 Base = declarative_base()
 
+fake = faker.Faker()
+
 
 class UTCNow(expression.FunctionElement):  # type: ignore[name-defined]
     type = DateTime()
@@ -109,19 +111,19 @@ class Users(Base, ToDict):
         String,
         unique=True,
         nullable=False,
-        info={"factory": FactoryInfo(default="", generator=(faker.Faker().email, None)).dict()},
+        info={"factory": FactoryInfo(default="", generator=(fake.unique.email, None)).dict()},
     )
     username = Column(
         String,
         unique=True,
         nullable=False,
-        info={"factory": FactoryInfo(default="", generator=(faker.Faker().name, None)).dict()},
+        info={"factory": FactoryInfo(default="", generator=(fake.unique.name, None)).dict()},
     )
 
     sub = Column(
         String,
         nullable=False,
-        info={"factory": FactoryInfo(default="", generator=(faker.Faker().name, None)).dict()},
+        info={"factory": FactoryInfo(default="", generator=(fake.unique.name, None)).dict()},
     )
 
     first_name = Column(String, nullable=False)
@@ -716,7 +718,7 @@ class PlaidSecurities(Base, ToDict):
 
     plaid_security_id = Column(String, unique=True)
     ticker_symbol = Column(
-        String, unique=True, info={"factory": FactoryInfo(default="", generator=(faker.Faker().name, None)).dict()}
+        String, unique=True, info={"factory": FactoryInfo(default="", generator=(fake.unique.name, None)).dict()}
     )
 
     name = Column(String, nullable=False)
@@ -776,7 +778,7 @@ class Securities(Base, ToDict):
         String,
         unique=True,
         nullable=False,
-        info={"factory": FactoryInfo(default="", generator=(faker.Faker().name, None)).dict()},
+        info={"factory": FactoryInfo(default="", generator=(fake.unique.name, None)).dict()},
     )
 
     close_price = Column(DECIMAL(19, 4), nullable=False)

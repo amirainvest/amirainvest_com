@@ -1,5 +1,6 @@
 import json
 
+import pytest
 from fastapi import status
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -212,6 +213,7 @@ async def test_get_creator_feed(factory):
     assert all([response["creator_id"] == str(creator["users"].id) for response in response_data["posts"]])
 
 
+@pytest.mark.skip
 async def test_get_creator_feed_no_cache(factory):
     creator = await factory.gen("users")
 

@@ -41,6 +41,8 @@ async def run(user_id: str):
     # end_date = datetime.now().replace(hour=21, minute=0, second=0, microsecond=0) - relativedelta(years=2)
     end_date = datetime.utcnow().replace(month=1, day=1, hour=21, minute=0, second=0, microsecond=0)
     today = datetime.now().replace(hour=21, minute=0, second=0, microsecond=0)
+
+    cash_security = await get_cash_security()
     for account in accounts:
         transactions_by_date = await get_financial_transactions_dict(account_id=account.id)
         holdings = await get_current_financial_holdings(account_id=account.id)
@@ -48,7 +50,7 @@ async def run(user_id: str):
         historical_account = Account(id=account.id, user_id=user_id, holdings=[], cash=0)
         for holding in holdings:
             security_id = await get_security_id_by_plaid_security_id(holding.plaid_security_id)
-            if holding.security_id == "":  # TODO define cash here..
+            if holding.security_id == cash_security.id:
                 historical_account.cash = holding.price
             historical_account.holdings.append(
                 FinancialAccountHoldingsHistory(
@@ -100,7 +102,6 @@ async def run(user_id: str):
             today = tomorrow
 
         insertable = []
-        cash_security = await get_cash_security()
         for historical_holding in historical_holdings:
             cash_holding = FinancialAccountHoldingsHistory(
                 account_id=historical_holding.account_id,

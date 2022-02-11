@@ -1,41 +1,74 @@
+import typing as t
 from enum import Enum
-from typing import List, Optional
 
 from pydantic import BaseModel
 
-from backend_amirainvest_com.utils.model import ErrorMessageModelBase, StatusDetailModel
+from backend_amirainvest_com.utils.model import ErrorMessageModelBase, ListModelBase, StatusDetailModel
+from common_amirainvest_com.schemas.schema import UsersModel as GetReturnModel
 
 
-class ListModel(BaseModel):
-    user_id: str
+assert GetReturnModel
 
-    name: Optional[str]
-    benchmark: Optional[str]
-    chip_labels: Optional[List[str]]
+
+class SearchableAttributes(Enum):
+    first_name = "first_name"
+    last_name = "last_name"
+    full_name = "full_name"
+    username = "username"
+
+
+class FilterTypes(Enum):
+    substring_match = "substring_match"
+
+
+class Filters(BaseModel):
+    attribute: SearchableAttributes
+    filter_type: FilterTypes
+    value: str
+
+
+class SortOrders(Enum):
+    asc = "asc"
+    desc = "desc"
+
+
+class SortModel(BaseModel):
+    attribute: SearchableAttributes
+    order: SortOrders
+
+
+class ListInputModel(BaseModel):
+    filters: t.List[Filters] = []
+    sort: t.Optional[SortModel]
+    limit: int = 50
+
+
+class ListReturnModel(ListModelBase[GetReturnModel]):
+    pass
 
 
 class UserUpdate(BaseModel):
-    first_name: Optional[str]
-    last_name: Optional[str]
-    benchmark: Optional[int]
-    bio: Optional[str]
-    chip_labels: Optional[List[str]]
-    interests_diversification_rating: Optional[int]
-    linkedin_profile: Optional[str]
-    personal_site_url: Optional[str]
-    picture_url: Optional[str]
-    public_holdings: Optional[bool]
-    public_performance: Optional[bool]
-    public_profile: Optional[bool]
-    public_trades: Optional[bool]
+    first_name: t.Optional[str]
+    last_name: t.Optional[str]
+    benchmark: t.Optional[int]
+    bio: t.Optional[str]
+    chip_labels: t.Optional[t.List[str]]
+    interests_diversification_rating: t.Optional[int]
+    linkedin_profile: t.Optional[str]
+    personal_site_url: t.Optional[str]
+    picture_url: t.Optional[str]
+    public_holdings: t.Optional[bool]
+    public_performance: t.Optional[bool]
+    public_profile: t.Optional[bool]
+    public_trades: t.Optional[bool]
 
-    interests_value: Optional[bool]
-    interests_growth: Optional[bool]
-    interests_long_term: Optional[bool]
-    interests_short_term: Optional[bool]
+    interests_value: t.Optional[bool]
+    interests_growth: t.Optional[bool]
+    interests_long_term: t.Optional[bool]
+    interests_short_term: t.Optional[bool]
 
-    is_deactivated: Optional[bool]
-    is_deleted: Optional[bool]
+    is_deactivated: t.Optional[bool]
+    is_deleted: t.Optional[bool]
 
 
 class InitReturnModel(BaseModel):
@@ -47,7 +80,7 @@ class InitPostModel(BaseModel):
     last_name: str
     username: str
     email: str
-    benchmark: int
+    benchmark: t.Optional[int]
 
 
 class Http409Enum(Enum):

@@ -6,8 +6,8 @@ from common_amirainvest_com.utils.consts import PLAID_CLIENT_ID, PLAID_SECRET
 
 
 user_id = "f6b8bdfc-5a9d-11ec-bc23-0242ac1a0002"
-brokerage_item_id = "87mB66x5N6iDGgRnLPnDiRVjabX3QetwEAyoZ"
-action = "COLLECT_HOLDINGS"
+brokerage_item_id = "xbP3YOwYVYS8RjYBevk3uo8jZE5q0LhMQga16"
+action = "COLLECT_INVESTMENT_HISTORY"
 if __name__ == "__main__":
     token_repository = TokenProvider()
 
@@ -26,8 +26,9 @@ if __name__ == "__main__":
         run_async_function_synchronously(
             provider_service.collect_investment_history,
             provider_key="plaid",
-            user_id=(user_id),
+            user_id=user_id,
             item_id=brokerage_item_id,
+            job_id=None,
         )
     elif action == "COLLECT_HOLDINGS":
         run_async_function_synchronously(
@@ -35,4 +36,5 @@ if __name__ == "__main__":
             provider_key="plaid",
             user_id=user_id,
             item_id=brokerage_item_id,
+            job_id=None,
         )

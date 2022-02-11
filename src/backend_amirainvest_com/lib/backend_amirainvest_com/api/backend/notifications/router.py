@@ -55,7 +55,7 @@ async def update_route(user_id: str, update_data: UpdateModel, token=Depends(aut
     )._asdict()
 
 
-# notification settings, 
+# notification settings,
 
 
 @router.post(

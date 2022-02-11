@@ -21,119 +21,144 @@ from common_amirainvest_com.schemas.schema import (
 from common_amirainvest_com.utils.decorators import Session
 
 
-class AccountHoldings(BaseModel):
-    account_id: int
+class Account(BaseModel):
+    id: int
+    user_id: str
     cash: decimal.Decimal
     holdings: list[FinancialAccountHoldingsHistory]
 
 
-async def group_accounts_and_holdings(
-    current_holdings: list[FinancialAccountCurrentHoldings],
-) -> dict[int, AccountHoldings]:
-    current_day: dict[int, AccountHoldings] = {}
-    # TODO Should we use updated prices from IEX, or can we just use Plaid since this is the most "recent"
-    #  data available?
-    # TODO Reconcile accounts that might have depository as cash on hand, rather than individual security records
-    for holdings in current_holdings:
-        security_id = await get_security_id_by_plaid_security_id(holdings.plaid_security_id)
-        fah = FinancialAccountHoldingsHistory(
-            account_id=holdings.account_id,
-            plaid_security_id=holdings.plaid_security_id,
-            security_id=security_id,
-            user_id=holdings.user_id,
-            price=holdings.latest_price,
-            price_time=holdings.latest_price_date,
-            quantity=holdings.quantity,
-        )
-        try:
-            current_day[holdings.account_id].holdings.append(fah)
-        except KeyError:
-            current_day[holdings.account_id].holdings = [fah]
-    return current_day
+# TODO should we have a holdings and a price date(e.g., a price_date could be price time could be priced further back
+#  than a holding?
+# TODO add a buy_back date so its easier to query on the frontend ....
 
 
 async def run(user_id: str):
-    transactions_by_date = await get_ordered_transaction_history_per_day(user_id=user_id)
-    current_holdings = await get_current_holdings(user_id=user_id)
-    market_holidays = await get_market_holidays()
+    accounts = await get_financial_accounts(user_id=user_id)
+    market_holidays = await get_market_holidays_dict()
 
     # Run For History
-    two_years_ago = datetime.now().replace(hour=21, minute=0, second=0, microsecond=0) - relativedelta(years=2)
+    # end_date = datetime.now().replace(hour=21, minute=0, second=0, microsecond=0) - relativedelta(years=2)
+    end_date = datetime.utcnow().replace(month=1, day=1, hour=21, minute=0, second=0, microsecond=0)
     today = datetime.now().replace(hour=21, minute=0, second=0, microsecond=0)
+    for account in accounts:
+        transactions_by_date = await get_financial_transactions_dict(account_id=account.id)
+        holdings = await get_current_financial_holdings(account_id=account.id)
 
-    # We are going to keep computing yesterday's holdings based on the holdings & transactions TODAY
-    tomorrows_holdings: dict[int, AccountHoldings] = await group_accounts_and_holdings(current_holdings)
-    holdings_history: list[dict[int, AccountHoldings]] = [tomorrows_holdings]
-    while today >= two_years_ago:
-        # Can't have any transactions today
-        if today.date() in market_holidays or today.weekday() > 4:
-            continue
-        holdings_today = holdings_history[len(holdings_history) - 1]
+        historical_account = Account(id=account.id, user_id=user_id, holdings=[], cash=0)
+        for holding in holdings:
+            security_id = await get_security_id_by_plaid_security_id(holding.plaid_security_id)
+            if holding.security_id == "":  # TODO define cash here..
+                historical_account.cash = holding.price
+            historical_account.holdings.append(
+                FinancialAccountHoldingsHistory(
+                    account_id=holding.account_id,
+                    plaid_security_id=holding.plaid_security_id,
+                    security_id=security_id,
+                    user_id=user_id,
+                    price=holding.price,
+                    price_time=holding.price_time,
+                )
+            )
 
-        # Check if we have any transactions for today
-        # Make changes to the holidays....
-        if today.date() in transactions_by_date:
-            transactions = transactions_by_date[today.date()]
-            for transaction in transactions:
-                if transaction.account_id not in holdings_today:
-                    raise Exception("Oh Boy... this shouldnt have happened")
-                account_holdings = holdings_today[transaction.account_id]
-                account_holdings = perform_transaction(account_holdings, transaction)
-                tomorrows_holdings[transaction.account_id] = account_holdings
+        historical_holdings: list = [historical_account]
+        while today >= end_date:
+            if today.date() in market_holidays or today.weekday() > 4:
+                continue
 
-        # Update all of our securities with tomorrow's pricing
-        tomorrow_date = today - relativedelta(days=1)
-        holdings_tomorrow: dict[int, AccountHoldings] = {}
-        for holdings_today_account_id in holdings_today:
-            account = holdings_today[holdings_today_account_id]
-            new_holding = []
-            for holding in account.holdings:
+            today_holdings = historical_holdings[len(historical_holdings) - 1]
+            if today.date() in transactions_by_date:
+                transactions = transactions_by_date[today.date()]
+                for transaction in transactions:
+                    today_holdings = perform_transaction(today_holdings, transaction)
+
+            tomorrow_holdings = Account(
+                id=today_holdings.id, user_id=today_holdings.user_id, holdings=[], cash=today_holdings.cash
+            )
+            tomorrow = today - relativedelta(days=1)
+
+            for holding in today_holdings.holdings:
+                # TODO can we ever have a negative quantity holding
                 if 0 >= holding.quantity:
                     continue
+
                 # TODO Support options contract pricing
-                security_price = await get_closest_price(holding.security_id, holdings_today_account_id)
-                new_holding.append(
+                security_price = await get_closest_price(holding.security_id, tomorrow)
+                tomorrow_holdings.holdings.append(
                     FinancialAccountHoldingsHistory(
                         account_id=holding.account_id,
                         plaid_security_id=holding.plaid_security_id,
                         security_id=holding.security_id,
                         user_id=holding.user_id,
                         price=security_price.price,
-                        price_time=tomorrow_date,
+                        price_time=tomorrow,
                         quantity=holding.quantity,
                     )
                 )
-            account.holdings = new_holding
-            tomorrows_holdings[holdings_today_account_id] = account
 
-        holdings_history.append(holdings_tomorrow)
-        today = today - relativedelta(days=1)
-    # TODO When finished completely, go back through and propagate price-time from the bottom up before
-    #   inserting into the db
+            historical_holdings.append(tomorrow_holdings)
+            today = tomorrow
+
+        insertable = []
+        cash_security = await get_cash_security()
+        for historical_holding in historical_holdings:
+            cash_holding = FinancialAccountHoldingsHistory(
+                account_id=historical_holding.account_id,
+                plaid_security_id=historical_holding.plaid_security_id,
+                security_id=cash_security.id,
+                user_id=historical_holding.user_id,
+                price=historical_holding.price,
+                price_time=historical_holding.price_time,
+                quantity=1 * historical_holding.price,
+            )
+            insertable.append(cash_holding)
+            insertable.extend(historical_holding.holdings)
+        await insert_historical_holdings(insertable)
 
 
-def perform_transaction(
-    account_holdings: AccountHoldings, transaction: FinancialAccountTransactions
-) -> AccountHoldings:
+async def buy_buy(account_holdings: Account, transaction: FinancialAccountTransactions) -> Account:
+    account_holdings.cash = account_holdings.cash + transaction.value_amount
     current_holding, index = get_current_holding_if_exists(transaction=transaction, holdings=account_holdings.holdings)
-    if current_holding is None or index is None:
-        if transaction.type == "buy":
-            account_holdings.cash = account_holdings.cash + transaction.value_amount
-            return account_holdings
-        if transaction.type == "sell":
-            account_holdings.cash = account_holdings.cash - transaction.value_amount
-            return account_holdings
+    if current_holding is not None and index is not None:
+        current_holding.quantity = current_holding.quantity - transaction.quantity
+        # TODO if we modify variable, does that update the underlying type in the array?
+        account_holdings.holdings[index] = current_holding
+    return account_holdings
+
+
+async def sell_sell(account_holdings: Account, transaction: FinancialAccountTransactions) -> Account:
+    account_holdings.cash = account_holdings.cash - transaction.value_amount
+    current_holding, index = get_current_holding_if_exists(transaction=transaction, holdings=account_holdings.holdings)
+    if current_holding is None:
+        sec_id = await get_security_id_by_plaid_security_id(transaction.security_id)
+        account_holdings.holdings.append(
+            FinancialAccountHoldingsHistory(
+                account_id=account_holdings.id,
+                plaid_security_id=transaction.security_id,
+                security_id=sec_id,
+                user_id=account_holdings.user_id,
+                price=transaction.price,
+                price_time=None,
+                quantity=transaction.quantity,
+            )
+        )
+    elif index is not None:
+        current_holding.quantity = current_holding.quantity + transaction.quantity
+        current_holding.price = transaction.price
+        account_holdings.holdings[index] = current_holding
     else:
-        if transaction.type == "buy":
-            account_holdings.cash = account_holdings.cash + transaction.value_amount
-            current_holding.quantity = current_holding.quantity - transaction.quantity
-            account_holdings.holdings[index] = current_holding
-            return account_holdings
-        if transaction.type == "sell":
-            account_holdings.cash = account_holdings.cash - transaction.value_amount
-            current_holding.quantity = current_holding.quantity + transaction.quantity
-            account_holdings.holdings[index] = current_holding
-            return account_holdings
+        raise Exception("...?")
+    return account_holdings
+
+
+rule_set = {"buy": {"buy": buy_buy}, "sell": {"sell": sell_sell}}
+
+
+async def perform_transaction(account_holdings: Account, transaction: FinancialAccountTransactions) -> Account:
+    try:
+        account_holdings = await rule_set[transaction.type][transaction.subtype](account_holdings, transaction)
+    except KeyError:
+        raise Exception(".... we didnt check for this key ....")  # TODO error message...
     return account_holdings
 
 
@@ -147,14 +172,25 @@ def get_current_holding_if_exists(
 
 
 @Session
+async def insert_historical_holdings(session: AsyncSession, historical_holdings: list[FinancialAccountHoldingsHistory]):
+    session.add_all(historical_holdings)
+
+
+@Session
+async def get_cash_security(session: AsyncSession) -> Optional[Securities]:
+    # TODO should we use a different security id, what if we buy on the FX?
+    response = await session.execute(select(Securities).where(Securities.ticker_symbol == "CUR:USD"))
+    return response.scalar()
+
+
+@Session
 async def get_closest_price(
     session: AsyncSession, security_id: int, posting_date: datetime
 ) -> Optional[SecurityPrices]:
-    # TODO need to update this so that we look at yesterday EOD pricing, rather than today's price at 3:59
     response = await session.execute(
         select(SecurityPrices)
         .join(Securities)
-        .where(Securities.id == security_id, SecurityPrices.price_time < posting_date)
+        .where(Securities.id == security_id, SecurityPrices.price_time <= posting_date)
         .order_by(SecurityPrices.price_time.desc())
         .limit(1)
     )
@@ -175,7 +211,7 @@ async def get_security_id_by_plaid_security_id(session: AsyncSession, plaid_secu
 
 
 @Session
-async def get_market_holidays(session: AsyncSession) -> dict[MarketHolidays, None]:
+async def get_market_holidays_dict(session: AsyncSession) -> dict[MarketHolidays, None]:
     response = await session.execute(select(MarketHolidays))
 
     holiday_dict: dict[MarketHolidays, None] = {}
@@ -185,14 +221,11 @@ async def get_market_holidays(session: AsyncSession) -> dict[MarketHolidays, Non
 
 
 @Session
-async def get_ordered_transaction_history_per_day(
-    session: AsyncSession, user_id: str
+async def get_financial_transactions_dict(
+    session: AsyncSession, account_id: str
 ) -> dict[date, list[FinancialAccountTransactions]]:
     response = await session.execute(
-        select(FinancialAccountTransactions)
-        .join(FinancialAccounts)
-        .where(FinancialAccounts.user_id == user_id)
-        .order_by(FinancialAccountTransactions.posting_date.desc())
+        select(FinancialAccountTransactions).where(FinancialAccountTransactions.account_id == account_id)
     )
 
     transaction_history_day_dict: dict[date, list[FinancialAccountTransactions]] = {}
@@ -205,9 +238,11 @@ async def get_ordered_transaction_history_per_day(
 
 
 @Session
-async def get_current_holdings(session: AsyncSession, user_id: str) -> list[FinancialAccountCurrentHoldings]:
+async def get_current_financial_holdings(
+    session: AsyncSession, account_id: int
+) -> list[FinancialAccountCurrentHoldings]:
     response = await session.execute(
-        select(FinancialAccountCurrentHoldings).where(FinancialAccountCurrentHoldings.user_id == user_id)
+        select(FinancialAccountCurrentHoldings).where(FinancialAccountCurrentHoldings.account_id == account_id)
     )
     return response.scalars().all()
 

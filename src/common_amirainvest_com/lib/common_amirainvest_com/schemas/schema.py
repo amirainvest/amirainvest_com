@@ -635,8 +635,8 @@ class FinancialAccountTransactions(Base, ToDict):
     posting_date = Column(DateTime, nullable=False)
     price = Column(DECIMAL(19, 4), nullable=False)
     quantity: Decimal = Column(DECIMAL, nullable=False)
-    subtype = Column(String, nullable=False)
-    type = Column(String, nullable=False)
+    subtype: str = Column(String, nullable=False)
+    type: str = Column(String, nullable=False)
     value_amount: decimal.Decimal = Column(DECIMAL(19, 4), nullable=False)
 
     fees = Column(DECIMAL(19, 4))
@@ -679,7 +679,7 @@ class FinancialAccountHoldingsHistory(Base, ToDict):
 
     price = Column(DECIMAL(19, 4), nullable=False)
     price_time = Column(DateTime)
-    quantity: decimal.Decimal = Column(DECIMAL(19, 4), nullable=False)
+    quantity: Decimal = Column(DECIMAL(19, 4), nullable=False)
 
 
 class PlaidSecurities(Base, ToDict):

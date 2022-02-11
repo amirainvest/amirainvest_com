@@ -4,7 +4,7 @@ import feedparser
 from bs4 import BeautifulSoup
 from sqlalchemy import insert
 
-from common_amirainvest_com.schemas.schema import Users
+from common_amirainvest_com.schemas.schema import MediaPlatform, SubscriptionLevel, Users
 from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
 from common_amirainvest_com.utils.datetime_utils import parse_iso_8601_from_string
 from common_amirainvest_com.utils.decorators import Session
@@ -15,9 +15,7 @@ from data_imports_amirainvest_com.controllers.substack_articles import (
     get_substack_articles_for_username,
 )
 from data_imports_amirainvest_com.controllers.substack_users import create_substack_user
-from data_imports_amirainvest_com.controllers.users import get_user
 from data_imports_amirainvest_com.platforms.platforms import PlatformUser
-from common_amirainvest_com.schemas.schema import SubscriptionLevel, MediaPlatform
 
 
 class SubstackUser(PlatformUser):

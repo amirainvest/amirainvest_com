@@ -1,21 +1,21 @@
+import asyncio
 from typing import List, Tuple
 
 from sqlalchemy import func, insert, update
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-import asyncio
 
 import redis  # noqa: F401
 from backend_amirainvest_com.api.backend.post_route.model import (
     CreateModel,
     FeedType,
+    GetModel as PostsModel,
     ListInputModel,
     UpdateModel,
-    GetModel as PostsModel
 )
-from common_amirainvest_com.controllers.creator import get_creator_attributes
 from backend_amirainvest_com.utils.s3 import S3
+from common_amirainvest_com.controllers.creator import get_creator_attributes
 from common_amirainvest_com.s3.consts import AMIRA_POST_PHOTOS_S3_BUCKET
 from common_amirainvest_com.schemas.schema import Bookmarks, Posts, UserSubscriptions
 from common_amirainvest_com.utils.consts import WEBCACHE
@@ -255,7 +255,5 @@ async def get_is_bookmarked(session: AsyncSession, post_id: int):
 
 
 async def get_post_attributes(post: PostsModel):
-    creator, is_bookmarked = await asyncio.gather(
-        get_creator_attributes(post.creator.id), get_is_bookmarked(post.id)
-    )
+    creator, is_bookmarked = await asyncio.gather(get_creator_attributes(post.creator.id), get_is_bookmarked(post.id))
     return {"creator": creator, "is_bookmarked": is_bookmarked}

@@ -6,14 +6,13 @@ import arrow
 import requests
 from bs4 import BeautifulSoup
 
-from common_amirainvest_com.schemas.schema import Tweets, SubscriptionLevel, MediaPlatform
+from common_amirainvest_com.schemas.schema import MediaPlatform, SubscriptionLevel, Tweets
 from common_amirainvest_com.utils.datetime_utils import parse_iso_8601_from_string
 from common_amirainvest_com.utils.logger import log
 from data_imports_amirainvest_com.consts import TWITTER_API_TOKEN_ENV, TWITTER_API_URL
 from data_imports_amirainvest_com.controllers import posts
 from data_imports_amirainvest_com.controllers.tweets import create_tweet, get_tweets_for_creator
 from data_imports_amirainvest_com.controllers.twitter_users import create_twitter_user
-from data_imports_amirainvest_com.controllers.users import get_user
 from data_imports_amirainvest_com.platforms.platforms import PlatformUser
 
 
@@ -116,40 +115,37 @@ class TwitterUser(PlatformUser):
                     parse_iso_8601_from_string(raw_tweet.get("created_at")) if raw_tweet.get("created_at") else None
                 )
                 tweet = Tweet(
-                        **{
-                            "twitter_user_id": self.twitter_user_id,
-                            "twitter_username": self.username,
-                            "tweet_id": raw_tweet.get("id"),
-                            "text": raw_tweet.get("text"),
-                            "created_at": created_at,
-                            "entities": raw_tweet.get("entities", {}),
-                            "language": raw_tweet.get("lang"),
-                            "like_count": raw_tweet.get("like_count"),
-                            "quote_count": raw_tweet.get("quote_count"),
-                            "reply_count": raw_tweet.get("reply_count"),
-                            "retweet_count": raw_tweet.get("retweet_count"),
-                            "tweet_url": f"https://twitter.com/{self.username}/status/{raw_tweet.get('id')}",
-                        }
-                    )
+                    **{
+                        "twitter_user_id": self.twitter_user_id,
+                        "twitter_username": self.username,
+                        "tweet_id": raw_tweet.get("id"),
+                        "text": raw_tweet.get("text"),
+                        "created_at": created_at,
+                        "entities": raw_tweet.get("entities", {}),
+                        "language": raw_tweet.get("lang"),
+                        "like_count": raw_tweet.get("like_count"),
+                        "quote_count": raw_tweet.get("quote_count"),
+                        "reply_count": raw_tweet.get("reply_count"),
+                        "retweet_count": raw_tweet.get("retweet_count"),
+                        "tweet_url": f"https://twitter.com/{self.username}/status/{raw_tweet.get('id')}",
+                    }
+                )
                 tweets.append(tweet)
                 tweet_posts.append(
                     {
                         "creator_id": self.creator_id,
                         "subscription_level": SubscriptionLevel.standard,
-
                         "title": None,
                         "content": tweet.embedded_url,
                         "photos": [],
-
                         "platform": MediaPlatform.twitter,
                         "platform_display_name": self.name,
                         "platform_user_id": self.twitter_user_id,
                         "platform_img_url": self.profile_img_url,
                         "platform_profile_url": self.profile_url,
                         "twitter_handle": self.username,
-
                         "platform_post_id": tweet.tweet_id,
-                        "platform_post_url": tweet.tweet_url
+                        "platform_post_url": tweet.tweet_url,
                     }
                 )
         return tweets, tweet_posts

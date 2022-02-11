@@ -7,7 +7,6 @@ from common_amirainvest_com.utils.datetime_utils import parse_iso_8601_from_stri
 from common_amirainvest_com.utils.logger import log
 from data_imports_amirainvest_com.consts import YOUTUBE_API_KEY_ENV, YOUTUBE_API_URL
 from data_imports_amirainvest_com.controllers import posts
-from data_imports_amirainvest_com.controllers.users import get_user
 from data_imports_amirainvest_com.controllers.youtube_videos import create_youtube_video, get_videos_for_channel
 from data_imports_amirainvest_com.controllers.youtubers import create_youtuber, get_youtuber
 from data_imports_amirainvest_com.platforms.platforms import PlatformUser

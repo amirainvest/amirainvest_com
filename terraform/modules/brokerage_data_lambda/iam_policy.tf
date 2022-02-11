@@ -10,7 +10,7 @@ resource "aws_iam_policy" "sqs_read_write" {
         "Action": [
             "sqs:ReceiveMessage",
             "sqs:DeleteMessage",
-            "sqs:GetQueueAttributes",
+            "sqs:GetQueueAttributes"
         ],
         "Resource": "*"
     }
@@ -30,12 +30,12 @@ resource "aws_iam_policy" "dynamo_read_write" {
   "Statement": [
             {
             "Action": [
-                "dynamodb:*",
+                "dynamodb:*"
             ],
             "Effect": "Allow",
             "Resource": "*"
-        },
-  ],
+        }
+  ]
   "Version": "2012-10-17"
 }
 POLICY

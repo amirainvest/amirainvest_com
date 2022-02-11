@@ -1,17 +1,13 @@
 from typing import List
 
-from fastapi import APIRouter, Security
+from fastapi import APIRouter, Depends
 
 from backend_amirainvest_com.controllers import user_subscriptions
 from backend_amirainvest_com.controllers.auth import auth_dep
 from common_amirainvest_com.schemas.schema import UserSubscriptionsModel
 
 
-router = APIRouter(
-    prefix="/user_subscriptions",
-    tags=["User Subscriptions"],
-    dependencies=[Security(auth_dep, scopes=[])],
-)
+router = APIRouter(prefix="/user_subscriptions", tags=["User Subscriptions"])
 
 
 @router.get(
@@ -19,7 +15,7 @@ router = APIRouter(
     status_code=200,
     response_model=List[UserSubscriptionsModel],
 )
-async def get_subscriptions_for_subscriber(subscriber_id):
+async def get_subscriptions_for_subscriber(token=Depends(auth_depends_user_id)):
     subscriptions = await user_subscriptions.get_subscriptions_for_subscriber(subscriber_id)
     subscriptions = [x.__dict__ for x in subscriptions]
     return subscriptions

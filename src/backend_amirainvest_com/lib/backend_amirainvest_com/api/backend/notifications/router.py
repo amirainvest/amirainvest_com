@@ -46,7 +46,7 @@ async def list_route(token=Depends(auth_depends_user_id)):
     status_code=status.HTTP_200_OK,
     response_model=NotificationsModel,
 )
-async def update_route(user_id: str, update_data: UpdateModel, token=Depends(auth_depends_user_id)):
+async def update_route(update_data: UpdateModel, token=Depends(auth_depends_user_id)):
     return (
         await update_controller(
             user_id=token["https://amirainvest.com/user_id"],

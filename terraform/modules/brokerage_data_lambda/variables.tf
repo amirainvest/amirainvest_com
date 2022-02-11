@@ -15,6 +15,6 @@ variable "vpc_id" {
 }
 
 locals {
-  project = "brokerage"
+  project     = "brokerage"
   lambda_name = "${var.environment}-brokerage-data-sqs-consumer"
 }

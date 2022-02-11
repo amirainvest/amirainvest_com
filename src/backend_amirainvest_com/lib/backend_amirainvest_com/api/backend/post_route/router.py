@@ -49,7 +49,7 @@ async def create_route(
 ):
     return (
         await create_controller(
-            user_id = token["https://amirainvest.com/user_id"],
+            user_id=token["https://amirainvest.com/user_id"],
             post_data=post_data,
         )
     )._asdict()
@@ -74,11 +74,12 @@ async def upload_post_photos_route(
     images: List[UploadFile] = File(...),
     token=Depends(auth_depends_user_id),
 ):
-    photo_urls = [upload_post_photo_controller(
-        image.file.read(), 
-        image.filename, 
-        user_id = token["https://amirainvest.com/user_id"], 
-        post_id = post_id) for image in images]
+    photo_urls = [
+        upload_post_photo_controller(
+            image.file.read(), image.filename, user_id=token["https://amirainvest.com/user_id"], post_id=post_id
+        )
+        for image in images
+    ]
     post = await get_controller(
         post_id,
     )

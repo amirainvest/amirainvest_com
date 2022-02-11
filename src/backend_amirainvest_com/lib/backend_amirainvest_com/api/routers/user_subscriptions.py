@@ -47,7 +47,8 @@ async def create_subscription(creator_id: str, token=Depends(auth_depends_user_i
 
 
 @router.put("/unsubscribe", status_code=200, response_model=UserSubscriptionsModel)
-async def unsubscribe(subscriber_id: str, creator_id: str):
+async def unsubscribe(creator_id: str, token=Depends(auth_depends_user_id)):
+    subscriber_id = token["https://amirainvest.com/user_id"]
     subscription = await user_subscriptions.get_user_subscription(subscriber_id, creator_id)
     subscription.is_deleted = True
     updated_subscription = await user_subscriptions.update_user_subscription(subscription.__dict__)

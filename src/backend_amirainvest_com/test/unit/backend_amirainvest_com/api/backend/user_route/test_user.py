@@ -231,3 +231,100 @@ async def test_delete(async_session_maker_test, monkeypatch, factory):
         )
 
     assert len((await session_test.execute(select(Users))).all()) == 0
+
+
+async def test_list(factory):
+    await factory.gen("users")
+    await factory.gen("users")
+
+    async with AsyncClient(app=app, base_url="http://test") as async_client:
+        list_response = await async_client.post(
+            "/user/list",
+            headers=AUTH_HEADERS,
+            data=json.dumps({}),
+        )
+    list_response_json = list_response.json()
+
+    assert list_response_json["result_count"] == 2
+
+
+async def test_list_search(factory):
+    await factory.gen("users", {"users": {"first_name": "searchable_first_name"}})
+    await factory.gen("users", {"users": {"first_name": "NA", "username": "searchable_username"}})
+
+    async with AsyncClient(app=app, base_url="http://test") as async_client:
+        list_response = await async_client.post(
+            "/user/list",
+            headers=AUTH_HEADERS,
+            data=json.dumps(
+                {
+                    "filters": [
+                        {
+                            "attribute": "first_name",
+                            "filter_type": "substring_match",
+                            "value": "able_first",
+                        }
+                    ]
+                }
+            ),
+        )
+
+    list_response_json = list_response.json()
+    assert list_response_json["result_count"] == 1
+
+    user_result = list_response_json["results"][0]
+    assert user_result["first_name"] == "searchable_first_name"
+
+
+async def test_list_search_full_name(factory):
+    await factory.gen("users", {"users": {"first_name": "searchable_first_name", "last_name": "searchable_last_name"}})
+    await factory.gen("users", {"users": {"first_name": "NA", "username": "searchable_username"}})
+
+    async with AsyncClient(app=app, base_url="http://test") as async_client:
+        list_response = await async_client.post(
+            "/user/list",
+            headers=AUTH_HEADERS,
+            data=json.dumps(
+                {
+                    "filters": [
+                        {
+                            "attribute": "full_name",
+                            "filter_type": "substring_match",
+                            "value": "rchable_first_namesearchable_last_na",
+                        }
+                    ]
+                }
+            ),
+        )
+
+    list_response_json = list_response.json()
+    assert list_response_json["result_count"] == 1
+
+    user_result = list_response_json["results"][0]
+    assert user_result["first_name"] == "searchable_first_name"
+    assert user_result["last_name"] == "searchable_last_name"
+
+
+async def test_list_search_order(factory):
+    await factory.gen("users", {"users": {"first_name": "1"}})
+    await factory.gen("users", {"users": {"first_name": "2"}})
+
+    async with AsyncClient(app=app, base_url="http://test") as async_client:
+        list_response = await async_client.post(
+            "/user/list",
+            headers=AUTH_HEADERS,
+            data=json.dumps(
+                {
+                    "sort": {
+                        "attribute": "first_name",
+                        "order": "desc",
+                    }
+                }
+            ),
+        )
+
+    list_response_json = list_response.json()
+    assert list_response_json["result_count"] == 2
+
+    user_result = list_response_json["results"][0]
+    assert user_result["first_name"] == "2"

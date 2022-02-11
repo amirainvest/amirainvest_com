@@ -35,7 +35,7 @@ resource "aws_iam_policy" "dynamo_read_write" {
             "Effect": "Allow",
             "Resource": "*"
         }
-  ]
+  ],
   "Version": "2012-10-17"
 }
 POLICY

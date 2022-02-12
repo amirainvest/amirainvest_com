@@ -9,7 +9,7 @@ resource "aws_lambda_function" "main" {
   }
 
   function_name                  = local.lambda_name
-  image_uri                      = "${aws_ecr_repository.lambda.repository_url}@${data.aws_ecr_image.lambda.id}"
+  image_uri                      = var.lambda_image_uri
   memory_size                    = "256"
   package_type                   = "Image"
   reserved_concurrent_executions = var.lambda_reserved_concurrent_executions

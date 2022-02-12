@@ -27,11 +27,13 @@ variable "lambda_managed_policy_arns" {
   default = []
 }
 
-# TODO: Change limit to 1 after the quota is increased https://console.aws.amazon.com/servicequotas/home/services/lambda/quotas/L-B99A9384
-#   AWS is dumb and I hate the 50 default quota...
 variable "lambda_reserved_concurrent_executions" {
   type    = number
   default = -1
+}
+
+variable "lambda_image_uri" {
+  type = string
 }
 
 variable "lambda_image_config_command" {

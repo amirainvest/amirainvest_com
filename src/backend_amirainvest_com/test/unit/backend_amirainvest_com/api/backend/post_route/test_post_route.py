@@ -108,8 +108,8 @@ async def test_list_subscriber_feed(mock_auth, factory):
     )
     await mock_auth(subscriber["users"].id)
     for _ in range(0, PAGE_SIZE):
-        post = await factory.gen("posts", {"posts": {"creator_id": creator["users"].id}})
-#         posts_redis_factory(subscriber["users"].id, FeedType.subscriber.value, PostsModel(**post["posts"].__dict__))
+        await factory.gen("posts", {"posts": {"creator_id": creator["users"].id}})
+        # posts_redis_factory(subscriber["users"].id, FeedType.subscriber.value, PostsModel(**post["posts"].__dict__))
 
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(
@@ -197,10 +197,10 @@ async def test_get_creator_feed(factory):
     creator = await factory.gen("users")
 
     for _ in range(0, PAGE_SIZE):
-        post = await factory.gen("posts", {"posts": {"creator_id": creator["users"].id}})
-#         posts_redis_factory(
-#             str(creator["users"].id), FeedType.creator.value, PostsModel.parse_obj(post["posts"].dict())
-#         )
+        await factory.gen("posts", {"posts": {"creator_id": creator["users"].id}})
+        # posts_redis_factory(
+        #     str(creator["users"].id), FeedType.creator.value, PostsModel.parse_obj(post["posts"].dict())
+        # )
 
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(
@@ -269,10 +269,10 @@ async def test_get_discovery_feed(factory):
     creator = await factory.gen("users")
 
     for _ in range(0, PAGE_SIZE):
-        post = await factory.gen("posts", {"posts": {"creator_id": creator["users"].id}})
-#         posts_redis_factory(
-#             FeedType.discovery.value, FeedType.discovery.value, PostsModel.parse_obj(post["posts"].dict())
-#         )
+        await factory.gen("posts", {"posts": {"creator_id": creator["users"].id}})
+        # posts_redis_factory(
+        #     FeedType.discovery.value, FeedType.discovery.value, PostsModel.parse_obj(post["posts"].dict())
+        # )
 
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(
@@ -288,6 +288,6 @@ async def test_get_discovery_feed(factory):
     assert type(response_data["posts"]) == list
 
     assert response_data["feed_type"] == FeedType.discovery.value
-#     assert len(response_data["posts"]) == PAGE_SIZE
+    #     assert len(response_data["posts"]) == PAGE_SIZE
 
     assert all([response["creator"]["id"] == str(creator["users"].id) for response in response_data["posts"]])

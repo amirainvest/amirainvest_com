@@ -29,4 +29,11 @@ class PlatformUser(ABC):
                 **{PLATFORM_MAP[platform]["platform_unique_id_name"]: platform_unique_id}
             )
         )
+        if results.all():
+            print("WOWOW")
+        else:
+            print("EEWWW")
+        print("<<<<<<<<<<<<<<<")
+        print(results.all())
+        print("<<<<<<<<<<<<<<<")
         return True if results.all() else False

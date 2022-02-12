@@ -268,9 +268,7 @@ class UserFeedbackModel(BaseModel):
 
 class SubstackUsers(Base, ToDict):
     __tablename__ = "substack_users"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-
-    username = Column(String, nullable=False)
+    username = Column(String, primary_key=True, nullable=False, unique=True)
     creator_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
     is_deleted = Column(Boolean, server_default=expression.false())
@@ -282,7 +280,7 @@ class SubstackArticles(Base, ToDict):
     __tablename__ = "substack_articles"
     article_id = Column(String, primary_key=True, unique=True, nullable=False)
 
-    substack_user = Column(Integer, ForeignKey("substack_users.id", ondelete="CASCADE"), nullable=False)
+    username = Column(String, ForeignKey("substack_users.username", ondelete="CASCADE"), nullable=False)
 
     title = Column(String, nullable=False)
     summary = Column(String, nullable=False)

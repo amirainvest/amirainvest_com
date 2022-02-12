@@ -5,12 +5,16 @@ import requests
 from common_amirainvest_com.schemas.schema import MediaPlatform, SubscriptionLevel
 from common_amirainvest_com.utils.datetime_utils import parse_iso_8601_from_string
 from common_amirainvest_com.utils.logger import log
-from data_imports_amirainvest_com.consts import YOUTUBE_API_KEY_ENV, YOUTUBE_API_URL
+
+# from data_imports_amirainvest_com.consts import YOUTUBE_API_KEY_ENV, YOUTUBE_API_URL
 from data_imports_amirainvest_com.controllers import posts
 from data_imports_amirainvest_com.controllers.youtube_videos import create_youtube_video, get_videos_for_channel
 from data_imports_amirainvest_com.controllers.youtubers import create_youtuber, get_youtuber
 from data_imports_amirainvest_com.platforms.platforms import PlatformUser
 
+
+YOUTUBE_API_KEY_ENV = "AIzaSyBkwVzrf3N7a92QgIQ4WMijyAQ6CaQQp9c"
+YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3"
 
 HEADERS = {
     "Cache-Control": "no-cache",
@@ -40,7 +44,7 @@ class YouTuber(PlatformUser):
         return f"<{self.channel_username} : {self.title}>"
 
     def get_unique_id(self):
-        return self.channel_username
+        return self.channel_id
 
     def get_upload_playlist_id(self):
         if not self.channel_id:
@@ -130,7 +134,8 @@ class YouTuber(PlatformUser):
                 params["pageToken"] = playlist_data["nextPageToken"]
             for video_data in playlist_data["items"]:
                 created_at = parse_iso_8601_from_string(video_data["contentDetails"]["videoPublishedAt"])
-                if video_data["contentDetails"]["videoId"] not in [x.video_id for x in stored_videos]:
+                count = 0
+                if video_data["contentDetails"]["videoId"] not in [x.video_id for x in stored_videos] and count < 5:
                     videos.append(
                         YouTubeVideo(
                             channel_id=self.channel_id,
@@ -178,8 +183,8 @@ class YouTuber(PlatformUser):
                 await video.store_video_data()
             for video_post in video_posts:
                 await posts.create_post(video_post)
-                posts.put_post_on_creators_redis_feeds(video_post)
-                await posts.put_post_on_subscriber_redis_feeds(video_post)
+                # posts.put_post_on_creators_redis_feeds(video_post)
+                # await posts.put_post_on_subscriber_redis_feeds(video_post)
 
 
 class YouTubeVideo:
@@ -212,9 +217,37 @@ async def load_user_data(channel_id, creator_id):
     await youtuber.store_user_data()
 
 
-if __name__ == '__main__':
+from sqlalchemy import select
+
+from common_amirainvest_com.schemas.schema import Users
+from common_amirainvest_com.utils.decorators import Session
+
+
+@Session
+async def y(session):
+    return (await session.execute(select(Users))).all()
+
+
+@Session
+async def create_user(session):
+    user = Users(email="", first_name="", last_name="", sub="", username="")
+    session.add(user)
+    print(user.id)
+
+
+# @Session
+# async def create_youtuber(session):
+#     from common_amirainvest_com.schemas.schema import YouTubers
+#     youtuber = YouTubers(
+#         _id="GrahamStephan",
+#         creator_id="ab55e136-4eca-4e16-9a98-2df6bf283f41"
+#     )
+#     session.add(youtuber)
+
+
+if __name__ == "__main__":
     from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
+
     # from pprint import pprint
-    # for y in run_async_function_synchronously(x):
-    #     print(y.id)
-    run_async_function_synchronously(load_user_data,  "GrahamStephan", "a2db8cc0-cceb-41e0-b8c4-6d8d76349f37")
+    # run_async_function_synchronously(create_youtuber)
+    run_async_function_synchronously(load_user_data, "GrahamStephan", "ab55e136-4eca-4e16-9a98-2df6bf283f41")

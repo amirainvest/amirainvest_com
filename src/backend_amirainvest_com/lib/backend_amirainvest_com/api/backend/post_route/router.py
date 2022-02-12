@@ -1,7 +1,7 @@
 from typing import List
 
 from fastapi import APIRouter, Depends, File, status, UploadFile
-from common_amirainvest_com.schemas.schema import PostsModel
+
 from backend_amirainvest_com.api.backend.post_route.controller import (
     create_controller,
     get_controller,
@@ -18,6 +18,7 @@ from backend_amirainvest_com.api.backend.post_route.model import (
     UpdateModel,
 )
 from backend_amirainvest_com.controllers.auth import auth_depends_user_id
+from common_amirainvest_com.schemas.schema import PostsModel
 
 
 router = APIRouter(prefix="/post", tags=["Post"])

@@ -9,12 +9,18 @@ from bs4 import BeautifulSoup
 from common_amirainvest_com.schemas.schema import MediaPlatform, SubscriptionLevel, Tweets
 from common_amirainvest_com.utils.datetime_utils import parse_iso_8601_from_string
 from common_amirainvest_com.utils.logger import log
-from data_imports_amirainvest_com.consts import TWITTER_API_TOKEN_ENV, TWITTER_API_URL
+
+# from data_imports_amirainvest_com.consts import TWITTER_API_TOKEN_ENV, TWITTER_API_URL
 from data_imports_amirainvest_com.controllers import posts
 from data_imports_amirainvest_com.controllers.tweets import create_tweet, get_tweets_for_creator
 from data_imports_amirainvest_com.controllers.twitter_users import create_twitter_user
 from data_imports_amirainvest_com.platforms.platforms import PlatformUser
 
+
+TWITTER_API_TOKEN_ENV = (
+    "AAAAAAAAAAAAAAAAAAAAAEX6RgEAAAAAPeK0DFITauB2h7o8PeESVRt1WEs%3DpR3LqglpLKmd1FbhAGyWFACEuMOoYMkVAqJSlz851opBTB1fOI"
+)
+TWITTER_API_URL = "https://api.twitter.com"
 
 HEADERS = {
     "Cache-Control": "no-cache",
@@ -213,15 +219,17 @@ class Tweet:
             f"https://publish.twitter.com/oembed?url=https://twitter.com/{self.twitter_username}/status/{self.tweet_id}"
         )
         try:
-            return BeautifulSoup(
-                urllib.parse.unquote(
-                    requests.request(
-                        method="GET",
-                        url=url,
-                        headers=HEADERS,
-                    ).json()["html"]
-                ).replace("\\", ""),
-                "html.parser",
+            return str(
+                BeautifulSoup(
+                    urllib.parse.unquote(
+                        requests.request(
+                            method="GET",
+                            url=url,
+                            headers=HEADERS,
+                        ).json()["html"]
+                    ).replace("\\", ""),
+                    "html.parser",
+                )
             )
         except KeyError:
             return ""
@@ -231,3 +239,19 @@ async def load_user_data(twitter_username, creator_id):
     twitter_user = TwitterUser(twitter_username, creator_id)
     twitter_user.load_twitter_user_data()
     await twitter_user.load_platform_data()
+
+
+# from common_amirainvest_com.utils.decorators import Session
+# from sqlalchemy import delete
+# from common_amirainvest_com.schemas.schema import Tweets
+# @Session
+# async def _(session):
+#     await session.execute(delete(Tweets))
+
+
+if __name__ == "__main__":
+    from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
+
+    # from pprint import pprint
+    # run_async_function_synchronously(_)
+    run_async_function_synchronously(load_user_data, "elonmusk", "ab55e136-4eca-4e16-9a98-2df6bf283f41")

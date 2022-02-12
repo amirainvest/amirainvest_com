@@ -173,3 +173,32 @@ async def get_securities_collect_true(session: AsyncSession) -> list[Securities]
 @Session
 async def add_securities_prices(session: AsyncSession, security_prices: list[SecurityPrices]):
     session.add_all(security_prices)
+
+
+@Session
+async def bulk_upsert_security_prices(session: AsyncSession, security_prices: list[SecurityPrices]):
+    price_time = security_prices[0].price_time
+    security_ids = []
+    dict_prices = {}
+    for sp in security_prices:
+        security_ids.append(sp.security_id)
+        dict_prices[sp.security_id] = sp
+
+    response = await session.execute(
+        select(SecurityPrices).where(
+            SecurityPrices.price_time == price_time, SecurityPrices.security_id.in_(security_ids)
+        )
+    )
+
+    cur_security_prices = response.scalars().all()
+    for cur_sec_price in cur_security_prices:
+        sec = dict_prices[cur_sec_price.security_id]
+        cur_sec_price.price = sec.price
+        del dict_prices[cur_sec_price.security_id]
+    await session.commit()
+
+    inserts = []
+    for k in dict_prices:
+        sec = dict_prices[k]
+        inserts.append(sec)
+    session.add_all(inserts)

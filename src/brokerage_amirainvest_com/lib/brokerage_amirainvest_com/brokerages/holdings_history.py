@@ -19,13 +19,7 @@ from common_amirainvest_com.schemas.schema import (
     SecurityPrices,
 )
 from common_amirainvest_com.utils.decorators import Session
-
-
-class Account(BaseModel):
-    id: int
-    user_id: str
-    cash: decimal.Decimal
-    holdings: list[FinancialAccountHoldingsHistory]
+from copy import deepcopy
 
 
 # TODO should we have a holdings and a price date(e.g., a price_date could be price time could be priced further back
@@ -33,102 +27,183 @@ class Account(BaseModel):
 # TODO add a buy_back date so its easier to query on the frontend ....
 
 
+class HistoricalAccount(BaseModel):
+    class Config:
+        arbitrary_types_allowed = True
+
+    id: int
+    date: datetime
+    user_id: str
+    cash: decimal.Decimal
+    holdings: list[FinancialAccountHoldingsHistory]
+
+
 async def run(user_id: str):
     accounts = await get_financial_accounts(user_id=user_id)
     market_holidays = await get_market_holidays_dict()
+    plaid_cash_security = await get_cash_security_plaid()
 
     # Run For History
     # end_date = datetime.now().replace(hour=21, minute=0, second=0, microsecond=0) - relativedelta(years=2)
     end_date = datetime.utcnow().replace(month=1, day=1, hour=21, minute=0, second=0, microsecond=0)
-    today = datetime.now().replace(hour=21, minute=0, second=0, microsecond=0)
+    today = datetime.now().replace(hour=21, minute=0, second=0, microsecond=0) + relativedelta(days=1)
 
-    cash_security = await get_cash_security()
     for account in accounts:
         transactions_by_date = await get_financial_transactions_dict(account_id=account.id)
         holdings = await get_current_financial_holdings(account_id=account.id)
 
-        historical_account = Account(id=account.id, user_id=user_id, holdings=[], cash=0)
-        for holding in holdings:
-            security_id = await get_security_id_by_plaid_security_id(holding.plaid_security_id)
-            if holding.security_id == cash_security.id:
-                historical_account.cash = holding.price
-            historical_account.holdings.append(
-                FinancialAccountHoldingsHistory(
-                    account_id=holding.account_id,
-                    plaid_security_id=holding.plaid_security_id,
-                    security_id=security_id,
-                    user_id=user_id,
-                    price=holding.price,
-                    price_time=holding.price_time,
-                )
-            )
+        # Need to find today or prior day trading day, and set our holdings that price
+        # We also need to adjust and make sure that the day is over...?
+        next_trading_day = find_next_trading_day(
+            datetime.now().replace(hour=21, minute=0, second=0, microsecond=0), market_holidays
+        )
 
-        historical_holdings: list = [historical_account]
-        while today >= end_date:
-            if today.date() in market_holidays or today.weekday() > 4:
+        historical_account = await create_historical_account(
+            holdings=holdings, account=account, user_id=user_id, cash_security=plaid_cash_security,
+            trading_day=next_trading_day,
+        )
+
+        historical_account_holdings: list = [historical_account]
+        while today > end_date:
+            today = today - relativedelta(days=1)
+            if not is_trading_day(day=today, market_holidays=market_holidays):
                 continue
 
-            today_holdings = historical_holdings[len(historical_holdings) - 1]
+            today_holdings = deepcopy(historical_account_holdings[len(historical_account_holdings) - 1])
+
             if today.date() in transactions_by_date:
                 transactions = transactions_by_date[today.date()]
                 for transaction in transactions:
-                    today_holdings = perform_transaction(today_holdings, transaction)
+                    today_holdings = await perform_transaction(today_holdings, transaction)
 
-            tomorrow_holdings = Account(
-                id=today_holdings.id, user_id=today_holdings.user_id, holdings=[], cash=today_holdings.cash
+            tomorrow = find_next_trading_day(today - relativedelta(days=1), market_holidays)
+            tomorrow_holdings = HistoricalAccount(
+                id=today_holdings.id, date=tomorrow, user_id=today_holdings.user_id, holdings=[],
+                cash=today_holdings.cash
             )
-            tomorrow = today - relativedelta(days=1)
 
-            for holding in today_holdings.holdings:
-                # TODO can we ever have a negative quantity holding
-                if 0 >= holding.quantity:
-                    continue
+            for today_holding in today_holdings.holdings:
+                p = today_holding.price
+                sp = await get_closest_price(today_holding.security_id, tomorrow)
+                if sp is not None:
+                    p = sp.price
+                today_holding.price = p
+                today_holding.price_time = tomorrow
+                tomorrow_holdings.holdings.append(today_holding)
 
-                # TODO Support options contract pricing
-                security_price = await get_closest_price(holding.security_id, tomorrow)
-                tomorrow_holdings.holdings.append(
-                    FinancialAccountHoldingsHistory(
-                        account_id=holding.account_id,
-                        plaid_security_id=holding.plaid_security_id,
-                        security_id=holding.security_id,
-                        user_id=holding.user_id,
-                        price=security_price.price,
-                        price_time=tomorrow,
-                        quantity=holding.quantity,
-                    )
-                )
-
-            historical_holdings.append(tomorrow_holdings)
-            today = tomorrow
+            historical_account_holdings.append(tomorrow_holdings)
 
         insertable = []
-        for historical_holding in historical_holdings:
+        iex_cash_security = await get_cash_security_iex()
+        for historical_account_holding in historical_account_holdings:
             cash_holding = FinancialAccountHoldingsHistory(
-                account_id=historical_holding.account_id,
-                plaid_security_id=historical_holding.plaid_security_id,
-                security_id=cash_security.id,
-                user_id=historical_holding.user_id,
-                price=historical_holding.price,
-                price_time=historical_holding.price_time,
-                quantity=1 * historical_holding.price,
+                account_id=historical_account_holding.id,
+                plaid_security_id=plaid_cash_security.id,
+                security_id=iex_cash_security.id,
+                user_id=historical_account_holding.user_id,
+                price=1,
+                price_time=historical_account_holding.date,
+                quantity=historical_account_holding.cash,
             )
             insertable.append(cash_holding)
-            insertable.extend(historical_holding.holdings)
+            for h in historical_account_holding.holdings:
+                # TODO change this.. we should never have a NONE quantity..
+                if h.quantity is None or h.quantity == 0:
+                    continue
+                # TODO THIS SHOULD NEVER HAPPEN -- REMOVE CHECK AND MAKE SURE WE GOT PRICING
+                if h.price is None or h.price == 0:
+                    continue
+                insertable.append(h)
         await insert_historical_holdings(insertable)
 
 
-async def buy_buy(account_holdings: Account, transaction: FinancialAccountTransactions) -> Account:
+def find_next_trading_day(day: datetime, market_holidays: dict[datetime, None]) -> datetime:
+    while not is_trading_day(day, market_holidays):
+        day = day - relativedelta(days=1)
+    return day
+
+
+def is_trading_day(day: datetime, market_holidays: dict[datetime, None]) -> bool:
+    if day.date() in market_holidays or day.weekday() > 4:
+        return False
+    return True
+
+
+async def create_historical_account(
+    holdings: list[FinancialAccountCurrentHoldings], account: FinancialAccounts, user_id: str,
+    cash_security: PlaidSecurities, trading_day: datetime
+) -> HistoricalAccount:
+    historical_account = HistoricalAccount(
+        id=account.id,
+        date=trading_day,
+        user_id=user_id,
+        holdings=[],
+        cash=0
+    )
+
+    for holding in holdings:
+        security_id = await get_security_id_by_plaid_security_id(holding.plaid_security_id)
+
+        # TODO we could either keep cash as a property on account, or... as a security, thinking
+        #   we just keep it as a property for now...
+        if holding.plaid_security_id == cash_security.id:
+            historical_account.cash = holding.quantity
+            continue
+
+        historical_account.holdings.append(
+            FinancialAccountHoldingsHistory(
+                account_id=holding.account_id,
+                plaid_security_id=holding.plaid_security_id,
+                security_id=security_id,
+                user_id=user_id,
+                price=holding.latest_price,
+                price_time=trading_day,
+                quantity=holding.quantity
+            )
+        )
+
+    return historical_account
+
+
+async def buy_buy(account_holdings: HistoricalAccount, transaction: FinancialAccountTransactions) -> HistoricalAccount:
     account_holdings.cash = account_holdings.cash + transaction.value_amount
     current_holding, index = get_current_holding_if_exists(transaction=transaction, holdings=account_holdings.holdings)
     if current_holding is not None and index is not None:
-        current_holding.quantity = current_holding.quantity - transaction.quantity
-        # TODO if we modify variable, does that update the underlying type in the array?
+        current_holding.quantity = current_holding.quantity + (-1 * transaction.quantity)
         account_holdings.holdings[index] = current_holding
+    else:
+        print(" should probably like ... do this ... !!!!")
     return account_holdings
 
 
-async def sell_sell(account_holdings: Account, transaction: FinancialAccountTransactions) -> Account:
-    account_holdings.cash = account_holdings.cash - transaction.value_amount
+"""
+    Sell In Our DB
+        Quantity = -1
+        Value = -1
+        Fees =
+
+    Buy In Our DB
+        Quantity = +
+        Value = +
+        Fees =
+
+    Buy In Our System
+        quantity = quantity + (-1 * transaction_quantity)
+        cash = cash + transaction_value_amount
+
+    Sell In Our System
+        quantity = quantity + (-1 * transaction_quantity)
+        cash = cash + transaction_value_amount
+
+    Quantity Adding
+    Value Amount Subtracting
+"""
+
+
+async def sell_sell(
+    account_holdings: HistoricalAccount, transaction: FinancialAccountTransactions
+) -> HistoricalAccount:
+    account_holdings.cash = account_holdings.cash + transaction.value_amount
     current_holding, index = get_current_holding_if_exists(transaction=transaction, holdings=account_holdings.holdings)
     if current_holding is None:
         sec_id = await get_security_id_by_plaid_security_id(transaction.security_id)
@@ -144,18 +219,20 @@ async def sell_sell(account_holdings: Account, transaction: FinancialAccountTran
             )
         )
     elif index is not None:
-        current_holding.quantity = current_holding.quantity + transaction.quantity
+        current_holding.quantity = current_holding.quantity + (-1 * transaction.quantity)
         current_holding.price = transaction.price
         account_holdings.holdings[index] = current_holding
     else:
-        raise Exception("...?")
+        raise Exception(" how did this happen... ")
     return account_holdings
 
 
 rule_set = {"buy": {"buy": buy_buy}, "sell": {"sell": sell_sell}}
 
 
-async def perform_transaction(account_holdings: Account, transaction: FinancialAccountTransactions) -> Account:
+async def perform_transaction(
+    account_holdings: HistoricalAccount, transaction: FinancialAccountTransactions
+) -> HistoricalAccount:
     try:
         account_holdings = await rule_set[transaction.type][transaction.subtype](account_holdings, transaction)
     except KeyError:
@@ -178,7 +255,14 @@ async def insert_historical_holdings(session: AsyncSession, historical_holdings:
 
 
 @Session
-async def get_cash_security(session: AsyncSession) -> Optional[Securities]:
+async def get_cash_security_plaid(session: AsyncSession) -> Optional[PlaidSecurities]:
+    # TODO should we use a different security id, what if we buy on the FX?
+    response = await session.execute(select(PlaidSecurities).where(PlaidSecurities.ticker_symbol == "CUR:USD"))
+    return response.scalar()
+
+
+@Session
+async def get_cash_security_iex(session: AsyncSession) -> Optional[SecurityPrices]:
     # TODO should we use a different security id, what if we buy on the FX?
     response = await session.execute(select(Securities).where(Securities.ticker_symbol == "CUR:USD"))
     return response.scalar()
@@ -190,10 +274,10 @@ async def get_closest_price(
 ) -> Optional[SecurityPrices]:
     response = await session.execute(
         select(SecurityPrices)
-        .join(Securities)
-        .where(Securities.id == security_id, SecurityPrices.price_time <= posting_date)
-        .order_by(SecurityPrices.price_time.desc())
-        .limit(1)
+            .join(Securities)
+            .where(Securities.id == security_id, SecurityPrices.price_time <= posting_date)
+            .order_by(SecurityPrices.price_time.desc())
+            .limit(1)
     )
     return response.scalar()
 
@@ -201,21 +285,23 @@ async def get_closest_price(
 @Session
 async def get_security_id_by_plaid_security_id(session: AsyncSession, plaid_security_id: int) -> Optional[int]:
     plaid_response = await session.execute(select(PlaidSecurities).where(PlaidSecurities.id == plaid_security_id))
-    plaid_security = plaid_response.one()
+    plaid_security = plaid_response.scalar()
     security_response = await session.execute(
         select(Securities).where(Securities.ticker_symbol == plaid_security.ticker_symbol)
     )
+
     security = security_response.scalar()
+
     if security is None:
         return None
     return security.id
 
 
 @Session
-async def get_market_holidays_dict(session: AsyncSession) -> dict[MarketHolidays, None]:
+async def get_market_holidays_dict(session: AsyncSession) -> dict[datetime, None]:
     response = await session.execute(select(MarketHolidays))
 
-    holiday_dict: dict[MarketHolidays, None] = {}
+    holiday_dict: dict[datetime, None] = {}
     for holiday in response.scalars().all():
         holiday_dict[holiday.date.date()] = None
     return holiday_dict
@@ -232,7 +318,7 @@ async def get_financial_transactions_dict(
     transaction_history_day_dict: dict[date, list[FinancialAccountTransactions]] = {}
     for item in response.scalars().all():
         try:
-            transaction_history_day_dict[item.posting_date].append(item)
+            transaction_history_day_dict[item.posting_date.date()].append(item)
         except KeyError:
             transaction_history_day_dict[item.posting_date.date()] = [item]
     return transaction_history_day_dict

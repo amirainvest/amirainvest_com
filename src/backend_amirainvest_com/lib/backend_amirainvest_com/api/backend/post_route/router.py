@@ -1,7 +1,7 @@
 from typing import List
 
 from fastapi import APIRouter, Depends, File, status, UploadFile
-
+from common_amirainvest_com.schemas.schema import PostsModel
 from backend_amirainvest_com.api.backend.post_route.controller import (
     create_controller,
     get_controller,
@@ -42,7 +42,7 @@ async def list_route(
     return ListReturnModel(posts=return_feed, feed_type=return_feed_type)
 
 
-@router.post("/create", status_code=status.HTTP_200_OK, response_model=GetModel)
+@router.post("/create", status_code=status.HTTP_200_OK, response_model=PostsModel)
 async def create_route(
     user_id: str,
     post_data: CreateModel,
@@ -56,7 +56,7 @@ async def create_route(
     )._asdict()
 
 
-@router.post("/update", status_code=status.HTTP_200_OK, response_model=GetModel)
+@router.post("/update", status_code=status.HTTP_200_OK, response_model=PostsModel)
 async def update_route(
     user_id: str,
     post_data: UpdateModel,

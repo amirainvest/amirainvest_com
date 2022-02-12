@@ -2,7 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Optional
 
-from sqlalchemy import asc, desc
+from sqlalchemy import asc
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
@@ -13,8 +13,19 @@ from common_amirainvest_com.schemas.schema import (
     PlaidSecurities,
     Securities,
     SecurityPrices,
+    UserSubscriptions,
 )
 from common_amirainvest_com.utils.decorators import Session
+
+
+@Session
+async def get_user_subscription(session: AsyncSession, user_id: str, creator_id: str) -> Optional[UserSubscriptions]:
+    response = await session.execute(
+        select(UserSubscriptions)
+        .where(UserSubscriptions.subscriber_id == user_id)
+        .where(UserSubscriptions.creator_id == creator_id)
+    )
+    return response.scalar()
 
 
 @Session
@@ -39,7 +50,7 @@ async def get_recent_stock_price(session: AsyncSession, ticker_symbol: str) -> O
             select(SecurityPrices)
             .join(Securities.id)
             .where(Securities.ticker_symbol == ticker_symbol)
-            .order_by(desc(SecurityPrices.price_time))
+            .order_by(SecurityPrices.price_time.desc())
             .limit(1)
         )
     ).scalar()
@@ -92,6 +103,6 @@ async def get_trading_history(session: AsyncSession, user_id: str) -> list:
         .join(FinancialAccounts)
         .join(PlaidSecurities)
         .where(FinancialAccounts.user_id == user_id)
-        .order_by(asc(FinancialAccountTransactions.posting_date))
+        .order_by(FinancialAccountTransactions.posting_date.desc())
     )
     return response.all()

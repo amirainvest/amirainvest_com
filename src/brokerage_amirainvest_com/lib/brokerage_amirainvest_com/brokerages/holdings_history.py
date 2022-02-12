@@ -1,5 +1,6 @@
 import asyncio
 import decimal
+from copy import deepcopy
 from datetime import date, datetime
 from typing import Optional, Tuple
 
@@ -19,7 +20,6 @@ from common_amirainvest_com.schemas.schema import (
     SecurityPrices,
 )
 from common_amirainvest_com.utils.decorators import Session
-from copy import deepcopy
 
 
 # TODO should we have a holdings and a price date(e.g., a price_date could be price time could be priced further back
@@ -59,7 +59,10 @@ async def run(user_id: str):
         )
 
         historical_account = await create_historical_account(
-            holdings=holdings, account=account, user_id=user_id, cash_security=plaid_cash_security,
+            holdings=holdings,
+            account=account,
+            user_id=user_id,
+            cash_security=plaid_cash_security,
             trading_day=next_trading_day,
         )
 
@@ -78,8 +81,11 @@ async def run(user_id: str):
 
             tomorrow = find_next_trading_day(today - relativedelta(days=1), market_holidays)
             tomorrow_holdings = HistoricalAccount(
-                id=today_holdings.id, date=tomorrow, user_id=today_holdings.user_id, holdings=[],
-                cash=today_holdings.cash
+                id=today_holdings.id,
+                date=tomorrow,
+                user_id=today_holdings.user_id,
+                holdings=[],
+                cash=today_holdings.cash,
             )
 
             for today_holding in today_holdings.holdings:
@@ -130,16 +136,13 @@ def is_trading_day(day: datetime, market_holidays: dict[datetime, None]) -> bool
 
 
 async def create_historical_account(
-    holdings: list[FinancialAccountCurrentHoldings], account: FinancialAccounts, user_id: str,
-    cash_security: PlaidSecurities, trading_day: datetime
+    holdings: list[FinancialAccountCurrentHoldings],
+    account: FinancialAccounts,
+    user_id: str,
+    cash_security: PlaidSecurities,
+    trading_day: datetime,
 ) -> HistoricalAccount:
-    historical_account = HistoricalAccount(
-        id=account.id,
-        date=trading_day,
-        user_id=user_id,
-        holdings=[],
-        cash=0
-    )
+    historical_account = HistoricalAccount(id=account.id, date=trading_day, user_id=user_id, holdings=[], cash=0)
 
     for holding in holdings:
         security_id = await get_security_id_by_plaid_security_id(holding.plaid_security_id)
@@ -158,7 +161,7 @@ async def create_historical_account(
                 user_id=user_id,
                 price=holding.latest_price,
                 price_time=trading_day,
-                quantity=holding.quantity
+                quantity=holding.quantity,
             )
         )
 
@@ -264,8 +267,10 @@ async def sell_sell_short(
 
 
 rule_set = {
-    "buy": {"buy": buy_buy}, "sell": {"sell": sell_sell}, 'short': {'short': sell_sell_short},
-    'cover': {'cover': buy_buy_cover}
+    "buy": {"buy": buy_buy},
+    "sell": {"sell": sell_sell},
+    "short": {"short": sell_sell_short},
+    "cover": {"cover": buy_buy_cover},
 }
 
 
@@ -313,10 +318,10 @@ async def get_closest_price(
 ) -> Optional[SecurityPrices]:
     response = await session.execute(
         select(SecurityPrices)
-            .join(Securities)
-            .where(Securities.id == security_id, SecurityPrices.price_time <= posting_date)
-            .order_by(SecurityPrices.price_time.desc())
-            .limit(1)
+        .join(Securities)
+        .where(Securities.id == security_id, SecurityPrices.price_time <= posting_date)
+        .order_by(SecurityPrices.price_time.desc())
+        .limit(1)
     )
     return response.scalar()
 
@@ -325,6 +330,9 @@ async def get_closest_price(
 async def get_security_id_by_plaid_security_id(session: AsyncSession, plaid_security_id: int) -> Optional[int]:
     plaid_response = await session.execute(select(PlaidSecurities).where(PlaidSecurities.id == plaid_security_id))
     plaid_security = plaid_response.scalar()
+    if plaid_security is None:
+        return None
+
     security_response = await session.execute(
         select(Securities).where(Securities.ticker_symbol == plaid_security.ticker_symbol)
     )

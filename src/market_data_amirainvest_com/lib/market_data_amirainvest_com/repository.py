@@ -4,7 +4,6 @@ from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy import text
 
 from common_amirainvest_com.s3.client import S3
 from common_amirainvest_com.s3.consts import AMIRA_SECURITIES_HISTORICAL_PRICES_BUCKET
@@ -161,39 +160,8 @@ async def add_to_db(session: AsyncSession, security_id: int, historical_prices: 
 
 @Session
 async def get_securities(session: AsyncSession) -> list[Securities]:
-    t = text(
-        """select
-	id,
-	ticker_symbol
-from
-	securities s
-inner join
-	(
-	select
-		security_id
-	from
-		security_prices
-	where
-		price_time between '2022-01-31' and '2022-02-11'
-	group by
-		security_id
-	having
-		count(*) < 9) as q on q.security_id = s.id where issue_type in('cs', 'ad', 'et') and ticker_symbol != '';"""
-    )
-    result = await session.execute(t)
-
-    res = []
-    for r in result.all():
-        res.append(
-            Securities(
-                id=r.id,
-                ticker_symbol=r.ticker_symbol
-            )
-        )
-
-    return res
-    # response = await session.execute(select(Securities).where(Securities.issue_type.in_(("cs", "ad", "et"))))
-    # return response.scalars().all()
+    response = await session.execute(select(Securities).where(Securities.issue_type.in_(("cs", "ad", "et"))))
+    return response.scalars().all()
 
 
 @Session

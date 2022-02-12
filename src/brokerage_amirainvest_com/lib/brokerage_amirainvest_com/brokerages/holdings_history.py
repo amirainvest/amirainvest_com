@@ -165,17 +165,6 @@ async def create_historical_account(
     return historical_account
 
 
-async def buy_buy(account_holdings: HistoricalAccount, transaction: FinancialAccountTransactions) -> HistoricalAccount:
-    account_holdings.cash = account_holdings.cash + transaction.value_amount
-    current_holding, index = get_current_holding_if_exists(transaction=transaction, holdings=account_holdings.holdings)
-    if current_holding is not None and index is not None:
-        current_holding.quantity = current_holding.quantity + (-1 * transaction.quantity)
-        account_holdings.holdings[index] = current_holding
-    else:
-        print(" should probably like ... do this ... !!!!")
-    return account_holdings
-
-
 """
     Sell In Our DB
         Quantity = -1
@@ -200,6 +189,36 @@ async def buy_buy(account_holdings: HistoricalAccount, transaction: FinancialAcc
 """
 
 
+async def buy_buy(account_holdings: HistoricalAccount, transaction: FinancialAccountTransactions) -> HistoricalAccount:
+    account_holdings.cash = account_holdings.cash + transaction.value_amount
+    current_holding, index = get_current_holding_if_exists(transaction=transaction, holdings=account_holdings.holdings)
+
+    if current_holding is None or index is None:
+        raise Exception(
+            "How did this buy transactions happen without our holdings having a position, or seeing a sell?"
+        )
+
+    current_holding.quantity = current_holding.quantity + (-1 * transaction.quantity)
+    account_holdings.holdings[index] = current_holding
+    return account_holdings
+
+
+async def buy_buy_cover(
+    account_holdings: HistoricalAccount, transaction: FinancialAccountTransactions
+) -> HistoricalAccount:
+    account_holdings.cash = account_holdings.cash + transaction.value_amount
+    current_holding, index = get_current_holding_if_exists(transaction=transaction, holdings=account_holdings.holdings)
+
+    if current_holding is None or index is None:
+        raise Exception("how did this buy to cover happen without a current holdings?")
+
+    if current_holding is not None and index is not None:
+        current_holding.quantity = current_holding.quantity + (-1 * transaction.quantity)
+        account_holdings.holdings[index] = current_holding
+
+    return account_holdings
+
+
 async def sell_sell(
     account_holdings: HistoricalAccount, transaction: FinancialAccountTransactions
 ) -> HistoricalAccount:
@@ -215,7 +234,7 @@ async def sell_sell(
                 user_id=account_holdings.user_id,
                 price=transaction.price,
                 price_time=None,
-                quantity=transaction.quantity,
+                quantity=(-1 * transaction.quantity),
             )
         )
     elif index is not None:
@@ -227,7 +246,27 @@ async def sell_sell(
     return account_holdings
 
 
-rule_set = {"buy": {"buy": buy_buy}, "sell": {"sell": sell_sell}}
+async def sell_sell_short(
+    account_holdings: HistoricalAccount, transaction: FinancialAccountTransactions
+) -> HistoricalAccount:
+    account_holdings.cash = account_holdings.cash + transaction.value_amount
+    current_holding, index = get_current_holding_if_exists(transaction=transaction, holdings=account_holdings.holdings)
+    if current_holding is None:
+        raise Exception("How did this happen??")
+
+    if index is None:
+        raise Exception("how did this happen")
+
+    current_holding.quantity = current_holding.quantity + (-1 * transaction.quantity)
+    current_holding.price = transaction.price
+    account_holdings.holdings[index] = current_holding
+    return account_holdings
+
+
+rule_set = {
+    "buy": {"buy": buy_buy}, "sell": {"sell": sell_sell}, 'short': {'short': sell_sell_short},
+    'cover': {'cover': buy_buy_cover}
+}
 
 
 async def perform_transaction(
@@ -244,7 +283,7 @@ def get_current_holding_if_exists(
     transaction: FinancialAccountTransactions, holdings: list[FinancialAccountHoldingsHistory]
 ) -> Tuple[Optional[FinancialAccountHoldingsHistory], Optional[int]]:
     for idx, holding in enumerate(holdings):
-        if transaction.security_id == holding.plaid_security_id:
+        if transaction.security_id == holding.plaid_security_id and transaction.type:
             return holding, idx
     return None, None
 

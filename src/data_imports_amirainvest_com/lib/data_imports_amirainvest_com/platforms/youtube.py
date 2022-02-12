@@ -128,7 +128,7 @@ class YouTuber(PlatformUser):
             next_token = "nextPageToken" in playlist_data
             if next_token:
                 params["pageToken"] = playlist_data["nextPageToken"]
-            for video_data in playlist_data["items"]:
+            for video_data in playlist_data.get("items", []):
                 created_at = parse_iso_8601_from_string(video_data["contentDetails"]["videoPublishedAt"])
                 count = 0
                 if video_data["contentDetails"]["videoId"] not in [x.video_id for x in stored_videos] and count < 5:

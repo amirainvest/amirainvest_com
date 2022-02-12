@@ -5,9 +5,12 @@ from typing import Optional
 import arrow
 import requests
 from bs4 import BeautifulSoup
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from common_amirainvest_com.schemas.schema import MediaPlatform, SubscriptionLevel, Tweets
+from common_amirainvest_com.schemas.schema import MediaPlatform, SubscriptionLevel, Tweets, TwitterUsers
 from common_amirainvest_com.utils.datetime_utils import parse_iso_8601_from_string
+from common_amirainvest_com.utils.decorators import Session
 from common_amirainvest_com.utils.logger import log
 from data_imports_amirainvest_com.consts import TWITTER_API_TOKEN_ENV, TWITTER_API_URL
 from data_imports_amirainvest_com.controllers import posts
@@ -79,7 +82,7 @@ class TwitterUser(PlatformUser):
 
         return time.format("YYYY-MM-DD[T]HH:mm:ss[Z]")
 
-    async def get_tweets_from_url(self, start_date=None):
+    async def get_tweets_from_url(self):
         raw_tweets = []
         if not self.twitter_user_id:
             self.load_twitter_user_data()
@@ -90,7 +93,7 @@ class TwitterUser(PlatformUser):
             "max_results": 100,  # 100 MAX
         }
         tweets_data = self._get_tweets_data(params)
-        for raw_tweet_data in tweets_data["data"]:
+        for raw_tweet_data in tweets_data.get("data", []):
             raw_tweet_data["twitter_user_id"] = self.twitter_user_id
             raw_tweet_data["twitter_user_username"] = self.username
             raw_tweets.append(raw_tweet_data)
@@ -158,20 +161,44 @@ class TwitterUser(PlatformUser):
             params=params,
         ).json()
 
+    @Session
+    async def get_existing_user_tweet_ids(self, session: AsyncSession):
+        return {
+            x.tweet_id
+            for x in (await session.execute(select(Tweets).where(Tweets.twitter_user_id == self.twitter_user_id)))
+            .scalars()
+            .all()
+        }
+
+    @Session
+    async def get_is_existing_user(self, session: AsyncSession):
+        if (
+            (await session.execute(select(TwitterUsers).where(TwitterUsers.twitter_user_id == self.twitter_user_id)))
+            .scalars()
+            .all()
+        ):
+            return True
+        return False
+
     async def load_platform_data(self):
+        existing_tweet_ids = set()
         self.load_twitter_user_data()
         tweets, tweet_posts = await self.get_tweets_from_url()
-        twitter_user_exists = await self.get_user_platform_pair_exists("twitter", self.get_unique_id())
+        twitter_user_exists = await self.get_is_existing_user()
         if not twitter_user_exists:
             log.info(f"Added new Twitter user: {self.username}")
             await create_twitter_user(self.__dict__)
+        else:
+            existing_tweet_ids = await self.get_existing_user_tweet_ids()
         if tweets:
             for tweet in tweets:
-                await create_tweet({k: v for k, v in tweet.__dict__.items() if k in Tweets.__dict__})
+                if tweet.tweet_id not in existing_tweet_ids:
+                    await create_tweet({k: v for k, v in tweet.__dict__.items() if k in Tweets.__dict__})
             for tweet_post in tweet_posts:
-                await posts.create_post(tweet_post)
-                posts.put_post_on_creators_redis_feeds(tweet_post)
-                await posts.put_post_on_subscriber_redis_feeds(tweet_post)
+                if tweet_post["platform_post_id"] not in existing_tweet_ids:
+                    await posts.create_post(tweet_post)
+                    posts.put_post_on_creators_redis_feeds(tweet_post)
+                    await posts.put_post_on_subscriber_redis_feeds(tweet_post)
 
 
 class Tweet:

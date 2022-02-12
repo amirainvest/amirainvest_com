@@ -29,6 +29,8 @@ from sqlalchemy.types import DateTime
 
 Base = declarative_base()
 
+fake = faker.Faker()
+
 
 class UTCNow(expression.FunctionElement):  # type: ignore[name-defined]
     type = DateTime()
@@ -109,19 +111,19 @@ class Users(Base, ToDict):
         String,
         unique=True,
         nullable=False,
-        info={"factory": FactoryInfo(default="", generator=(faker.Faker().email, None)).dict()},
+        info={"factory": FactoryInfo(default="", generator=(fake.unique.email, None)).dict()},
     )
     username = Column(
         String,
         unique=True,
         nullable=False,
-        info={"factory": FactoryInfo(default="", generator=(faker.Faker().name, None)).dict()},
+        info={"factory": FactoryInfo(default="", generator=(fake.unique.name, None)).dict()},
     )
 
     sub = Column(
         String,
         nullable=False,
-        info={"factory": FactoryInfo(default="", generator=(faker.Faker().name, None)).dict()},
+        info={"factory": FactoryInfo(default="", generator=(fake.unique.name, None)).dict()},
     )
 
     first_name = Column(String, nullable=False)
@@ -237,7 +239,7 @@ class UserSubscriptionsModel(BaseModel):
 
 class UserMediaErrors(Base, ToDict):
     __tablename__ = "user_media_errors"
-    id = Column(Integer, primary_key=True, unique=True)
+    id = Column(Integer, primary_key=True, unique=True, autoincrement=True)
 
     user_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
@@ -249,7 +251,7 @@ class UserMediaErrors(Base, ToDict):
 
 class UserFeedback(Base, ToDict):
     __tablename__ = "user_feedback"
-    id = Column(Integer, primary_key=True, unique=True)
+    id = Column(Integer, primary_key=True, unique=True, autoincrement=True)
 
     user_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     text = Column(String, nullable=False)  # TODO change char limit in app
@@ -278,7 +280,7 @@ class SubstackUsers(Base, ToDict):
 
 class SubstackArticles(Base, ToDict):
     __tablename__ = "substack_articles"
-    article_id = Column(String, primary_key=True, unique=True, nullable=False)
+    article_id = Column(String, primary_key=True, unique=True, nullable=False, autoincrement=False)
 
     username = Column(String, ForeignKey("substack_users.username", ondelete="CASCADE"), nullable=False)
 
@@ -293,7 +295,7 @@ class SubstackArticles(Base, ToDict):
 
 class YouTubers(Base, ToDict):
     __tablename__ = "youtubers"
-    channel_id = Column(String, primary_key=True, unique=True)
+    channel_id = Column(String, primary_key=True, unique=True, autoincrement=False)
 
     creator_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
@@ -311,7 +313,7 @@ class YouTubers(Base, ToDict):
 
 class YouTubeVideos(Base, ToDict):
     __tablename__ = "youtube_videos"
-    video_id = Column(String, primary_key=True, unique=True)
+    video_id = Column(String, primary_key=True, unique=True, autoincrement=False)
 
     channel_id = Column(String, ForeignKey("youtubers.channel_id", ondelete="CASCADE"))
 
@@ -328,7 +330,7 @@ class YouTubeVideos(Base, ToDict):
 
 class TwitterUsers(Base, ToDict):
     __tablename__ = "twitter_users"
-    twitter_user_id = Column(String, primary_key=True, unique=True)
+    twitter_user_id = Column(String, primary_key=True, unique=True, autoincrement=False)
 
     creator_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
@@ -348,7 +350,7 @@ class TwitterUsers(Base, ToDict):
 
 class Tweets(Base, ToDict):
     __tablename__ = "tweets"
-    tweet_id = Column(String, primary_key=True, unique=True)
+    tweet_id = Column(String, primary_key=True, unique=True, autoincrement=False)
 
     twitter_user_id = Column(String, ForeignKey("twitter_users.twitter_user_id", ondelete="CASCADE"))
 
@@ -580,7 +582,7 @@ class HuskRequestsModel(BaseModel):
 
 class Watchlists(Base, ToDict):
     __tablename__ = "watchlists"
-    id = Column(Integer, primary_key=True, unique=True)
+    id = Column(Integer, primary_key=True, unique=True, autoincrement=True)
     creator_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     name = Column(String, nullable=False)
     tickers = Column(ARRAY(String), nullable=False)
@@ -601,7 +603,7 @@ class WatchlistsModel(BaseModel):
 
 class WatchlistFollows(Base, ToDict):
     __tablename__ = "watchlist_follows"
-    id = Column(Integer, primary_key=True, unique=True)
+    id = Column(Integer, primary_key=True, unique=True, autoincrement=True)
     follower_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     watchlist_id = Column(Integer, ForeignKey("watchlists.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(DateTime, server_default=UTCNow())
@@ -718,7 +720,7 @@ class PlaidSecurities(Base, ToDict):
 
     plaid_security_id = Column(String, unique=True)
     ticker_symbol = Column(
-        String, unique=True, info={"factory": FactoryInfo(default="", generator=(faker.Faker().name, None)).dict()}
+        String, unique=True, info={"factory": FactoryInfo(default="", generator=(fake.unique.name, None)).dict()}
     )
 
     name = Column(String, nullable=False)
@@ -778,7 +780,7 @@ class Securities(Base, ToDict):
         String,
         unique=True,
         nullable=False,
-        info={"factory": FactoryInfo(default="", generator=(faker.Faker().name, None)).dict()},
+        info={"factory": FactoryInfo(default="", generator=(fake.unique.name, None)).dict()},
     )
 
     close_price = Column(DECIMAL(19, 4), nullable=False)
@@ -818,7 +820,7 @@ class SecurityPrices(Base, ToDict):
 
 class Notifications(Base, ToDict):
     __tablename__ = "notifications"
-    id = Column(BigInteger, primary_key=True, unique=True, nullable=False)
+    id = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
     user_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     notification_type = Column(Enum(NotificationTypes), nullable=False)
     body = Column(String, nullable=False)
@@ -846,7 +848,7 @@ class NotificationsModel(BaseModel):
 
 class NotificationSettings(Base, ToDict):
     __tablename__ = "notification_settings"
-    id = Column(BigInteger, primary_key=True, unique=True, nullable=False)
+    id = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
     user_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     mention = Column(Boolean, default=True, nullable=False)
     upvote = Column(Boolean, default=True, nullable=False)

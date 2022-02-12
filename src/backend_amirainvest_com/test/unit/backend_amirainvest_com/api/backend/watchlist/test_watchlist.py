@@ -1,6 +1,5 @@
 import json
 
-import pytest
 from fastapi import status
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,9 +9,6 @@ from backend_amirainvest_com.api.app import app
 from common_amirainvest_com.schemas.schema import Watchlists
 
 from ...config import AUTH_HEADERS
-
-
-# from common_amirainvest_com.utils.test.factories.schema import UsersFactory, WatchlistsFactory
 
 
 async def test_create_watchlist(async_session_maker_test, mock_auth, factory):
@@ -46,8 +42,6 @@ async def test_create_watchlist(async_session_maker_test, mock_auth, factory):
     assert db_watchlist.id == watchlist.id
 
 
-# factory.gen doesn't work for watchlists. Keyerror with sql alchemy array
-@pytest.mark.skip
 async def test_get_watchlist(mock_auth, factory):
     user = await factory.gen("users")
     await mock_auth(user["users"].id)
@@ -68,14 +62,12 @@ async def test_get_watchlist(mock_auth, factory):
     assert response_data["tickers"] == watchlist["watchlists"].tickers
 
 
-@pytest.mark.skip
 async def test_list_watchlist(async_session_maker_test, mock_auth, factory):
     user = await factory.gen("users")
     await mock_auth(user["users"].id)
-    watchlists = []
+
     for x in range(5):
-        watchlist = await factory.gen("watchlists", {"watchlists": {"creator_id": user["users"].id}})
-        watchlists.append(watchlist)
+        await factory.gen("watchlists", {"watchlists": {"creator_id": user["users"].id}})
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(
             "/watchlist/list", headers=AUTH_HEADERS, params={"creator_id": str(user["users"].id)}
@@ -87,7 +79,6 @@ async def test_list_watchlist(async_session_maker_test, mock_auth, factory):
     assert type(response_data) == list
 
 
-@pytest.mark.skip
 async def test_update_watchlist(async_session_maker_test, mock_auth, factory):
     session_test: AsyncSession = async_session_maker_test()
     user = await factory.gen("users")
@@ -121,7 +112,6 @@ async def test_update_watchlist(async_session_maker_test, mock_auth, factory):
     assert db_watchlist.note == watchlist_update_dict["note"]
 
 
-@pytest.mark.skip
 async def test_delete_watchlist(async_session_maker_test, mock_auth, factory):
     session_test: AsyncSession = async_session_maker_test()
     user = await factory.gen("users")

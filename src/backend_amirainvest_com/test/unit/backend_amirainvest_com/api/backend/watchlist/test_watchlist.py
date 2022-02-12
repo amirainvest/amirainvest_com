@@ -1,6 +1,5 @@
 import json
 
-import pytest
 from fastapi import status
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,9 +9,6 @@ from backend_amirainvest_com.api.app import app
 from common_amirainvest_com.schemas.schema import Watchlists
 
 from ...config import AUTH_HEADERS
-
-
-# from common_amirainvest_com.utils.test.factories.schema import UsersFactory, WatchlistsFactory
 
 
 async def test_create_watchlist(async_session_maker_test, mock_auth, factory):

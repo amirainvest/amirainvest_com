@@ -9,8 +9,6 @@ from backend_amirainvest_com.api.app import app
 from backend_amirainvest_com.api.backend.post_route.controller import get_redis_feed, PAGE_SIZE
 from backend_amirainvest_com.api.backend.post_route.model import FeedType
 from common_amirainvest_com.schemas.schema import Posts
-from backend_amirainvest_com.api.backend.post_route.model import GetModel
-from common_amirainvest_com.utils.test.factories.redis_factories import posts_redis_factory
 
 from ...config import AUTH_HEADERS
 

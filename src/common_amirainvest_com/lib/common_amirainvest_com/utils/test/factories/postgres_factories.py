@@ -11,6 +11,7 @@ column_type_default = {
     sa.Integer: int,
     sa.Boolean: bool,
     sa.DECIMAL: Decimal,
+    sa.ARRAY: list,
 }
 
 

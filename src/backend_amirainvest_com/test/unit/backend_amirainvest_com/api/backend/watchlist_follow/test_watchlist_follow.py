@@ -12,8 +12,6 @@ from common_amirainvest_com.schemas.schema import WatchlistFollows, Watchlists
 from ...config import AUTH_HEADERS
 
 
-# factory.gen doesn't work for watchlists. Keyerror with sql alchemy array
-@pytest.mark.skip
 async def test_create_watchlist_follow(async_session_maker_test, mock_auth, factory):
     session_test: AsyncSession = async_session_maker_test()
     creator = await factory.gen("users")

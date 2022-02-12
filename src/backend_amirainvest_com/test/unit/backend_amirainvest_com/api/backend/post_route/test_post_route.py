@@ -117,7 +117,6 @@ async def test_list_subscriber_feed(mock_auth, factory):
             headers=AUTH_HEADERS,
             data=json.dumps({"feed_type": FeedType.subscriber.value}),
         )
-        print(response.text)
 
     response_data = response.json()
     assert response.status_code == status.HTTP_200_OK

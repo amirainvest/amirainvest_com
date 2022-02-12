@@ -197,9 +197,6 @@ async def get_subscriber_posts(
     data = await session.execute(query)
     for post in data.scalars().all():
         post_attributes = await get_post_attributes(post)
-        from pprint import pprint
-
-        pprint({**post_attributes, **post.dict()})
         posts.append(GetModel(**{**post_attributes, **post.dict()}))
     return posts
 
@@ -218,7 +215,8 @@ async def get_creator_posts(
     data = await session.execute(query)
     for post in data.scalars().all():
         post_attributes = await get_post_attributes(post)
-        posts.append(GetModel(**{**post_attributes, **post.dict()}))
+        post = GetModel(**{**post_attributes, **post.dict()})
+        posts.append(post)
     return posts
 
 

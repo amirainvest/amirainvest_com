@@ -1,5 +1,4 @@
 from datetime import datetime
-from pprint import pprint
 
 from sqlalchemy import extract, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,10 +13,7 @@ from common_amirainvest_com.schemas.schema import (
     SubscriptionLevel,
     Users,
 )
-
-# from common_amirainvest_com.controllers.creator import Creator, get_creator_attributes
 from common_amirainvest_com.utils.decorators import Session
-from data_imports_amirainvest_com.controllers import posts
 
 
 @Session
@@ -31,8 +27,6 @@ async def create_trade_post(
     creator_id: str,
     plaid_user_id,
     transaction_id,
-    transaction_type: str,
-    transaction_subtype: str,
     transaction_value: float,
     security_ticker: str,
 ):
@@ -41,11 +35,7 @@ async def create_trade_post(
             "creator_id": creator_id,
             "subscription_level": SubscriptionLevel.standard,
             "title": None,
-            "content": (
-                await generate_content(
-                    creator_id, transaction_type, transaction_subtype, security_ticker, transaction_value
-                )
-            ),
+            "content": (await generate_content(creator_id, security_ticker, transaction_value)),
             "photos": [],
             "platform": MediaPlatform.brokerage,
             "platform_display_name": None,
@@ -57,9 +47,7 @@ async def create_trade_post(
             "platform_post_url": None,
         }
     )
-    pprint(post.dict())
-
-    #     session.add(post)
+    session.add(post)
     return post
 
 
@@ -87,19 +75,16 @@ async def create_day_transaction_posts():
         account = transaction_data["FinancialAccounts"].dict()
         transaction = transaction_data["FinancialAccountTransactions"].dict()
         security = transaction_data["Securities"].dict()
-        post = await create_trade_post(
+        await create_trade_post(
             account["user_id"],
             account["plaid_id"],
             transaction["plaid_investment_transaction_id"],
-            transaction["type"],
-            transaction["name"],
             transaction["value_amount"],
             security["ticker_symbol"],
         )
-
-        post_data = {k: str(v) for k, v in post.dict().items() if k in Posts.__dict__ and v}
-        posts.put_post_on_creators_redis_feeds(post_data)
-        await posts.put_post_on_subscriber_redis_feeds(post_data, "premium")
+        # post_data = {k: str(v) for k, v in post.dict().items() if k in Posts.__dict__ and v}
+        # posts.put_post_on_creators_redis_feeds(post_data)
+        # await posts.put_post_on_subscriber_redis_feeds(post_data, "premium")
 
 
 @Session
@@ -119,10 +104,7 @@ async def get_current_holdings(session: AsyncSession, user_id: str):
 async def get_existing_holding(creator_id: str, security_ticker: str, transaction_value: float):
     holdings = await get_current_holdings(creator_id)
     for holding in holdings:
-        current_holding = holding["FinancialAccountCurrentHoldings"].dict()
         security = holding["Securities"].dict()
-        print("Securities", security)
-        print("FinancialAccountCurrentHoldings", current_holding)
         if security["ticker_symbol"] == security_ticker:
             return True, holding
     return False, None
@@ -137,9 +119,7 @@ async def get_user_portfolio_value(creator_id: str):
     return portfolio_value
 
 
-async def get_trade_attributes(
-    creator_id: str, transaction_type: str, transaction_subtype: str, security_ticker: str, transaction_value: float
-):
+async def get_trade_attributes(creator_id: str, security_ticker: str, transaction_value: float):
     previously_owned, holding = await get_existing_holding(creator_id, security_ticker, transaction_value)
     portfolio_value = await get_user_portfolio_value(creator_id)
     percentage_of_portfolio = round((transaction_value * 100 / portfolio_value), 4)
@@ -159,12 +139,8 @@ async def get_trade_attributes(
     return percentage_of_portfolio, f"{start}_{end}"
 
 
-async def generate_content(
-    creator_id: str, transaction_type: str, transaction_subtype: str, security_ticker: str, transaction_value: float
-):
-    percentage_of_portfolio, trade_action = await get_trade_attributes(
-        creator_id, transaction_type, transaction_subtype, security_ticker, transaction_value
-    )
+async def generate_content(creator_id: str, security_ticker: str, transaction_value: float):
+    percentage_of_portfolio, trade_action = await get_trade_attributes(creator_id, security_ticker, transaction_value)
     text = {
         "open_long": f"Opened {percentage_of_portfolio}% position in {security_ticker}",
         "open_short": f"Opened {percentage_of_portfolio}% short position in {security_ticker}",
@@ -176,9 +152,3 @@ async def generate_content(
         "decreased_short": f"Decreased short position in {security_ticker} by {percentage_of_portfolio}%",
     }[trade_action]
     return f"""<p>{text}</p>"""
-
-
-if __name__ == "__main__":
-    from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
-
-    run_async_function_synchronously(create_day_transaction_posts)

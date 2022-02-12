@@ -12,6 +12,7 @@ class GetModel(BaseModel):
     id: int
 
     creator: Creator
+    is_bookmarked: bool
     subscription_level: SubscriptionLevel = SubscriptionLevel.standard
 
     title: Optional[str]

@@ -22,9 +22,7 @@ async def test_not_authenticated():
 async def test_get(factory):
     user = await factory.gen("users")
     async with AsyncClient(app=app, base_url="http://test") as async_client:
-        response = await async_client.post("/user/get", params={"user_id": user["users"].id}, headers=AUTH_HEADERS)
-        response_data = response.json()
-        print(response_data)
+        await async_client.post("/user/get", params={"user_id": user["users"].id}, headers=AUTH_HEADERS)
 
 
 async def test_update(async_session_maker_test, mock_auth, factory):

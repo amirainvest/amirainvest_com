@@ -28,9 +28,7 @@ async def test_create(async_session_maker_test, factory):
             ),
         )
     response_data = response.json()
-    from pprint import pprint
 
-    pprint(response.text)
     assert response.status_code == 201
 
     husk_requests = await session_test.execute(select(HuskRequests))

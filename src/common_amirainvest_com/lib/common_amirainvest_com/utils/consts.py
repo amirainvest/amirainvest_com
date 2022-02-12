@@ -144,6 +144,3 @@ async_session_maker = sessionmaker(
 
 # https://github.com/redis/redis-py
 WEBCACHE = redis.Redis(health_check_interval=30, ssl=True, ssl_cert_reqs=None, **WEBCACHE_DICT)
-
-if __name__ == "__main__":
-    print(decode_env_var("brokerages"))

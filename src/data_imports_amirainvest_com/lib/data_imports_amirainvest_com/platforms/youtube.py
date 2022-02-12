@@ -5,16 +5,12 @@ import requests
 from common_amirainvest_com.schemas.schema import MediaPlatform, SubscriptionLevel
 from common_amirainvest_com.utils.datetime_utils import parse_iso_8601_from_string
 from common_amirainvest_com.utils.logger import log
-
-# from data_imports_amirainvest_com.consts import YOUTUBE_API_KEY_ENV, YOUTUBE_API_URL
+from data_imports_amirainvest_com.consts import YOUTUBE_API_KEY_ENV, YOUTUBE_API_URL
 from data_imports_amirainvest_com.controllers import posts
 from data_imports_amirainvest_com.controllers.youtube_videos import create_youtube_video, get_videos_for_channel
 from data_imports_amirainvest_com.controllers.youtubers import create_youtuber, get_youtuber
 from data_imports_amirainvest_com.platforms.platforms import PlatformUser
 
-
-YOUTUBE_API_KEY_ENV = "AIzaSyBkwVzrf3N7a92QgIQ4WMijyAQ6CaQQp9c"
-YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3"
 
 HEADERS = {
     "Cache-Control": "no-cache",
@@ -215,39 +211,3 @@ class YouTubeVideo:
 async def load_user_data(channel_id, creator_id):
     youtuber = YouTuber(_id=channel_id, creator_id=creator_id)
     await youtuber.store_user_data()
-
-
-from sqlalchemy import select
-
-from common_amirainvest_com.schemas.schema import Users
-from common_amirainvest_com.utils.decorators import Session
-
-
-@Session
-async def y(session):
-    return (await session.execute(select(Users))).all()
-
-
-@Session
-async def create_user(session):
-    user = Users(email="", first_name="", last_name="", sub="", username="")
-    session.add(user)
-    print(user.id)
-
-
-# @Session
-# async def create_youtuber(session):
-#     from common_amirainvest_com.schemas.schema import YouTubers
-#     youtuber = YouTubers(
-#         _id="GrahamStephan",
-#         creator_id="ab55e136-4eca-4e16-9a98-2df6bf283f41"
-#     )
-#     session.add(youtuber)
-
-
-if __name__ == "__main__":
-    from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
-
-    # from pprint import pprint
-    # run_async_function_synchronously(create_youtuber)
-    run_async_function_synchronously(load_user_data, "GrahamStephan", "ab55e136-4eca-4e16-9a98-2df6bf283f41")

@@ -270,7 +270,7 @@ class UserFeedbackModel(BaseModel):
 
 class SubstackUsers(Base, ToDict):
     __tablename__ = "substack_users"
-    username = Column(String, primary_key=True, nullable=False, unique=True)
+    username = Column(String, primary_key=True, nullable=False, unique=True, autoincrement=False)
     creator_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
     is_deleted = Column(Boolean, server_default=expression.false())

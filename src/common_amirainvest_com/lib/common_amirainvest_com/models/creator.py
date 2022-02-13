@@ -10,3 +10,6 @@ class Creator(BaseModel):
     username: str
     picture_url: Optional[str]
     chip_labels: Optional[List[str]]
+
+    class Config:
+        orm_mode = True

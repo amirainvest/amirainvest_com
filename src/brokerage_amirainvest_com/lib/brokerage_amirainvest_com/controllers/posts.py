@@ -17,7 +17,7 @@ from common_amirainvest_com.utils.decorators import Session
 
 
 @Session
-async def get_user(session, user_id: str):
+async def get_user(session: AsyncSession, user_id: str):
     return (await session.execute(select(Users).where(Users.id == user_id))).scalars().first()
 
 
@@ -29,49 +29,42 @@ async def create_trade_post(
     transaction_id,
     transaction_value: float,
     security_ticker: str,
-):
+) -> Posts:
     post = Posts(
-        **{
-            "creator_id": creator_id,
-            "subscription_level": SubscriptionLevel.standard,
-            "title": None,
-            "content": (await generate_content(creator_id, security_ticker, transaction_value)),
-            "photos": [],
-            "platform": MediaPlatform.brokerage,
-            "platform_display_name": None,
-            "platform_user_id": plaid_user_id,
-            "platform_img_url": None,
-            "platform_profile_url": None,
-            "twitter_handle": None,
-            "platform_post_id": transaction_id,
-            "platform_post_url": None,
-        }
+        creator_id=creator_id,
+        subscription_level=SubscriptionLevel.standard,
+        title=None,
+        content=(await generate_content(creator_id, security_ticker, transaction_value)),
+        photos=[],
+        platform=MediaPlatform.brokerage,
+        platform_display_name=None,
+        platform_user_id=plaid_user_id,
+        platform_img_url=None,
+        platform_profile_url=None,
+        twitter_handle=None,
+        platform_post_id=transaction_id,
+        platform_post_url=None,
     )
     session.add(post)
     return post
 
 
 @Session
-async def get_day_transactions(session):
-    return [
-        x._asdict()
-        for x in (
-            (
-                await session.execute(
-                    select(FinancialAccounts, FinancialAccountTransactions, Securities)
-                    .join(FinancialAccounts)
-                    .join(Securities, Securities.id == FinancialAccountTransactions.security_id)
-                    .where(extract("day", FinancialAccountTransactions.created_at) == datetime.today().day)
-                    .limit(100)
-                )
-            ).all()
+async def get_day_transactions(session: AsyncSession):
+    return (
+        await session.execute(
+            select(FinancialAccounts, FinancialAccountTransactions, Securities)
+            .join(FinancialAccounts)
+            .join(Securities, Securities.id == FinancialAccountTransactions.security_id)
+            .where(extract("day", FinancialAccountTransactions.created_at) == datetime.today().day)
         )
-    ]
+    ).all()
 
 
 async def create_day_transaction_posts():
     day_transactions = await get_day_transactions()
     for transaction_data in day_transactions:
+        transaction_data = transaction_data._asdict()
         account = transaction_data["FinancialAccounts"].dict()
         transaction = transaction_data["FinancialAccountTransactions"].dict()
         security = transaction_data["Securities"].dict()
@@ -89,21 +82,19 @@ async def create_day_transaction_posts():
 
 @Session
 async def get_current_holdings(session: AsyncSession, user_id: str):
-    return [
-        x._asdict()
-        for x in (
-            await session.execute(
-                select(FinancialAccountCurrentHoldings, Securities)
-                .join(Securities, Securities.id == FinancialAccountCurrentHoldings.plaid_security_id)
-                .where(FinancialAccountCurrentHoldings.user_id == user_id)
-            )
-        ).all()
-    ]
+    return (
+        await session.execute(
+            select(FinancialAccountCurrentHoldings, Securities)
+            .join(Securities, Securities.id == FinancialAccountCurrentHoldings.plaid_security_id)
+            .where(FinancialAccountCurrentHoldings.user_id == user_id)
+        )
+    ).all()
 
 
-async def get_existing_holding(creator_id: str, security_ticker: str, transaction_value: float):
+async def get_existing_holding(creator_id: str, security_ticker: str):
     holdings = await get_current_holdings(creator_id)
     for holding in holdings:
+        holding = holding._asdict()
         security = holding["Securities"].dict()
         if security["ticker_symbol"] == security_ticker:
             return True, holding
@@ -114,13 +105,14 @@ async def get_user_portfolio_value(creator_id: str):
     portfolio_value = 0
     holdings = await get_current_holdings(creator_id)
     for holding in holdings:
+        holding = holding._asdict()
         current_holding = holding["FinancialAccountCurrentHoldings"].dict()
         portfolio_value += current_holding["quantity"] * current_holding["latest_price"]
     return portfolio_value
 
 
 async def get_trade_attributes(creator_id: str, security_ticker: str, transaction_value: float):
-    previously_owned, holding = await get_existing_holding(creator_id, security_ticker, transaction_value)
+    previously_owned, holding = await get_existing_holding(creator_id, security_ticker)
     portfolio_value = await get_user_portfolio_value(creator_id)
     percentage_of_portfolio = round((transaction_value * 100 / portfolio_value), 4)
     if previously_owned:

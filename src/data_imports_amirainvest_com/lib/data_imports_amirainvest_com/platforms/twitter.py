@@ -118,20 +118,18 @@ class TwitterUser(PlatformUser):
                     parse_iso_8601_from_string(raw_tweet.get("created_at")) if raw_tweet.get("created_at") else None
                 )
                 tweet = Tweet(
-                    **{
-                        "twitter_user_id": self.twitter_user_id,
-                        "twitter_username": self.username,
-                        "tweet_id": raw_tweet.get("id"),
-                        "text": raw_tweet.get("text"),
-                        "created_at": created_at,
-                        "entities": raw_tweet.get("entities", {}),
-                        "language": raw_tweet.get("lang"),
-                        "like_count": raw_tweet.get("like_count"),
-                        "quote_count": raw_tweet.get("quote_count"),
-                        "reply_count": raw_tweet.get("reply_count"),
-                        "retweet_count": raw_tweet.get("retweet_count"),
-                        "tweet_url": f"https://twitter.com/{self.username}/status/{raw_tweet.get('id')}",
-                    }
+                    twitter_user_id=self.twitter_user_id,
+                    twitter_username=self.username,
+                    tweet_id=raw_tweet.get("id"),
+                    text=raw_tweet.get("text"),
+                    created_at=created_at,
+                    entities=raw_tweet.get("entities", {}),
+                    language=raw_tweet.get("lang"),
+                    like_count=raw_tweet.get("like_count"),
+                    quote_count=raw_tweet.get("quote_count"),
+                    reply_count=raw_tweet.get("reply_count"),
+                    retweet_count=raw_tweet.get("retweet_count"),
+                    tweet_url=f"https://twitter.com/{self.username}/status/{raw_tweet.get('id')}",
                 )
                 tweets.append(tweet)
                 tweet_posts.append(
@@ -163,20 +161,20 @@ class TwitterUser(PlatformUser):
 
     @Session
     async def get_existing_user_tweet_ids(self, session: AsyncSession):
-        return {
-            x.tweet_id
-            for x in (await session.execute(select(Tweets).where(Tweets.twitter_user_id == self.twitter_user_id)))
+        tweets = (
+            (await session.execute(select(Tweets).where(Tweets.twitter_user_id == self.twitter_user_id)))
             .scalars()
             .all()
-        }
+        )
+        return {x.tweet_id for x in tweets}
 
     @Session
     async def get_is_existing_user(self, session: AsyncSession):
         if (
             (await session.execute(select(TwitterUsers).where(TwitterUsers.twitter_user_id == self.twitter_user_id)))
             .scalars()
-            .all()
-        ):
+            .one_or_none()
+        ) is not None:
             return True
         return False
 
@@ -240,18 +238,13 @@ class Tweet:
             f"https://publish.twitter.com/oembed?url=https://twitter.com/{self.twitter_username}/status/{self.tweet_id}"
         )
         try:
-            return str(
-                BeautifulSoup(
-                    urllib.parse.unquote(
-                        requests.request(
-                            method="GET",
-                            url=url,
-                            headers=HEADERS,
-                        ).json()["html"]
-                    ).replace("\\", ""),
-                    "html.parser",
-                )
+            response = requests.request(method="GET", url=url, headers=HEADERS)
+            html = urllib.parse.unquote(response.json()["html"]).replace("\\", "")
+            soup = BeautifulSoup(
+                html,
+                "html.parser",
             )
+            return str(soup)
         except KeyError:
             return ""
 

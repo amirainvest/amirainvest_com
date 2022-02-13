@@ -30,8 +30,8 @@ class SubstackUser(PlatformUser):
         if (
             (await session.execute(select(SubstackUsers).where(SubstackUsers.username == self.username)))
             .scalars()
-            .all()
-        ):
+            .one_or_none()
+        ) is not None:
             return True
         return False
 

@@ -270,9 +270,7 @@ class UserFeedbackModel(BaseModel):
 
 class SubstackUsers(Base, ToDict):
     __tablename__ = "substack_users"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-
-    username = Column(String, nullable=False)
+    username = Column(String, primary_key=True, nullable=False, unique=True, autoincrement=False)
     creator_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
     is_deleted = Column(Boolean, server_default=expression.false())
@@ -284,7 +282,7 @@ class SubstackArticles(Base, ToDict):
     __tablename__ = "substack_articles"
     article_id = Column(String, primary_key=True, unique=True, nullable=False, autoincrement=False)
 
-    substack_user = Column(Integer, ForeignKey("substack_users.id", ondelete="CASCADE"), nullable=False)
+    username = Column(String, ForeignKey("substack_users.username", ondelete="CASCADE"), nullable=False)
 
     title = Column(String, nullable=False)
     summary = Column(String, nullable=False)
@@ -438,21 +436,23 @@ class Posts(Base, ToDict):
     id = Column(Integer, primary_key=True, unique=True, autoincrement=True)
 
     creator_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"))
+    subscription_level = Column(Enum(SubscriptionLevel), server_default=SubscriptionLevel.standard.value)
+
+    title = Column(String)
+    content = Column(String)
+    photos = Column(ARRAY(String))
 
     platform = Column(Enum(MediaPlatform), nullable=False)
-
-    chip_labels = Column(ARRAY(String))
-    html = Column(String)
-    photos = Column(ARRAY(String))
-    platform_post_id = Column(String)
+    platform_display_name = Column(String)
     platform_user_id = Column(String)
-    profile_img_url = Column(String)
-    profile_url = Column(String)
-    text = Column(String)
-    title = Column(String)
+    platform_img_url = Column(String)
+    platform_profile_url = Column(String)
+    twitter_handle = Column(String)
+
+    platform_post_id = Column(String)
+    platform_post_url = Column(String)
 
     created_at = Column(DateTime, server_default=UTCNow())
-    subscription_level = Column(Enum(SubscriptionLevel), server_default=SubscriptionLevel.standard.value)
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
 
@@ -460,21 +460,23 @@ class PostsModel(BaseModel):
     id: int
 
     creator_id: str
+    subscription_level: SubscriptionLevel = SubscriptionLevel.standard
+
+    title: Optional[str]
+    content: Optional[str]
+    photos: Optional[List[str]]
 
     platform: MediaPlatform
-
-    chip_labels: Optional[List[str]]
-    html: Optional[str]
-    photos: Optional[List[str]]
-    platform_post_id: Optional[str]
+    platform_display_name: Optional[str]
     platform_user_id: Optional[str]
-    profile_img_url: Optional[str]
-    profile_url: Optional[str]
-    text: Optional[str]
-    title: Optional[str]
+    platform_img_url: Optional[str]
+    platform_profile_url: Optional[str]
+    twitter_handle: Optional[str]
+
+    platform_post_id: Optional[str]
+    platform_post_url: Optional[str]
 
     created_at: Optional[datetime.datetime]
-    subscription_level: SubscriptionLevel = SubscriptionLevel.standard
     updated_at: Optional[datetime.datetime]
 
 

@@ -119,7 +119,3 @@ def verify_webhook(body: BaseModel, signed_jwt: str) -> bool:
     # Ensure that the hash of the body matches the claim.
     # Use constant time comparison to prevent timing attacks.
     return hmac.compare_digest(body_hash, claims["request_body_sha256"])
-
-
-if __name__ == "__main__":
-    print(get_application_token())

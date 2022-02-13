@@ -1,0 +1,83 @@
+<html>
+<head>
+</head>
+<body>
+
+<div id="plaid">
+    <div>
+        <div id="login-container">
+            <input id="auth-token" placeholder="auth token here..."/>
+            <button id="login-btn">Login...</button>
+        </div>
+
+        <h3>Status Messages</h3>
+        <div id="status-message-container">
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
+<script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+<script type="text/javascript">
+    const x = async () => {
+        const authToken = $('#auth-token').val()
+
+        const linkResponse = await fetch('/plaid/link', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            }
+        })
+        const el = $('#status-message-container');
+        const link = await linkResponse.json();
+        el.append('<div> Authenticated Correctly...</div>')
+
+        const plaidHandler = Plaid.create({
+            token: link['link_token'],
+            onSuccess: function (public_token, metadata) {
+                // Send the public_token to your app server.
+                // The metadata object contains info about the institution the
+                // user selected and the account ID or IDs, if the
+                // Select Account view is enabled.
+                onSuccessRender(public_token)
+            },
+            onExit: function (err, metadata) {
+                // The user exited the Link flow.
+                if (err != null) {
+                    // The user encountered a Plaid API error prior to exiting.
+                }
+                // metadata contains information about the institution
+                // that the user selected and the most recent API request IDs.
+                // Storing this information can be helpful for support.
+            }
+        });
+        plaidHandler.open();
+
+        const onSuccessRender = async (public_token) => {
+            el.append('<div> Authenticated Plaid Brokerage Correctly...</div>')
+            const response = await fetch('/plaid/token', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                },
+                body: JSON.stringify({public_token})
+            });
+
+            const body = await response.json()
+            el.append('<div> User Added Correctly...</div>')
+            el.append('<div> Running Process To Ingest Your Information You. You can leave the page now...</div>')
+        }
+    }
+    $('#login-btn').click(x);
+</script>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
+<script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+<script type="text/javascript">
+</script>
+</body>
+</html>

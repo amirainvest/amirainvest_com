@@ -120,3 +120,6 @@ Shared Watchlists (Watchlists that a user follows)
     ],
     "watchlist_type": (user or creator)
 }
+
+Ending Value - Starting Value / Starting Value
+(Ending Value - (Starting Value + Inflow)) / (Starting Value + Inflow)

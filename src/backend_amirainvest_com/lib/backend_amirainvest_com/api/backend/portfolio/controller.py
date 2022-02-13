@@ -1,16 +1,13 @@
-from datetime import datetime, date
+from datetime import date
 from decimal import Decimal
 from typing import Optional
 import asyncio
-from pydantic import BaseModel
 
-from sqlalchemy import asc
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.sql import func, label
 
 from common_amirainvest_com.schemas.schema import (
-    FinancialAccountCurrentHoldings,
     FinancialAccounts,
     FinancialAccountTransactions,
     PlaidSecurities,
@@ -21,48 +18,69 @@ from common_amirainvest_com.schemas.schema import (
 )
 from common_amirainvest_com.utils.decorators import Session
 
-
-"""
-    sell,distribution = outflow of assets from a tax-advantaged account
-    cash, account fee = fee's paid for account maintenance
-    cash, contribution = inflow of assets into a tax-advantaged account
-    cash, deposit = inflow of cash into an account
-    cash, dividend = inflow of cash from a dividend
-    cash, stock distribution = inflow of stock from a distribution
-    cash, interest = inflow of cash from interest
-    cash, legal fee = fees paid for legal charges or services
-    cash, long-term capital gain = long-term capital gain received as cash
-    cash, management fee = fees paid for investment management of a mutual fund or other pooled investment vehicle
-    cash, margin expense = fees paid for maintaining debt
-    cash, non-qualified dividend = inflow of cash from non-qualified dividend
-    cash, non-resident tax = taxes paid on behalf of the investor for non-residency in investment jurisdiction
-    cash, pending credit = pending inflow of cash
-    cash, pending debit = pending outflow of cash
-    cash, qualified dividend = inflow of cash fro ma qualified dividend
-    cash, short-term capital gain = short-term capital gain received as cash
-    cash, tax = taxes paid on behalf of the investor
-    cash, tax withheld = taxes withheld on behalf of the customer
-    cash, transfer fee = fees incurred for transfer of a holding or account
-    cash, trust fee = fees related to administration of a trust account
-    cash, unqualified gain = unqualified capital gain received as cash
-    cash, withdrawl = outflow of cash from an account
+from backend_amirainvest_com.api.backend.portfolio.model import (
+    Holding,
+    PortfolioValue,
+    MarketValue,
+    HistoricalTrade,
+    HoldingPercentageRate,
+)
 
 
-"""
+async def get_portfolio_trades(user_id: str, is_creator: bool) -> list[HistoricalTrade]:
+    trading_history = await get_trading_history(user_id)
+    baseline_holdings = await get_baseline_holdings()
+    response: list[HistoricalTrade] = []
+    percentage_change_in_pos = Decimal(100)
+    for trade in trading_history:
+        fat = trade.FinancialAccountTransactions
+        mv = fat.price * fat.quantity
+        response.append(
+            HistoricalTrade(
+                trade_date=fat.posting_date,
+                ticker=trade.PlaidSecurities.ticker_symbol,
+                transaction_type=fat.type,
+                transaction_price=fat.price,
+                transaction_market_value=is_creator if is_creator else mv,
+                percentage_change_in_position=percentage_change_in_pos,
+            )
+        )
+
+    return response
 
 
-class MarketValue(BaseModel):
-    price_time: datetime
-    market_value: Decimal
+async def get_portfolio_holdings(user_id: str, is_creator: bool) -> list[Holding]:
+    holdings = await get_user_holdings_with_securities_data(user_id=user_id)
+    portfolio = get_portfolio_value(holdings=holdings, user_id=user_id)
+
+    response = []
+    for holding in holdings:
+        fa = holding.FinancialAccountCurrentHoldings
+        ps = holding.PlaidSecurities
+
+        market_value = fa.latest_price * fa.quantity
+        response.append(
+            Holding(
+                ticker=ps.ticker_symbol,
+                ticker_price=fa.latest_price,
+                ticker_price_time=fa.latest_price_date,
+                percentage_of_portfolio=Decimal(market_value / portfolio.value),
+                buy_date=holding.buy_date,
+                return_percentage=Decimal(fa.cost_basis / fa.quantity),
+                market_value=None if is_creator else market_value,
+            )
+        )
+    return response
 
 
 @Session
-async def get_monetary_transactions(
-    session: AsyncSession, account_id: int
+async def get_cash_transactions_by_date(
+    session: AsyncSession, user_id: int
 ) -> dict[date, list[FinancialAccountTransactions]]:
     transactions_response = await session.execute(
         select(FinancialAccountTransactions)
-            .where(FinancialAccountTransactions.account_id == account_id)
+            .join(FinancialAccounts)
+            .where(FinancialAccounts.user_id == user_id)
     )
     transactions = transactions_response.scalars().all()
 
@@ -76,13 +94,14 @@ async def get_monetary_transactions(
 
 
 @Session
-async def get_market_value_list(session: AsyncSession, account_id: int) -> list[MarketValue]:
+async def get_market_values_for_account(session: AsyncSession, account_id: int) -> list[MarketValue]:
+    # TODO validate how we should label market value of short position, can we take the naive approach?
     market_value_by_day_response = await session.execute(
         select(
             FinancialAccountHoldingsHistory.price_time,
             label(
                 "market_value", func.sum(
-                    func.abs(FinancialAccountHoldingsHistory.price * FinancialAccountHoldingsHistory.quantity)
+                    FinancialAccountHoldingsHistory.price * FinancialAccountHoldingsHistory.quantity
                 )
             )
         )
@@ -99,31 +118,86 @@ async def get_market_value_list(session: AsyncSession, account_id: int) -> list[
 
 
 @Session
-async def calculate_return(session: AsyncSession, user_id: str):
-    response = await session.execute(select(FinancialAccounts).where(FinancialAccounts.user_id == user_id))
-    accounts = response.scalars().all()
-    for account in accounts:
-        market_value_by_day = await get_market_value_list(account_id=account.id)
-        transactions_by_date = await get_monetary_transactions(account_id=account)
+async def get_market_values(session: AsyncSession, user_id: int) -> list[MarketValue]:
+    # TODO validate how we should label market value of short position, can we take the naive approach?
+    market_value_by_day_response = await session.execute(
+        select(
+            FinancialAccountHoldingsHistory.price_time,
+            label(
+                "market_value", func.sum(
+                    FinancialAccountHoldingsHistory.price * FinancialAccountHoldingsHistory.quantity
+                )
+            )
+        )
+            .join(FinancialAccounts)
+            .where(FinancialAccounts.user_id == user_id)
+            .group_by(FinancialAccountHoldingsHistory.price_time)
+            .order_by(FinancialAccountHoldingsHistory.price_time.asc())
+    )
 
-        # Working bottom up
-        time_weighted_return = 1
-        for index, _ in enumerate(market_value_by_day[1:]):
-            mv_today = market_value_by_day[index]
-            mv_yesterday = market_value_by_day[index - 1]
-            mv_today_value = mv_today.market_value
-            mv_yesterday_value = mv_yesterday.market_value
-            hpr = ((mv_today_value - mv_yesterday_value) / mv_today_value)
-            time_weighted_return = time_weighted_return * (1 + hpr)
-        time_weighted_return = time_weighted_return - 1
-        # Need to factor in adding back dividends and subtracting withdrawls
-        # We dont need to worry about dividends as that will be factored into
-        #   cash when computing historical
-        #   TODO check to make sure we should just factor in dividend transactions
-        #       when doing historical data...
-        #   This way, we only need to "remove" it...
-        #
-        # # HPR = ((MV1 - MV0 + D1 - CF1)/MV0)
+    results = market_value_by_day_response.all()
+    market_values = []
+    for res in results:
+        d = res._asdict()
+        market_values.append(MarketValue(**d))
+    return market_values
+
+
+async def get_summary(user_id: str):
+    market_values = await get_market_values(user_id=user_id)
+    cash_transactions_by_date = await get_cash_transactions_by_date(user_id=user_id)
+
+    # list of portfolio dates and daily returns
+    portfolio_holding_rates = await get_portfolio_holding_percentage_rates(
+        market_values=market_values, cash_transactions_by_date=cash_transactions_by_date
+    )
+    # TODO calculate time weighted return
+
+
+async def get_portfolio_holding_percentage_rates(
+    market_values: list[MarketValue], cash_transactions_by_date: dict[date, list[FinancialAccountTransactions]]
+) -> list[HoldingPercentageRate]:
+    holding_percentage_rates: list[HoldingPercentageRate] = [HoldingPercentageRate(
+        rate=market_values[0].value,
+        date=market_values[0].date
+    )]
+
+    for index, _ in enumerate(market_values[1:]):
+        mv_today = market_values[index].value
+        mv_today_date = market_values[index].date
+        mv_yesterday = holding_percentage_rates[len(holding_percentage_rates) - 1].value
+        mv_yesterday_date = holding_percentage_rates[len(holding_percentage_rates) - 1].date
+
+        # Two if statements factor subtract deposits / add back withdraws
+        # dividends / interest fees / etc, are already added in via holdings history
+        if mv_yesterday_date in cash_transactions_by_date:
+            mv_yesterday = modify_market_value_by_cash_flow(
+                market_value=mv_yesterday,
+                transactions=cash_transactions_by_date[mv_yesterday_date]
+            )
+
+        hpr = ((mv_today - mv_yesterday) / mv_today)
+        holding_percentage_rates.append(
+            HoldingPercentageRate(
+                rate=hpr,
+                date=mv_today_date
+            )
+        )
+
+    return holding_percentage_rates
+
+
+def modify_market_value_by_cash_flow(
+    market_value: Decimal, transactions: list[FinancialAccountTransactions]
+) -> Decimal:
+    # TODO subtract deposits + add back withdraws
+    #   to note... dividends/interest fees / etc... are already allocated to cash in the holdings history
+    #   we do not need to account for them
+    # for tx in transactions:
+    #     if tx.type == "cash":
+    #         pass
+    #     if tx.type == ""
+    return market_value
 
 
 @Session
@@ -137,16 +211,18 @@ async def get_user_subscription(session: AsyncSession, user_id: str, creator_id:
 
 
 @Session
-async def get_holdings(session: AsyncSession, user_id: str) -> list:
+async def get_user_holdings_with_securities_data(session: AsyncSession, user_id: str) -> list:
     response = await session.execute(
-        select(FinancialAccountCurrentHoldings, PlaidSecurities)
+        select(FinancialAccountHoldingsHistory, PlaidSecurities)
             .join(PlaidSecurities)
+            .join(FinancialAccounts)
             .where(
-            FinancialAccountCurrentHoldings.user_id == user_id,
-            PlaidSecurities.id == FinancialAccountCurrentHoldings.plaid_security_id,
+            FinancialAccounts.user_id == user_id,
+            FinancialAccountHoldingsHistory.holding_date == select(
+                func.max(FinancialAccountHoldingsHistory.holding_date)
+            )
         )
     )
-
     return response.all()
 
 
@@ -162,24 +238,6 @@ async def get_recent_stock_price(session: AsyncSession, ticker_symbol: str) -> O
                 .limit(1)
         )
     ).scalar()
-
-
-@Session
-async def get_buy_date(
-    session: AsyncSession, user_id: str, security_id: int, position_quantity: int
-) -> Optional[datetime]:
-    transactions_response = await session.execute(
-        select(FinancialAccountTransactions)
-            .join(FinancialAccounts)
-            .where(FinancialAccounts.user_id == user_id, FinancialAccountTransactions.security_id == security_id)
-            .order_by(asc(FinancialAccountTransactions.posting_date))
-    )
-    transactions = transactions_response.scalars().all()
-
-    buy_date, qty = compute_buy_date(Decimal(0), transactions)
-    if qty == position_quantity:
-        return buy_date
-    return compute_buy_date(Decimal(abs(position_quantity - qty)), transactions)[0]
 
 
 def compute_buy_date(share_qty: Decimal, transactions: list[FinancialAccountTransactions]) -> tuple:
@@ -216,5 +274,15 @@ async def get_trading_history(session: AsyncSession, user_id: str) -> list:
     return response.all()
 
 
+def get_portfolio_value(holdings: list, user_id: str) -> PortfolioValue:
+    portfolio_value = PortfolioValue(user_id=user_id, value=0)
+    for holding in holdings:
+        fa = holding.FinancialAccountCurrentHoldings
+        value = portfolio_value.value + Decimal(fa.quantity * fa.latest_price)
+        portfolio_value.value = value
+
+    return portfolio_value
+
+
 if __name__ == '__main__':
-    asyncio.run(calculate_return(user_id="f6b8bdfc-5a9d-11ec-bc23-0242ac1a0002"))
+    pass

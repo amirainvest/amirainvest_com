@@ -724,7 +724,10 @@ class FinancialAccountHoldingsHistory(Base, ToDict):
 
     price: Decimal = Column(DECIMAL(19, 4), nullable=False)
     quantity: Decimal = Column(DECIMAL(19, 4), nullable=False)
-    date = Column(Date, nullable=False)
+    holding_date = Column(Date, nullable=False)
+    cost_basis = Column(DECIMAL(19, 4))
+
+    buy_date = Column(Date, nullable=False)
 
 
 class PlaidSecurities(Base, ToDict):

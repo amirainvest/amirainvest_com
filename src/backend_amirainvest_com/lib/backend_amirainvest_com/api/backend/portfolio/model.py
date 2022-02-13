@@ -1,6 +1,6 @@
 import enum
 import uuid
-from datetime import datetime
+import datetime
 from decimal import Decimal
 
 from pydantic import BaseModel
@@ -13,12 +13,10 @@ class PortfolioRequest(BaseModel):
 class Holding(BaseModel):
     ticker: str
     ticker_price: Decimal
-    ticker_price_time: datetime
-    # market value / portfolio value
+    ticker_price_time: datetime.datetime
     percentage_of_portfolio: Decimal
-    # Use this to calculate holding period
-    buy_date: datetime
-    # Market value of the position num shares * market price
+    buy_date: datetime.datetime
+    return_percentage: Decimal
     market_value: Decimal
 
 
@@ -28,7 +26,7 @@ class PortfolioValue(BaseModel):
 
 
 class HistoricalTrade(BaseModel):
-    trade_date: datetime
+    trade_date: datetime.datetime
     ticker: str
     transaction_type: str
     transaction_price: Decimal
@@ -52,7 +50,7 @@ class HoldingsResponse(BaseModel):
 
 
 class HistoricalReturn(BaseModel):
-    Date: datetime
+    Date: datetime.datetime
     daily_return: Decimal
 
 
@@ -74,3 +72,13 @@ class Portfolio(BaseModel):
     percentage_gross: Decimal
     percentage_net: Decimal
     portfolio_type: PortfolioType
+
+
+class MarketValue(BaseModel):
+    value: Decimal
+    date: datetime.date
+
+
+class HoldingPercentageRate(BaseModel):
+    value: Decimal
+    date: datetime.date

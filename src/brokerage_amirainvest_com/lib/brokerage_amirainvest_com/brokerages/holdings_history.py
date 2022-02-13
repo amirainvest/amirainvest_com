@@ -101,24 +101,41 @@ async def run(user_id: str):
 
         insertable = []
         iex_cash_security = await get_cash_security_iex()
+        historical_account_holdings = historical_account_holdings.reverse()
+
+        buy_date_dict: [int, date] = {}
+        cost_basis_dict: [int, decimal.Decimal] = {}
         for historical_account_holding in historical_account_holdings:
             cash_holding = FinancialAccountHoldingsHistory(
                 account_id=historical_account_holding.id,
                 plaid_security_id=plaid_cash_security.id,
                 security_id=iex_cash_security.id,
-                user_id=historical_account_holding.user_id,
                 price=1,
-                price_time=historical_account_holding.date,
+                holding_date=historical_account_holding.date,
                 quantity=historical_account_holding.cash,
+                buy_date=end_date
             )
+
+            # TODO this is going to be weird with short positions, or covers...
             insertable.append(cash_holding)
             for h in historical_account_holding.holdings:
-                # TODO change this.. we should never have a NONE quantity..
-                if h.quantity is None or h.quantity == 0:
+                try:
+                    buy_date = buy_date_dict[h.plaid_security_id]
+                except KeyError:
+                    buy_date = historical_account_holding.date
+
+                try:
+                    cost_basis = buy_date_dict[h.plaid_security_id]
+                except KeyError:
+                    cost_basis = h.price
+
+                if h.quantity == 0:
+                    del buy_date_dict[h.plaid_security_id]
+                    del cost_basis_dict[h.plaid_security_id]
                     continue
-                # TODO THIS SHOULD NEVER HAPPEN -- REMOVE CHECK AND MAKE SURE WE GOT PRICING
-                if h.price is None or h.price == 0:
-                    continue
+
+                h.buy_date = buy_date
+                h.cost_basis = cost_basis
                 insertable.append(h)
         await insert_historical_holdings(insertable)
 
@@ -166,30 +183,6 @@ async def create_historical_account(
         )
 
     return historical_account
-
-
-"""
-    Sell In Our DB
-        Quantity = -1
-        Value = -1
-        Fees =
-
-    Buy In Our DB
-        Quantity = +
-        Value = +
-        Fees =
-
-    Buy In Our System
-        quantity = quantity + (-1 * transaction_quantity)
-        cash = cash + transaction_value_amount
-
-    Sell In Our System
-        quantity = quantity + (-1 * transaction_quantity)
-        cash = cash + transaction_value_amount
-
-    Quantity Adding
-    Value Amount Subtracting
-"""
 
 
 async def buy_buy(account_holdings: HistoricalAccount, transaction: FinancialAccountTransactions) -> HistoricalAccount:
@@ -318,10 +311,10 @@ async def get_closest_price(
 ) -> Optional[SecurityPrices]:
     response = await session.execute(
         select(SecurityPrices)
-        .join(Securities)
-        .where(Securities.id == security_id, SecurityPrices.price_time <= posting_date)
-        .order_by(SecurityPrices.price_time.desc())
-        .limit(1)
+            .join(Securities)
+            .where(Securities.id == security_id, SecurityPrices.price_time <= posting_date)
+            .order_by(SecurityPrices.price_time.desc())
+            .limit(1)
     )
     return response.scalar()
 

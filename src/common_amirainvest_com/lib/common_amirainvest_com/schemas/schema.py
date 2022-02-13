@@ -25,7 +25,7 @@ from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.sql import expression
-from sqlalchemy.types import DateTime
+from sqlalchemy.types import DateTime, Date
 
 
 Base = declarative_base()
@@ -670,7 +670,7 @@ class FinancialAccountTransactions(Base, ToDict):
     id = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
 
     account_id = Column(Integer, ForeignKey("financial_accounts.id"), nullable=False)
-    security_id = Column(Integer, ForeignKey("plaid_securities.id"))
+    plaid_security_id = Column(Integer, ForeignKey("plaid_securities.id"))
 
     plaid_investment_transaction_id = Column(String, unique=True, nullable=False)
 
@@ -696,7 +696,6 @@ class FinancialAccountCurrentHoldings(Base, ToDict):
 
     account_id: int = Column(Integer, ForeignKey("financial_accounts.id"), nullable=False)
     plaid_security_id = Column(Integer, ForeignKey("plaid_securities.id"), nullable=False)
-    user_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
 
     institution_value = Column(DECIMAL(19, 4), nullable=False)
     latest_price = Column(DECIMAL(19, 4), nullable=False)
@@ -713,16 +712,17 @@ class FinancialAccountCurrentHoldings(Base, ToDict):
 
 class FinancialAccountHoldingsHistory(Base, ToDict):
     __tablename__ = "financial_account_holdings_history"
+    __table_args__ = (UniqueConstraint("account_id", "security_id", "date"),)
 
     id = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
+
     account_id = Column(Integer, ForeignKey("financial_accounts.id"), nullable=False)
     plaid_security_id = Column(Integer, ForeignKey("plaid_securities.id"), nullable=False)
     security_id = Column(Integer, ForeignKey("securities.id"))
-    user_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
 
-    price = Column(DECIMAL(19, 4), nullable=False)
-    price_time = Column(DateTime)
+    price: Decimal = Column(DECIMAL(19, 4), nullable=False)
     quantity: Decimal = Column(DECIMAL(19, 4), nullable=False)
+    date = Column(Date, nullable=False)
 
 
 class PlaidSecurities(Base, ToDict):

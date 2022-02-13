@@ -5,7 +5,6 @@ from common_amirainvest_com.utils.decorators import Session
 
 
 def all_substack_user_articles(username):
-    # TODO this needs to be a join
     return select(SubstackArticles).where(SubstackArticles.username == username)
 
 

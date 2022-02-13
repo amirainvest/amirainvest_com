@@ -30,14 +30,7 @@ async def get_route(watchlist_follow_id: int, token=Depends(auth_depends_user_id
 @router.post("/list", status_code=status.HTTP_200_OK, response_model=List[FollowedWatchlistModel])
 async def list_route(token=Depends(auth_depends_user_id)):
     follower_id = token["https://amirainvest.com/user_id"]
-    # , response_model = List[FollowedWatchlistModel]
-    data = await list_controller(follower_id)
-    # from pprint import pprint
-
-    # print("????????????")
-    # pprint(data)
-    # print("????????????")
-    return data
+    return await list_controller(follower_id)
 
 
 @router.post("/delete", status_code=status.HTTP_200_OK)

@@ -19,6 +19,6 @@ variable "lambda_image_uri" {
 }
 
 locals {
-  project     = "brokerage"
-  lambda_name = "${var.environment}-brokerage-data-sqs-consumer"
+  project     = "market_data"
+  lambda_name = "${var.environment}-market-data-eod-updates"
 }

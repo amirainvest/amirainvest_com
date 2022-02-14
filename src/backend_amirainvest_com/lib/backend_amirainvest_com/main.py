@@ -2,7 +2,6 @@ import uvicorn  # type: ignore
 from uvicorn.workers import UvicornWorker  # type: ignore
 
 
-
 # from backend_amirainvest_com.api.app import app
 # NOTE: aboves ^ is key for local run, but causes flake to fail. Commenting but keeping
 

@@ -92,19 +92,22 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfiles/backend_amirainvest_com.Dockerfile
+
     depends_on:
       postgres:
         condition: service_healthy
-
       ecs-local-endpoints:
         condition: service_started
+
     environment:
       ENVIRONMENT: "local"
       AWS_CONTAINER_CREDENTIALS_RELATIVE_URI: "/creds"
+
     networks:
       local:
       credentials_network:
         ipv4_address: 169.254.170.5
+
     ports:
       - "5000:5000"
 

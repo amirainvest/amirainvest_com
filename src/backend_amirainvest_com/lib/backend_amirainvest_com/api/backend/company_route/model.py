@@ -28,3 +28,8 @@ class CompanyResponse(BaseModel):
 
     five_day_pricing: list[SecurityPrices]
     max_eod_pricing: list[SecurityPrices]
+
+
+class ListedCompany(BaseModel):
+    name: str
+    ticker_symbol: str

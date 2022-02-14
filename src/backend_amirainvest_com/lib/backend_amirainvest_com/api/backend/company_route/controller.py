@@ -9,7 +9,7 @@ from sqlalchemy.sql.expression import cast
 from sqlalchemy.sql.functions import max
 from sqlalchemy.types import Date, Time
 
-from backend_amirainvest_com.api.backend.company_route.model import CompanyResponse
+from backend_amirainvest_com.api.backend.company_route.model import CompanyResponse, ListedCompany
 from common_amirainvest_com.schemas.schema import Securities, SecurityInformation, SecurityPrices
 from common_amirainvest_com.utils.decorators import Session
 
@@ -45,6 +45,16 @@ async def get_company_breakdown(ticker_symbol: str) -> CompanyResponse:
         max_eod_pricing=max_eod_pricing,
         five_day_pricing=five_day_pricing,
     )
+
+
+@Session
+async def get_listed_companies(session: AsyncSession) -> list[ListedCompany]:
+    response = await session.execute(select(Securities))
+
+    lcs: list[ListedCompany] = []
+    for lc in response.scalars().all():
+        lcs.append(ListedCompany(name=lc.human_readable_name, ticker_symbol=lc.ticker_symbol))
+    return lcs
 
 
 @Session

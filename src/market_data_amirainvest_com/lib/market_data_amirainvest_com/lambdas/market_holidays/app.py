@@ -1,8 +1,8 @@
 import asyncio
 
+from common_amirainvest_com.iex.client import get_market_holidays
+from common_amirainvest_com.iex.model import MarketHolidayDirection
 from common_amirainvest_com.schemas.schema import MarketHolidays
-from market_data_amirainvest_com.iex import get_market_holidays
-from market_data_amirainvest_com.models.iex import MarketHolidayDirection
 from market_data_amirainvest_com.repository import add_market_holidays
 
 

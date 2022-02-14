@@ -28,6 +28,26 @@ class MarketHoliday(BaseModel):
         return value
 
 
+class Symbol(BaseModel):
+    symbol: Optional[str]
+    exchange: Optional[str]
+    name: Optional[str]
+    date: Optional[str]
+    isEnabled: Optional[bool]
+    type: Optional[str]
+    region: Optional[str]
+    currency: Optional[str]
+    iexId: Optional[str]
+    figi: Optional[str]
+    cik: Optional[str]
+
+
+class IEXSymbol(BaseModel):
+    symbol: Optional[str]
+    date: Optional[str]
+    isEnabled: Optional[bool]
+
+
 class Company(BaseModel):
     symbol: Optional[str]
     companyName: Optional[str]
@@ -51,24 +71,18 @@ class Company(BaseModel):
     phone: Optional[str]
 
 
-class Symbol(BaseModel):
-    symbol: Optional[str]
-    exchange: Optional[str]
-    name: Optional[str]
-    date: Optional[str]
-    isEnabled: Optional[bool]
-    type: Optional[str]
-    region: Optional[str]
-    currency: Optional[str]
-    iexId: Optional[str]
-    figi: Optional[str]
-    cik: Optional[str]
-
-
-class IEXSymbol(BaseModel):
-    symbol: Optional[str]
-    date: Optional[str]
-    isEnabled: Optional[bool]
+class HistoricalPriceEnum(enum.Enum):
+    Max = "max"
+    TwoYear = "2y"
+    OneYear = "1y"
+    YearToDate = "ytd"
+    SixMonths = "6m"
+    ThreeMonths = "3m"
+    OneMonth = "1m"
+    OneMonth30MinuteIntervals = "3mm"
+    FiveDays = "5d"
+    FiveDays10MinuteIntervals = "5dm"
+    OneDay = "dynamic"  # 1d or 1m data depending on day or week and time of time
 
 
 class HistoricalPrice(BaseModel):
@@ -97,6 +111,52 @@ class HistoricalPrice(BaseModel):
     label: Optional[str]
     change: Optional[decimal.Decimal]
     changePercent: Optional[decimal.Decimal]
+
+
+class HistoricalPriceFiveDay(BaseModel):
+    date: Optional[str]
+    minute: Optional[str]
+    label: Optional[str]
+    open: Optional[decimal.Decimal]
+    high: Optional[decimal.Decimal]
+    low: Optional[decimal.Decimal]
+    close: Optional[decimal.Decimal]
+    average: Optional[decimal.Decimal]
+    volume: Optional[decimal.Decimal]
+    notional: Optional[decimal.Decimal]
+    numberOfTrades: Optional[decimal.Decimal]
+    marketOpen: Optional[decimal.Decimal]
+    marketHigh: Optional[decimal.Decimal]
+    marketLow: Optional[decimal.Decimal]
+    marketClose: Optional[decimal.Decimal]
+    marketAverage: Optional[decimal.Decimal]
+    marketVolume: Optional[decimal.Decimal]
+    marketNotational: Optional[decimal.Decimal]
+    marketNumberOfTrades: Optional[decimal.Decimal]
+
+
+class IntradayPrice(BaseModel):
+    date: Optional[str]
+    minute: Optional[str]
+    label: Optional[str]
+    marketOpen: Optional[decimal.Decimal]
+    marketClose: Optional[decimal.Decimal]
+    marketHigh: Optional[decimal.Decimal]
+    marketLow: Optional[decimal.Decimal]
+    marketAverage: Optional[decimal.Decimal]
+    marketVolume: Optional[decimal.Decimal]
+    marketNotional: Optional[decimal.Decimal]
+    marketNumberOfTrades: Optional[decimal.Decimal]
+    marketChangeOverTime: Optional[decimal.Decimal]
+    high: Optional[decimal.Decimal]
+    low: Optional[decimal.Decimal]
+    open: Optional[decimal.Decimal]
+    close: Optional[decimal.Decimal]
+    average: Optional[decimal.Decimal]
+    volume: Optional[decimal.Decimal]
+    notional: Optional[decimal.Decimal]
+    numberOfTrades: Optional[decimal.Decimal]
+    changeOverTime: Optional[decimal.Decimal]
 
 
 class StockQuote(BaseModel):

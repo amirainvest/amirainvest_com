@@ -1,33 +1,36 @@
-import enum
 from typing import Union
 
 import httpx
 
-from common_amirainvest_com.utils.consts import IEX_SECRET, IEX_URL
-from market_data_amirainvest_com.models.iex import (
+from common_amirainvest_com.iex.exceptions import IEXException
+from common_amirainvest_com.iex.model import (
     Company,
     HistoricalPrice,
+    HistoricalPriceEnum,
+    HistoricalPriceFiveDay,
+    IntradayPrice,
     MarketHoliday,
     MarketHolidayDirection,
     StockQuote,
     Symbol,
 )
+from common_amirainvest_com.utils.consts import IEX_SECRET, IEX_URL
 
 
-class HistoricalPriceEnum(enum.Enum):
-    Max = "max"
-    TwoYear = "2y"
-    OneYear = "1y"
-    YearToDate = "ytd"
-    SixMonths = "6m"
-    ThreeMonths = "3m"
-    OneMonth = "1m"
-    OneMonth30MinuteIntervals = "3mm"
-    FiveDays = "5d"
-    FiveDays10MinuteIntervals = "5dm"
-    OneDay = "dynamic"  # 1d or 1m data depending on day or week and time of time
+async def get_historical_five_day_pricing(symbol: str) -> list[HistoricalPriceFiveDay]:
+    request_url = f"{IEX_URL}/stock/{symbol}/chart/5dm?token={IEX_SECRET}&chartCloseOnly=true"
+
+    async with httpx.AsyncClient() as client:
+        r = await client.get(request_url, timeout=20)
+        validate_response(r.status_code, r.text)
+        response = r.json()
+        arr = []
+        for item in response:
+            arr.append(HistoricalPriceFiveDay(**item))
+        return arr
 
 
+# TODO ... Need to fix/clean-up... IEX passes a different JSON structure PER range date... from the same API endpoint
 # Returns historical prices for last 15 years
 # Can pass in an enum or a specific date in YYYYMMDD format
 async def get_historical_prices(symbol: str, range_: Union[HistoricalPriceEnum, str], date="") -> list[HistoricalPrice]:
@@ -47,6 +50,18 @@ async def get_historical_prices(symbol: str, range_: Union[HistoricalPriceEnum, 
         arr = []
         for item in response:
             arr.append(HistoricalPrice(**item))
+        return arr
+
+
+async def get_intraday_prices(symbol: str) -> list[IntradayPrice]:
+    request_url = f"{IEX_URL}/stock/{symbol}/intraday-prices?token={IEX_SECRET}"
+    async with httpx.AsyncClient() as client:
+        r = await client.get(request_url, timeout=20.0)
+        validate_response(r.status_code, r.text)
+        response = r.json()
+        arr = []
+        for item in response:
+            arr.append(IntradayPrice(**item))
         return arr
 
 
@@ -106,12 +121,8 @@ async def get_market_holidays(holiday_direction: MarketHolidayDirection) -> list
         return arr
 
 
-class IEXError(Exception):
-    pass
-
-
 # TODO: Text can sometime can be blank and we should probably hard-code
 #   some error messages and return those
 def validate_response(status_code: int, content: str):
     if status_code >= 400:
-        raise IEXError(content)
+        raise IEXException(content)

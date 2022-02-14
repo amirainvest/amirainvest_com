@@ -5,11 +5,11 @@ from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
+from common_amirainvest_com.iex.model import HistoricalPrice
 from common_amirainvest_com.s3.client import S3
 from common_amirainvest_com.s3.consts import AMIRA_SECURITIES_HISTORICAL_PRICES_BUCKET
 from common_amirainvest_com.schemas.schema import MarketHolidays, Securities, SecurityInformation, SecurityPrices
 from common_amirainvest_com.utils.decorators import Session
-from market_data_amirainvest_com.iex import HistoricalPrice
 
 
 async def add_to_s3(historical_prices: list[HistoricalPrice], symbol: str, year: int):

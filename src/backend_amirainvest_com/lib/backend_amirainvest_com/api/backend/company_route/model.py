@@ -9,6 +9,9 @@ from common_amirainvest_com.schemas.schema import SecurityPrices
 class IntradayPricing(BaseModel):
     prices: list[SecurityPrices]
 
+    class Config:
+        arbitrary_types_allowed = True
+
 
 class CompanyResponse(BaseModel):
     name: str
@@ -28,6 +31,9 @@ class CompanyResponse(BaseModel):
 
     five_day_pricing: list[SecurityPrices]
     max_eod_pricing: list[SecurityPrices]
+
+    class Config:
+        arbitrary_types_allowed = True
 
 
 class ListedCompany(BaseModel):

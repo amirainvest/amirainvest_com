@@ -3,6 +3,7 @@ from typing import Optional
 
 from dateutil import relativedelta
 from sqlalchemy import update
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.sql.expression import cast
@@ -10,6 +11,8 @@ from sqlalchemy.sql.functions import max
 from sqlalchemy.types import Date, Time
 
 from backend_amirainvest_com.api.backend.company_route.model import CompanyResponse, ListedCompany
+from common_amirainvest_com.iex.client import get_historical_prices, get_intraday_prices
+from common_amirainvest_com.iex.model import HistoricalPriceEnum
 from common_amirainvest_com.schemas.schema import Securities, SecurityInformation, SecurityPrices
 from common_amirainvest_com.utils.decorators import Session
 
@@ -19,13 +22,36 @@ async def get_company_breakdown(ticker_symbol: str) -> CompanyResponse:
     security_information = security_meta.SecurityInformation
     security = security_meta.Securities
 
-    if not security.collect:
-        # TODO intraday & five-day will not be available and we should make a call to IEX
-        await toggle_company_on(security.id)
-
     max_eod_pricing = await get_eod_pricing(security_id=security.id)
-    intraday_pricing = await get_minute_pricing(security_id=security.id)
-    five_day_pricing = await get_hour_pricing(security_id=security.id)
+    intraday_pricing: list[SecurityPrices] = []
+    five_day_pricing: list[SecurityPrices] = []
+    if not security.collect:
+        await toggle_company_on(security.id)
+        historical_prices = await get_historical_prices(
+            symbol=security.ticker_symbol, range_=HistoricalPriceEnum.FiveDays10MinuteIntervals
+        )
+        intraday_prices = await get_intraday_prices(symbol=security.ticker_symbol)
+
+        prices = []
+        for ip in intraday_prices:
+            # 2022-02-14 10:30 AM
+            price_time_str = f"{ip.date} {ip.label}"
+            price_time = datetime.strptime(price_time_str, "%Y-%m-%d %I:%M %p")
+            p = SecurityPrices(security_id=security.id, price=ip.open, price_time=price_time)
+            intraday_pricing.append(p)
+            prices.append(p)
+
+        for hp in historical_prices:
+            price_time_str = f"{hp.date} {hp.label}"
+            price_time = datetime.strptime(price_time_str, "%Y-%m-%d %H:%M")
+            p = SecurityPrices(security_id=security.id, price=hp.open, price_time=price_time)
+            five_day_pricing.append(p)
+            prices.append(p)
+
+        await bulk_add_pricing(prices)
+    else:
+        intraday_pricing = await get_minute_pricing(security_id=security.id)
+        five_day_pricing = await get_hour_pricing(security_id=security.id)
 
     return CompanyResponse(
         name=security.humand_readable_name,
@@ -45,6 +71,11 @@ async def get_company_breakdown(ticker_symbol: str) -> CompanyResponse:
         max_eod_pricing=max_eod_pricing,
         five_day_pricing=five_day_pricing,
     )
+
+
+@Session
+async def bulk_add_pricing(session: AsyncSession, security_prices: list[SecurityPrices]):
+    await session.execute(insert(SecurityPrices).values(security_prices).on_conflict_do_nothing())
 
 
 @Session

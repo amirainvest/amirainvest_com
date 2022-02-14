@@ -1,8 +1,8 @@
 import asyncio
 import datetime
 
+from common_amirainvest_com.iex.client import get_stock_quote_prices
 from common_amirainvest_com.schemas.schema import Securities, SecurityInformation, SecurityPrices
-from market_data_amirainvest_com.iex import get_stock_quote_prices
 from market_data_amirainvest_com.repository import (
     bulk_upsert_security_information,
     bulk_upsert_security_prices,

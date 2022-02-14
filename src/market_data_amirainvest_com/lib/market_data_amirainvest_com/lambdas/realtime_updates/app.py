@@ -2,11 +2,11 @@ import asyncio
 import datetime
 from typing import List
 
+from common_amirainvest_com.iex.client import get_stock_quote_prices
+from common_amirainvest_com.iex.model import StockQuote
 from common_amirainvest_com.schemas.schema import Securities, SecurityPrices
 from common_amirainvest_com.utils.consts import async_engine
 from common_amirainvest_com.utils.logger import log
-from market_data_amirainvest_com.iex import get_stock_quote_prices
-from market_data_amirainvest_com.models.iex import StockQuote
 from market_data_amirainvest_com.repository import (
     _add_securities_prices,
     _security_price_time_exists,

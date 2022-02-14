@@ -813,6 +813,8 @@ class Securities(Base, ToDict):
 class SecurityInformation(Base, ToDict):
     __tablename__ = "security_information"
 
+    id: int = Column(Integer, primary_key=True, unique=True, nullable=False, autoincrement=True)
+
     security_id: int = Column(Integer, ForeignKey("securities.id"), unique=True, nullable=False)
 
     average_total_volume = Column(DECIMAL(19, 5))

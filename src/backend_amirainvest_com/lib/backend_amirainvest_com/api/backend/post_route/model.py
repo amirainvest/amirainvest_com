@@ -34,7 +34,6 @@ class GetModel(BaseModel):
 
 
 class CreateModel(BaseModel):
-    creator_id: str
     subscription_level: SubscriptionLevel = SubscriptionLevel.standard
 
     title: Optional[str]

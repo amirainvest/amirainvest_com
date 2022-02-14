@@ -51,7 +51,7 @@ async def create_route(
     return (
         await create_controller(
             user_id=token["https://amirainvest.com/user_id"],
-            post_data=post_data,
+            create_data=post_data,
         )
     )._asdict()
 
@@ -64,7 +64,7 @@ async def update_route(
     return (
         await update_controller(
             user_id=token["https://amirainvest.com/user_id"],
-            post_data=post_data,
+            update_data=post_data,
         )
     )._asdict()
 

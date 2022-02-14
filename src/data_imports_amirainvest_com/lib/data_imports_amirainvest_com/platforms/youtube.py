@@ -178,8 +178,6 @@ class YouTuber(PlatformUser):
                 await video.store_video_data()
             for video_post in video_posts:
                 await posts.create_post(video_post)
-                # posts.put_post_on_creators_redis_feeds(video_post)
-                # await posts.put_post_on_subscriber_redis_feeds(video_post)
 
 
 class YouTubeVideo:

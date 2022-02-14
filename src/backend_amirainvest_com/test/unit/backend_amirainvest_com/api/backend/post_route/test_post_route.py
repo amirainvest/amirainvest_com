@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from backend_amirainvest_com.api.app import app
-from backend_amirainvest_com.api.backend.post_route.controller import get_redis_feed, PAGE_SIZE
+from backend_amirainvest_com.api.backend.post_route.controller import PAGE_SIZE
 from backend_amirainvest_com.api.backend.post_route.model import FeedType
 from common_amirainvest_com.schemas.schema import Posts
 
@@ -109,7 +109,6 @@ async def test_list_subscriber_feed(mock_auth, factory):
     await mock_auth(subscriber["users"].id)
     for _ in range(0, PAGE_SIZE):
         await factory.gen("posts", {"posts": {"creator_id": creator["users"].id}})
-        # posts_redis_factory(subscriber["users"].id, FeedType.subscriber.value, PostsModel(**post["posts"].__dict__))
 
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(
@@ -142,9 +141,6 @@ async def test_list_subscriber_feed_no_cache(mock_auth, factory):
     for _ in range(0, PAGE_SIZE):
         await factory.gen("posts", {"posts": {"creator_id": creator["users"].id}})
 
-    redis_feed = get_redis_feed(str(subscriber["users"].id), FeedType.subscriber)
-    assert len(redis_feed) == 0
-
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(
             "/post/list",
@@ -160,9 +156,6 @@ async def test_list_subscriber_feed_no_cache(mock_auth, factory):
     assert response_data["feed_type"] == FeedType.subscriber.value
     assert len(response_data["posts"]) == PAGE_SIZE
     assert all([response["creator"]["id"] == str(creator["users"].id) for response in response_data["posts"]])
-
-    redis_feed = get_redis_feed(str(subscriber["users"].id), FeedType.subscriber)
-    assert len(redis_feed) == PAGE_SIZE
 
 
 async def test_list_empty_subscriber_feed(mock_auth, factory):
@@ -197,9 +190,6 @@ async def test_get_creator_feed(factory):
 
     for _ in range(0, PAGE_SIZE):
         await factory.gen("posts", {"posts": {"creator_id": creator["users"].id}})
-        # posts_redis_factory(
-        #     str(creator["users"].id), FeedType.creator.value, PostsModel.parse_obj(post["posts"].dict())
-        # )
 
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(
@@ -269,9 +259,6 @@ async def test_get_discovery_feed(factory):
 
     for _ in range(0, PAGE_SIZE):
         await factory.gen("posts", {"posts": {"creator_id": creator["users"].id}})
-        # posts_redis_factory(
-        #     FeedType.discovery.value, FeedType.discovery.value, PostsModel.parse_obj(post["posts"].dict())
-        # )
 
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(

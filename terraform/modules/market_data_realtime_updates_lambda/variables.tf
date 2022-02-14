@@ -14,6 +14,10 @@ variable "vpc_id" {
   type = string
 }
 
+variable "lambda_image_uri" {
+  type = string
+}
+
 locals {
   project     = "market_data"
   lambda_name = "${var.environment}-market-data-realtime-updates"

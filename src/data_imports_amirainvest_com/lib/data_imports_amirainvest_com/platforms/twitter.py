@@ -5,15 +5,17 @@ from typing import Optional
 import arrow
 import requests
 from bs4 import BeautifulSoup
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from common_amirainvest_com.schemas.schema import Tweets
+from common_amirainvest_com.schemas.schema import MediaPlatform, SubscriptionLevel, Tweets, TwitterUsers
 from common_amirainvest_com.utils.datetime_utils import parse_iso_8601_from_string
+from common_amirainvest_com.utils.decorators import Session
 from common_amirainvest_com.utils.logger import log
 from data_imports_amirainvest_com.consts import TWITTER_API_TOKEN_ENV, TWITTER_API_URL
 from data_imports_amirainvest_com.controllers import posts
 from data_imports_amirainvest_com.controllers.tweets import create_tweet, get_tweets_for_creator
 from data_imports_amirainvest_com.controllers.twitter_users import create_twitter_user
-from data_imports_amirainvest_com.controllers.users import get_user
 from data_imports_amirainvest_com.platforms.platforms import PlatformUser
 
 
@@ -80,7 +82,7 @@ class TwitterUser(PlatformUser):
 
         return time.format("YYYY-MM-DD[T]HH:mm:ss[Z]")
 
-    async def get_tweets_from_url(self, start_date=None):
+    async def get_tweets_from_url(self):
         raw_tweets = []
         if not self.twitter_user_id:
             self.load_twitter_user_data()
@@ -91,7 +93,7 @@ class TwitterUser(PlatformUser):
             "max_results": 100,  # 100 MAX
         }
         tweets_data = self._get_tweets_data(params)
-        for raw_tweet_data in tweets_data["data"]:
+        for raw_tweet_data in tweets_data.get("data", []):
             raw_tweet_data["twitter_user_id"] = self.twitter_user_id
             raw_tweet_data["twitter_user_username"] = self.username
             raw_tweets.append(raw_tweet_data)
@@ -110,44 +112,41 @@ class TwitterUser(PlatformUser):
         tweet_posts = []
         stored_tweets = await self.get_stored_creator_tweets()
         stored_tweet_ids = [x.tweet_id for x in stored_tweets]
-        user = await get_user(self.creator_id)
         for raw_tweet in raw_tweets:
             if raw_tweet["id"] not in stored_tweet_ids:
                 created_at = (
                     parse_iso_8601_from_string(raw_tweet.get("created_at")) if raw_tweet.get("created_at") else None
                 )
-                tweets.append(
-                    Tweet(
-                        **{
-                            "twitter_user_id": self.twitter_user_id,
-                            "twitter_username": self.username,
-                            "tweet_id": raw_tweet.get("id"),
-                            "text": raw_tweet.get("text"),
-                            "created_at": created_at,
-                            "entities": raw_tweet.get("entities", {}),
-                            "language": raw_tweet.get("lang"),
-                            "like_count": raw_tweet.get("like_count"),
-                            "quote_count": raw_tweet.get("quote_count"),
-                            "reply_count": raw_tweet.get("reply_count"),
-                            "retweet_count": raw_tweet.get("retweet_count"),
-                            "tweet_url": f"https://twitter.com/{self.username}/status/{raw_tweet.get('id')}",
-                        }
-                    )
+                tweet = Tweet(
+                    twitter_user_id=self.twitter_user_id,
+                    twitter_username=self.username,
+                    tweet_id=raw_tweet.get("id"),
+                    text=raw_tweet.get("text"),
+                    created_at=created_at,
+                    entities=raw_tweet.get("entities", {}),
+                    language=raw_tweet.get("lang"),
+                    like_count=raw_tweet.get("like_count"),
+                    quote_count=raw_tweet.get("quote_count"),
+                    reply_count=raw_tweet.get("reply_count"),
+                    retweet_count=raw_tweet.get("retweet_count"),
+                    tweet_url=f"https://twitter.com/{self.username}/status/{raw_tweet.get('id')}",
                 )
+                tweets.append(tweet)
                 tweet_posts.append(
                     {
                         "creator_id": self.creator_id,
-                        "platform": "twitter",
+                        "subscription_level": SubscriptionLevel.standard,
+                        "title": None,
+                        "content": tweet.embedded_url,
+                        "photos": [],
+                        "platform": MediaPlatform.twitter,
+                        "platform_display_name": self.name,
                         "platform_user_id": self.twitter_user_id,
-                        "platform_post_id": raw_tweet.get("id"),
-                        "profile_img_url": "",
-                        "text": raw_tweet.get("text"),
-                        "html": "",
-                        "title": "",
-                        "profile_url": "",
-                        "chip_labels": user.chip_labels,
-                        "created_at": created_at,
-                        "updated_at": created_at,
+                        "platform_img_url": self.profile_img_url,
+                        "platform_profile_url": self.profile_url,
+                        "twitter_handle": self.username,
+                        "platform_post_id": tweet.tweet_id,
+                        "platform_post_url": tweet.tweet_url,
                     }
                 )
         return tweets, tweet_posts
@@ -160,20 +159,44 @@ class TwitterUser(PlatformUser):
             params=params,
         ).json()
 
+    @Session
+    async def get_existing_user_tweet_ids(self, session: AsyncSession):
+        tweets = (
+            (await session.execute(select(Tweets).where(Tweets.twitter_user_id == self.twitter_user_id)))
+            .scalars()
+            .all()
+        )
+        return {x.tweet_id for x in tweets}
+
+    @Session
+    async def get_is_existing_user(self, session: AsyncSession):
+        if (
+            (await session.execute(select(TwitterUsers).where(TwitterUsers.twitter_user_id == self.twitter_user_id)))
+            .scalars()
+            .one_or_none()
+        ) is not None:
+            return True
+        return False
+
     async def load_platform_data(self):
+        existing_tweet_ids = set()
         self.load_twitter_user_data()
         tweets, tweet_posts = await self.get_tweets_from_url()
-        twitter_user_exists = await self.get_user_platform_pair_exists("twitter", self.get_unique_id())
+        twitter_user_exists = await self.get_is_existing_user()
         if not twitter_user_exists:
             log.info(f"Added new Twitter user: {self.username}")
             await create_twitter_user(self.__dict__)
+        else:
+            existing_tweet_ids = await self.get_existing_user_tweet_ids()
         if tweets:
             for tweet in tweets:
-                await create_tweet({k: v for k, v in tweet.__dict__.items() if k in Tweets.__dict__})
+                if tweet.tweet_id not in existing_tweet_ids:
+                    await create_tweet({k: v for k, v in tweet.__dict__.items() if k in Tweets.__dict__})
             for tweet_post in tweet_posts:
-                await posts.create_post(tweet_post)
-                posts.put_post_on_creators_redis_feeds(tweet_post)
-                await posts.put_post_on_subscriber_redis_feeds(tweet_post)
+                if tweet_post["platform_post_id"] not in existing_tweet_ids:
+                    await posts.create_post(tweet_post)
+                    posts.put_post_on_creators_redis_feeds(tweet_post)
+                    await posts.put_post_on_subscriber_redis_feeds(tweet_post)
 
 
 class Tweet:
@@ -215,16 +238,13 @@ class Tweet:
             f"https://publish.twitter.com/oembed?url=https://twitter.com/{self.twitter_username}/status/{self.tweet_id}"
         )
         try:
-            return BeautifulSoup(
-                urllib.parse.unquote(
-                    requests.request(
-                        method="GET",
-                        url=url,
-                        headers=HEADERS,
-                    ).json()["html"]
-                ).replace("\\", ""),
+            response = requests.request(method="GET", url=url, headers=HEADERS)
+            html = urllib.parse.unquote(response.json()["html"]).replace("\\", "")
+            soup = BeautifulSoup(
+                html,
                 "html.parser",
             )
+            return str(soup)
         except KeyError:
             return ""
 

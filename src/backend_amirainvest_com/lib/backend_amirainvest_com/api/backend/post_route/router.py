@@ -18,6 +18,7 @@ from backend_amirainvest_com.api.backend.post_route.model import (
     UpdateModel,
 )
 from backend_amirainvest_com.controllers.auth import auth_depends_user_id
+from common_amirainvest_com.schemas.schema import PostsModel
 
 
 router = APIRouter(prefix="/post", tags=["Post"])
@@ -42,7 +43,7 @@ async def list_route(
     return ListReturnModel(posts=return_feed, feed_type=return_feed_type)
 
 
-@router.post("/create", status_code=status.HTTP_200_OK, response_model=GetModel)
+@router.post("/create", status_code=status.HTTP_200_OK, response_model=PostsModel)
 async def create_route(
     post_data: CreateModel,
     token=Depends(auth_depends_user_id),
@@ -55,7 +56,7 @@ async def create_route(
     )._asdict()
 
 
-@router.post("/update", status_code=status.HTTP_200_OK, response_model=GetModel)
+@router.post("/update", status_code=status.HTTP_200_OK, response_model=PostsModel)
 async def update_route(
     post_data: UpdateModel,
     token=Depends(auth_depends_user_id),

@@ -7,7 +7,7 @@ from sqlalchemy.future import select
 
 from common_amirainvest_com.s3.client import S3
 from common_amirainvest_com.s3.consts import AMIRA_SECURITIES_HISTORICAL_PRICES_BUCKET
-from common_amirainvest_com.schemas.schema import Securities, SecurityPrices, MarketHolidays
+from common_amirainvest_com.schemas.schema import MarketHolidays, Securities, SecurityInformation, SecurityPrices
 from common_amirainvest_com.utils.decorators import Session
 from market_data_amirainvest_com.iex import HistoricalPrice
 
@@ -178,6 +178,81 @@ async def add_securities_prices(session: AsyncSession, security_prices: list[Sec
 
 
 @Session
+async def bulk_upsert_security_information(session: AsyncSession, security_information: list[SecurityInformation]):
+    security_ids = []
+    si_dict: dict[int, SecurityInformation] = {}
+    for si in security_information:
+        security_ids.append(si.security_id)
+        si_dict[si.security_id] = si
+
+    response = await session.execute(
+        select(SecurityInformation).where(SecurityInformation.security_id.in_(security_ids))
+    )
+
+    for cur_si in response.scalars().all():
+        si = si_dict[cur_si.security_id]
+        cur_si.average_total_volume = si.average_total_volume
+        cur_si.change = si.change
+        cur_si.change_percentage = si.change_percentage
+        cur_si.close = si.close
+        cur_si.close_source = si.close_source
+        cur_si.close_time = si.close_time
+        cur_si.currency = si.currency
+        cur_si.delayed_price = si.delayed_price
+        cur_si.delayed_price_time = si.delayed_price_time
+        cur_si.extended_change = si.extended_change
+        cur_si.extended_change_percentage = si.extended_change_percentage
+        cur_si.extended_price = si.extended_price
+        cur_si.extended_price_time = si.extended_price_time
+        cur_si.high = si.high
+        cur_si.high_source = si.high_source
+        cur_si.high_time = si.high_time
+        cur_si.iex_ask_price = si.iex_ask_price
+        cur_si.iex_ask_size = si.iex_ask_size
+        cur_si.iex_bid_price = si.iex_bid_price
+        cur_si.iex_bid_size = si.iex_bid_size
+        cur_si.iex_close = si.iex_close
+        cur_si.iex_close_time = si.iex_close_time
+        cur_si.iex_last_updated = si.iex_last_updated
+        cur_si.iex_market_percentage = si.iex_market_percentage
+        cur_si.iex_open = si.iex_open
+        cur_si.iex_open_time = si.iex_open_time
+        cur_si.iex_realtime_price = si.iex_realtime_price
+        cur_si.iex_real_time_size = si.iex_real_time_size
+        cur_si.iex_volume = si.iex_volume
+        cur_si.last_trade_time = si.last_trade_time
+        cur_si.latest_price = si.latest_price
+        cur_si.latest_source = si.latest_source
+        cur_si.latest_time = si.latest_time
+        cur_si.latest_update = si.latest_update
+        cur_si.latest_volume = si.latest_volume
+        cur_si.low = si.low
+        cur_si.low_source = si.low_source
+        cur_si.low_time = si.low_time
+        cur_si.market_cap = si.market_cap
+        cur_si.odd_lot_delayed_price = si.odd_lot_delayed_price
+        cur_si.odd_lot_delayed_price_time = si.odd_lot_delayed_price_time
+        cur_si.open = si.open
+        cur_si.open_time = si.open_time
+        cur_si.open_source = si.open_source
+        cur_si.pe_ratio = si.pe_ratio
+        cur_si.previous_close = si.previous_close
+        cur_si.previous_volume = si.previous_volume
+        cur_si.volume = si.volume
+        cur_si.week_high_52 = si.week_high_52
+        cur_si.week_low_52 = si.week_low_52
+        cur_si.ytd_change = si.ytd_change
+        del si_dict[cur_si.security_id]
+    await session.flush()
+
+    inserts = []
+    for si_key in si_dict:
+        si = si_dict[si_key]
+        inserts.append(si)
+    session.add_all(inserts)
+
+
+@Session
 async def bulk_upsert_security_prices(session: AsyncSession, security_prices: list[SecurityPrices]):
     price_time = security_prices[0].price_time
     security_ids = []
@@ -197,7 +272,7 @@ async def bulk_upsert_security_prices(session: AsyncSession, security_prices: li
         sec = dict_prices[cur_sec_price.security_id]
         cur_sec_price.price = sec.price
         del dict_prices[cur_sec_price.security_id]
-    await session.commit()
+    await session.flush()
 
     inserts = []
     for k in dict_prices:
@@ -210,15 +285,15 @@ async def bulk_upsert_security_prices(session: AsyncSession, security_prices: li
 async def add_market_holidays(session: AsyncSession, market_holidays: list[MarketHolidays]):
     dates = []
     for mh in market_holidays:
-        dates.append(mh.holiday_date)
-    response = await session.execute(select(MarketHolidays).where(MarketHolidays.holiday_date.in_(dates)))
+        dates.append(mh.date)
+    response = await session.execute(select(MarketHolidays).where(MarketHolidays.date.in_(dates)))
     date_dict: dict[datetime, None] = {}
     for mh in response.scalars().all():
-        date_dict[mh.holiday_date] = None
+        date_dict[mh.date] = None
 
     insertable = []
     for mh in market_holidays:
-        if mh.holiday_date in date_dict:
+        if mh.date in date_dict:
             continue
         insertable.append(mh)
     session.add_all(insertable)

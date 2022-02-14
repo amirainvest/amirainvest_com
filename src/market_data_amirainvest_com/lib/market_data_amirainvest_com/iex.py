@@ -5,8 +5,12 @@ import httpx
 
 from common_amirainvest_com.utils.consts import IEX_SECRET, IEX_URL
 from market_data_amirainvest_com.models.iex import (
-    Company, HistoricalPrice, StockQuote, Symbol, MarketHoliday,
+    Company,
+    HistoricalPrice,
+    MarketHoliday,
     MarketHolidayDirection,
+    StockQuote,
+    Symbol,
 )
 
 

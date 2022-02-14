@@ -6,7 +6,6 @@ from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-import redis  # noqa: F401
 from backend_amirainvest_com.api.backend.post_route.model import (
     CreateModel,
     FeedType,
@@ -18,13 +17,12 @@ from backend_amirainvest_com.utils.s3 import S3
 from common_amirainvest_com.controllers.creator import get_creator_attributes
 from common_amirainvest_com.s3.consts import AMIRA_POST_PHOTOS_S3_BUCKET
 from common_amirainvest_com.schemas.schema import Bookmarks, Posts, PostsModel, UserSubscriptions
-from common_amirainvest_com.utils.consts import WEBCACHE
 from common_amirainvest_com.utils.decorators import Session
 from common_amirainvest_com.utils.generic_utils import get_past_datetime
 
 
 PAGE_SIZE = 30
-MAX_HOURS_AGO = 168  # NUMBER OF HOURS TO PERSIST REDIS / QUERY POSTGRES : 168H = 1W
+MAX_HOURS_AGO = 168  # NUMBER OF HOURS TO QUERY POSTGRES : 168H = 1W
 MAX_FEED_SIZE = 200
 
 # TODO
@@ -100,20 +98,16 @@ async def get_user_feed(
     page_size: int = PAGE_SIZE,
     last_loaded_post_id: int = 0,
 ) -> List[GetModel]:
-    pydantic_feed = get_redis_feed(user_id, feed_type, last_loaded_post_id)
-    if pydantic_feed == []:
-        if feed_type == FeedType.creator:
-            feed = await get_creator_posts(user_id, hours_ago=MAX_HOURS_AGO)
-        else:
-            feed = await get_subscriber_posts(
-                subscriber_id=user_id,
-                page_size=page_size,
-                last_loaded_post_id=last_loaded_post_id,
-                hours_ago=MAX_HOURS_AGO,
-            )
-        pydantic_feed = orm_post_to_pydantic_post(feed)
-        if pydantic_feed != []:
-            update_redis_feed(user_id, feed_type, pydantic_feed)
+    if feed_type == FeedType.creator:
+        feed = await get_creator_posts(user_id, hours_ago=MAX_HOURS_AGO)
+    else:
+        feed = await get_subscriber_posts(
+            subscriber_id=user_id,
+            page_size=page_size,
+            last_loaded_post_id=last_loaded_post_id,
+            hours_ago=MAX_HOURS_AGO,
+        )
+    pydantic_feed = orm_post_to_pydantic_post(feed)
     return pydantic_feed
 
 
@@ -121,28 +115,9 @@ async def get_discovery_feed(
     page_size: int = PAGE_SIZE,
     last_loaded_post_id: int = 0,
 ) -> List[GetModel]:
-    pydantic_feed = get_redis_feed(FeedType.discovery.value, FeedType.discovery)
-    if pydantic_feed == []:
-        feed = await get_discovery_posts(last_loaded_post_id=last_loaded_post_id, page_size=page_size)
-        pydantic_feed = orm_post_to_pydantic_post(feed)
-        if pydantic_feed != []:
-            update_redis_feed(FeedType.discovery, FeedType.discovery, pydantic_feed)
+    feed = await get_discovery_posts(last_loaded_post_id=last_loaded_post_id, page_size=page_size)
+    pydantic_feed = orm_post_to_pydantic_post(feed)
     return pydantic_feed
-
-
-def get_redis_feed(
-    user_id: str,
-    feed_type: FeedType,
-    last_loaded_post_id: int = 0,
-) -> List[GetModel]:
-    key = f"{user_id}-{feed_type.value}"
-    redis_feed_raw = WEBCACHE.lrange(key, 0, MAX_FEED_SIZE)
-    redis_feed = []
-    for post_raw in redis_feed_raw:
-        post = GetModel.parse_raw(post_raw)
-        if post.id > last_loaded_post_id:
-            redis_feed.append(post)
-    return redis_feed
 
 
 def orm_post_to_pydantic_post(feed: List[Posts]) -> List[GetModel]:
@@ -150,18 +125,6 @@ def orm_post_to_pydantic_post(feed: List[Posts]) -> List[GetModel]:
     for post in feed:
         end_feed.append(GetModel.parse_obj(post.dict()))
     return end_feed
-
-
-def add_post_to_redis_feed(user_id: str, post: GetModel, feed_type: str, max_feed_size: int = MAX_FEED_SIZE):
-    key = f"{user_id}-{feed_type}"
-    WEBCACHE.lpush(key, post.json(exclude_none=True))
-    WEBCACHE.ltrim(key, 0, max_feed_size)
-
-
-def update_redis_feed(user_id: str, feed_type: FeedType, feed: List[GetModel], max_feed_size: int = MAX_FEED_SIZE):
-    key = f"{user_id}-{feed_type.value}"
-    WEBCACHE.lpush(key, *[post.json(exclude_none=True) for post in feed])
-    WEBCACHE.ltrim(key, 0, max_feed_size)
 
 
 def latest_posts(

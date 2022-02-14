@@ -75,9 +75,6 @@ async def create_day_transaction_posts():
             transaction["value_amount"],
             security["ticker_symbol"],
         )
-        # post_data = {k: str(v) for k, v in post.dict().items() if k in Posts.__dict__ and v}
-        # posts.put_post_on_creators_redis_feeds(post_data)
-        # await posts.put_post_on_subscriber_redis_feeds(post_data, "premium")
 
 
 @Session

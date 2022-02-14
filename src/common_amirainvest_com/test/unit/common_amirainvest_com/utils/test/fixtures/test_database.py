@@ -2,7 +2,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from common_amirainvest_com.schemas.schema import Securities, Users
-from common_amirainvest_com.utils.consts import WEBCACHE
 
 
 async def test_database_fixture(async_session_maker_test):
@@ -41,14 +40,3 @@ async def test_database_fixture_data_deleted_between_tests(async_session_maker_t
 
     users = (await session_test.execute(select(Users))).all()
     assert len(users) == 0
-
-
-async def test_redis_remove_data_part_1():
-    WEBCACHE.set(name="test", value="test_value")
-    result = WEBCACHE.get("test").decode("UTF-8")
-    assert result == "test_value"
-
-
-async def test_redis_remove_data_part_2():
-    result = WEBCACHE.get("test")
-    assert result is None

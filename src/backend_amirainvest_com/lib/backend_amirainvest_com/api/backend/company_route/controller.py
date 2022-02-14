@@ -88,8 +88,8 @@ async def get_listed_companies(session: AsyncSession) -> list[ListedCompany]:
 async def get_security_info(session: AsyncSession, ticker_symbol: str) -> Optional[Securities]:
     response = await session.execute(
         select(Securities, SecurityInformation)
-            .join(SecurityInformation)
-            .where(Securities.ticker_symbol == ticker_symbol)
+        .join(SecurityInformation)
+        .where(Securities.ticker_symbol == ticker_symbol)
     )
     return response.scalar()
 
@@ -132,9 +132,9 @@ async def get_minute_pricing(session: AsyncSession, security_id: int) -> list[Se
 async def get_eod_pricing(session: AsyncSession, security_id: int) -> list[SecurityPrices]:
     response = await session.execute(
         select(SecurityPrices.price, SecurityPrices.price_time)
-            .distinct(cast(SecurityPrices.price_time, Date))
-            .where(SecurityPrices.security_id == security_id)
-            .order_by(SecurityPrices.price_time.desc())
+        .distinct(cast(SecurityPrices.price_time, Date))
+        .where(SecurityPrices.security_id == security_id)
+        .order_by(SecurityPrices.price_time.desc())
     )
 
     return response.scalars().all()

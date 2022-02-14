@@ -22,9 +22,7 @@ async def test_get_subscriptions_for_subscriber(factory, mock_auth):
     )
     await mock_auth(subscriber_id)
     async with AsyncClient(app=app, base_url="http://test") as async_client:
-        response = await async_client.get(
-            "/user_subscriptions/subscriber", headers=AUTH_HEADERS
-        )
+        response = await async_client.get("/user_subscriptions/subscriber", headers=AUTH_HEADERS)
     assert response.status_code == 200
     assert str(creator["users"].id) in [x["creator_id"] for x in response.json()]
 
@@ -39,9 +37,7 @@ async def test_get_subscriptions_for_creator(factory, mock_auth):
     )
     await mock_auth(creator_id)
     async with AsyncClient(app=app, base_url="http://test") as async_client:
-        response = await async_client.get(
-            "/user_subscriptions/creator", headers=AUTH_HEADERS
-        )
+        response = await async_client.get("/user_subscriptions/creator", headers=AUTH_HEADERS)
     assert response.status_code == 200
     assert str(subscriber["users"].id) in [x["subscriber_id"] for x in response.json()]
 

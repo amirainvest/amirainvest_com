@@ -31,16 +31,14 @@ async def test_list(factory, mock_auth):
 
     await mock_auth(post_bookmarker["users"].id)
     async with AsyncClient(app=app, base_url="http://test") as async_client:
-        response = await async_client.post(
-            "/bookmark/list", headers=AUTH_HEADERS
-        )
+        response = await async_client.post("/bookmark/list", headers=AUTH_HEADERS)
 
     assert response.status_code == status.HTTP_200_OK
     response_data = response.json()
 
     results = response_data["results"]
     assert type(results) == list
-    assert results[0]["user_id"] == str(post_bookmarker["users"].id)
+    assert results[0]["user_id"] == str(bookmark["bookmarks"].user_id)
     assert results[0]["post_id"] == post["posts"].id
     assert results[0]["is_deleted"] is False
 

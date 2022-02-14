@@ -48,7 +48,7 @@ async def test_create(async_session_maker_test, factory, mock_auth):
                     "platform_post_id": "",
                     "platform_post_url": "",
                 }
-            )
+            ),
         )
     assert response.status_code == 200
     result = response.json()
@@ -87,7 +87,7 @@ async def test_update(async_session_maker_test, factory, mock_auth):
                     "platform_post_id": "",
                     "platform_post_url": "",
                 }
-            )
+            ),
         )
     assert response.status_code == 200
     result = response.json()

@@ -20,7 +20,7 @@ async def test_auth():
     assert response.json() == {"detail": "Not authenticated"}
 
 
-async def test_list(factory):
+async def test_list(factory, mock_auth):
 
     post_bookmarker = await factory.gen("users")
     post_creator = await factory.gen("users")
@@ -29,9 +29,10 @@ async def test_list(factory):
         "bookmarks", {"bookmarks": {"user_id": post_bookmarker["users"].id, "post_id": post["posts"].id}}
     )
 
+    await mock_auth(post_bookmarker["users"].id)
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(
-            "/bookmark/list", params={"user_id": bookmark["bookmarks"].user_id}, headers=AUTH_HEADERS
+            "/bookmark/list", headers=AUTH_HEADERS
         )
 
     assert response.status_code == status.HTTP_200_OK
@@ -44,17 +45,17 @@ async def test_list(factory):
     assert results[0]["is_deleted"] is False
 
 
-async def test_create(async_session_maker_test, factory):
+async def test_create(async_session_maker_test, factory, mock_auth):
     session_test: AsyncSession = async_session_maker_test()
 
     post_bookmarker = await factory.gen("users")
     post_creator = await factory.gen("users")
     post = await factory.gen("posts", {"posts": {"creator_id": post_creator["users"].id}})
 
+    await mock_auth(post_bookmarker["users"].id)
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(
             "/bookmark/create",
-            params={"user_id": post_bookmarker["users"].id},
             data=json.dumps(
                 {
                     "post_id": post["posts"].id,
@@ -75,7 +76,7 @@ async def test_create(async_session_maker_test, factory):
         assert post_bookmarker["users"].id in [x.id for x in users]
 
 
-async def test_delete(async_session_maker_test, factory):
+async def test_delete(async_session_maker_test, factory, mock_auth):
     session_test: AsyncSession = async_session_maker_test()
 
     post_bookmarker = await factory.gen("users")
@@ -85,15 +86,15 @@ async def test_delete(async_session_maker_test, factory):
         "bookmarks", {"bookmarks": {"user_id": post_bookmarker["users"].id, "post_id": post["posts"].id}}
     )
 
+    await mock_auth(post_bookmarker["users"].id)
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(
             "/bookmark/delete",
-            params={"user_id": post_bookmarker["users"].id, "bookmark_id": bookmark["bookmarks"].id},
+            params={"bookmark_id": bookmark["bookmarks"].id},
             headers=AUTH_HEADERS,
         )
 
     assert response.status_code == status.HTTP_200_OK
-
     user_bookmarks = await session_test.execute(
         select(Bookmarks).where(Bookmarks.user_id == post_bookmarker["users"].id)
     )

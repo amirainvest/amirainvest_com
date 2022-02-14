@@ -196,7 +196,7 @@ async def test_create_multiple_missmatch_email(monkeypatch, factory):
     assert response_2.status_code == status.HTTP_409_CONFLICT
 
 
-async def test_delete(async_session_maker_test, monkeypatch, factory):
+async def test_delete(async_session_maker_test, monkeypatch, factory, mock_auth):
     from backend_amirainvest_com.utils import auth0_utils
 
     async def update_user_app_metadata_mock(*args, **kwargs):
@@ -221,11 +221,11 @@ async def test_delete(async_session_maker_test, monkeypatch, factory):
                 }
             ),
         )
-
+        user_id = response_1.json()["id"]
+        await mock_auth(user_id)
         await async_client.post(
             "/user/delete",
             headers=AUTH_HEADERS,
-            params={"user_id": response_1.json()["id"]},
         )
 
     assert len((await session_test.execute(select(Users))).all()) == 0

@@ -45,28 +45,26 @@ async def list_route(
 
 @router.post("/create", status_code=status.HTTP_200_OK, response_model=PostsModel)
 async def create_route(
-    user_id: str,
     post_data: CreateModel,
     token=Depends(auth_depends_user_id),
 ):
     return (
         await create_controller(
-            user_id,
-            post_data,
+            user_id=token["https://amirainvest.com/user_id"],
+            create_data=post_data,
         )
     )._asdict()
 
 
 @router.post("/update", status_code=status.HTTP_200_OK, response_model=PostsModel)
 async def update_route(
-    user_id: str,
     post_data: UpdateModel,
     token=Depends(auth_depends_user_id),
 ):
     return (
         await update_controller(
-            user_id,
-            post_data,
+            user_id=token["https://amirainvest.com/user_id"],
+            update_data=post_data,
         )
     )._asdict()
 
@@ -74,11 +72,15 @@ async def update_route(
 @router.post("/upload/post_photos", status_code=status.HTTP_200_OK, response_model=GetModel)
 async def upload_post_photos_route(
     post_id: int,
-    user_id: str,
     images: List[UploadFile] = File(...),
     token=Depends(auth_depends_user_id),
 ):
-    photo_urls = [upload_post_photo_controller(image.file.read(), image.filename, user_id, post_id) for image in images]
+    photo_urls = [
+        upload_post_photo_controller(
+            image.file.read(), image.filename, user_id=token["https://amirainvest.com/user_id"], post_id=post_id
+        )
+        for image in images
+    ]
     post = await get_controller(
         post_id,
     )

@@ -52,9 +52,8 @@ async def update_route(user_data: UserUpdate, token=Depends(auth_depends_user_id
 
 
 @router.post("/upload/profile_picture", status_code=status.HTTP_200_OK, response_model=GetReturnModel)
-async def upload_profile_picture_route(
-    user_id: str, image: UploadFile = File(...), token=Depends(auth_depends_user_id)
-):
+async def upload_profile_picture_route(image: UploadFile = File(...), token=Depends(auth_depends_user_id)):
+    user_id = token["https://amirainvest.com/user_id"]
     s3_file_url = uploads.upload_profile_photo(image.file.read(), image.filename, user_id)
     user = await get_controller(
         user_id,
@@ -89,6 +88,7 @@ async def create_route(user_data: InitPostModel, token=Depends(auth_depends)):
 
 
 @router.post("/delete", status_code=status.HTTP_200_OK)
-async def delete_route(user_id: str, token=Depends(auth_depends_user_id)):
+async def delete_route(token=Depends(auth_depends_user_id)):
+    user_id = token["https://amirainvest.com/user_id"]
     sub = token["sub"]
     await delete_controller(user_id, sub)

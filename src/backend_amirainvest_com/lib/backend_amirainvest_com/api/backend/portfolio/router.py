@@ -18,12 +18,14 @@ router = APIRouter(prefix="/portfolio", tags=["Portfolio"])
 
 
 @router.post("/summary", status_code=status.HTTP_200_OK)
-async def get_summary(user_id: str, token=Depends(auth_depends_user_id)):
+async def get_summary(token=Depends(auth_depends_user_id)):
+    # user_id = token["https://amirainvest.com/user_id"]
     pass
 
 
 @router.post("/holdings", status_code=status.HTTP_200_OK, response_model=HoldingsResponse, responses={})
-async def route_get_holdings(user_id: str, token=Depends(auth_depends_user_id)):
+async def route_get_holdings(token=Depends(auth_depends_user_id)):
+    user_id = token["https://amirainvest.com/user_id"]
     holdings = await get_holdings(user_id=user_id)
     portfolio = get_portfolio_value(holdings=holdings, user_id=user_id)
 
@@ -50,7 +52,8 @@ async def route_get_holdings(user_id: str, token=Depends(auth_depends_user_id)):
 
 
 @router.post("/trading-history", status_code=status.HTTP_200_OK, response_model=TradingHistoryResponse)
-async def route_get_trading_history(user_id: str, token=Depends(auth_depends_user_id)):
+async def route_get_trading_history(token=Depends(auth_depends_user_id)):
+    # user_id = token["https://amirainvest.com/user_id"]
     # Get list of trades
     trade_history = await get_trading_history()
 
@@ -73,7 +76,8 @@ async def route_get_trading_history(user_id: str, token=Depends(auth_depends_use
     return TradingHistoryResponse(portfolio_type=PortfolioType.User, trades=trades_res_list)
 
 
-def get_portfolio_value(holdings: list, user_id: str) -> PortfolioValue:
+def get_portfolio_value(holdings: list, token=Depends(auth_depends_user_id)) -> PortfolioValue:
+    user_id = token["https://amirainvest.com/user_id"]
     portfolio_value = PortfolioValue(user_id=user_id, value=0)
     for holding in holdings:
         fa = holding.FinancialAccountCurrentHoldings

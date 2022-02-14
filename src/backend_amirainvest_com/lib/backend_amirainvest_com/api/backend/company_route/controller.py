@@ -23,7 +23,6 @@ async def get_company_breakdown(ticker_symbol: str) -> CompanyResponse:
     security = security_meta.Securities
 
     max_eod_pricing = await get_eod_pricing(security_id=security.id)
-    intraday_pricing: list[SecurityPrices] = []
     five_day_pricing: list[SecurityPrices] = []
     if not security.collect:
         await toggle_company_on(security.id)
@@ -38,7 +37,6 @@ async def get_company_breakdown(ticker_symbol: str) -> CompanyResponse:
             price_time_str = f"{ip.date} {ip.label}"
             price_time = datetime.strptime(price_time_str, "%Y-%m-%d %I:%M %p")
             p = SecurityPrices(security_id=security.id, price=ip.open, price_time=price_time)
-            intraday_pricing.append(p)
             prices.append(p)
 
         for hp in historical_prices:
@@ -50,7 +48,6 @@ async def get_company_breakdown(ticker_symbol: str) -> CompanyResponse:
 
         await bulk_add_pricing(prices)
     else:
-        intraday_pricing = await get_minute_pricing(security_id=security.id)
         five_day_pricing = await get_hour_pricing(security_id=security.id)
 
     return CompanyResponse(
@@ -67,7 +64,6 @@ async def get_company_breakdown(ticker_symbol: str) -> CompanyResponse:
         close=security_information.close,
         market_cap=security_information.market_cap,
         average_volume=security_information.average_total_volume,
-        intraday_pricing=intraday_pricing,
         max_eod_pricing=max_eod_pricing,
         five_day_pricing=five_day_pricing,
     )
@@ -92,8 +88,8 @@ async def get_listed_companies(session: AsyncSession) -> list[ListedCompany]:
 async def get_security_info(session: AsyncSession, ticker_symbol: str) -> Optional[Securities]:
     response = await session.execute(
         select(Securities, SecurityInformation)
-        .join(SecurityInformation)
-        .where(Securities.ticker_symbol == ticker_symbol)
+            .join(SecurityInformation)
+            .where(Securities.ticker_symbol == ticker_symbol)
     )
     return response.scalar()
 
@@ -136,9 +132,9 @@ async def get_minute_pricing(session: AsyncSession, security_id: int) -> list[Se
 async def get_eod_pricing(session: AsyncSession, security_id: int) -> list[SecurityPrices]:
     response = await session.execute(
         select(SecurityPrices.price, SecurityPrices.price_time)
-        .distinct(cast(SecurityPrices.price_time, Date))
-        .where(SecurityPrices.security_id == security_id)
-        .order_by(SecurityPrices.price_time.desc())
+            .distinct(cast(SecurityPrices.price_time, Date))
+            .where(SecurityPrices.security_id == security_id)
+            .order_by(SecurityPrices.price_time.desc())
     )
 
     return response.scalars().all()

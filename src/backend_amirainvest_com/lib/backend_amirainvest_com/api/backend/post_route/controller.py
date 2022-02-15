@@ -1,6 +1,7 @@
 import asyncio
 from typing import List, Tuple
 
+import sqlalchemy as sa
 from sqlalchemy import func, insert, update
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,7 +23,6 @@ from common_amirainvest_com.schemas.schema import Bookmarks, Posts, PostsModel, 
 from common_amirainvest_com.utils.decorators import Session
 from common_amirainvest_com.utils.generic_utils import get_past_datetime
 from common_amirainvest_com.utils.sqlalchemy_helpers import query_to_string
-import sqlalchemy as sa
 
 
 PAGE_SIZE = 30

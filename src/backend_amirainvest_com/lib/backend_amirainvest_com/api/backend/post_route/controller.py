@@ -6,6 +6,7 @@ from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
+import common_amirainvest_com.utils.query_fragments.posts as qf
 from backend_amirainvest_com.api.backend.post_route.model import (
     CreateModel,
     FeedType,
@@ -16,14 +17,18 @@ from backend_amirainvest_com.api.backend.post_route.model import (
 from backend_amirainvest_com.utils.s3 import S3
 from common_amirainvest_com.controllers.creator import get_creator_attributes
 from common_amirainvest_com.s3.consts import AMIRA_POST_PHOTOS_S3_BUCKET
+from common_amirainvest_com.schemas import schema
 from common_amirainvest_com.schemas.schema import Bookmarks, Posts, PostsModel, UserSubscriptions
 from common_amirainvest_com.utils.decorators import Session
 from common_amirainvest_com.utils.generic_utils import get_past_datetime
+from common_amirainvest_com.utils.sqlalchemy_helpers import query_to_string
+import sqlalchemy as sa
 
 
 PAGE_SIZE = 30
 MAX_HOURS_AGO = 168  # NUMBER OF HOURS TO QUERY POSTGRES : 168H = 1W
 MAX_FEED_SIZE = 200
+
 
 # TODO
 #   change the feed logic to just get all posts with max feed size as limit
@@ -60,7 +65,7 @@ async def create_controller(session: AsyncSession, user_id: str, create_data: Cr
 
 async def list_controller(
     feed_wanted: ListInputModel,
-    subscriber_id,
+    subscriber_id: str,
     page_size: int = PAGE_SIZE,
     last_loaded_post_id: int = 0,
 ) -> Tuple[List[GetModel], FeedType]:
@@ -70,22 +75,22 @@ async def list_controller(
         wanted_feed_user_id = feed_wanted.creator_id
 
     returned_feed_type = wanted_feed_type
-    return_feed = await get_user_feed(wanted_feed_type, wanted_feed_user_id, page_size, last_loaded_post_id)
-
-    if return_feed == [] and wanted_feed_type != FeedType.creator:
-        returned_feed_type = FeedType.discovery
-        discover_feed = []
-        user_feed_id_set = {user_post.id for user_post in return_feed}
-
-        discover_feed_raw = await get_discovery_feed(page_size, last_loaded_post_id)
-
-        for discovery_post in discover_feed_raw:
-            if discovery_post.id not in user_feed_id_set:
-                discover_feed.append(discovery_post)
-        return_feed = discover_feed
-
-    return_feed = return_feed[:page_size]
-    return return_feed, returned_feed_type
+    # return_feed = await get_user_feed(wanted_feed_type, wanted_feed_user_id, page_size, last_loaded_post_id)
+    discover_feed_raw = await get_discovery_feed(wanted_feed_user_id, page_size, last_loaded_post_id)
+    # if return_feed == [] and wanted_feed_type != FeedType.creator:
+    #     returned_feed_type = FeedType.discovery
+    #     discover_feed = []
+    #     user_feed_id_set = {user_post.id for user_post in return_feed}
+    #
+    #     discover_feed_raw = await get_discovery_feed(wanted_feed_user_id, page_size, last_loaded_post_id)
+    #
+    #     for discovery_post in discover_feed_raw:
+    #         if discovery_post.id not in user_feed_id_set:
+    #             discover_feed.append(discovery_post)
+    #     return_feed = discover_feed
+    #
+    # return_feed = return_feed[:page_size]
+    # return return_feed, returned_feed_type
 
 
 def upload_post_photo_controller(file_bytes: bytes, filename: str, user_id: str, post_id: int):
@@ -112,12 +117,16 @@ async def get_user_feed(
 
 
 async def get_discovery_feed(
+    wanted_feed_user_id: str,
     page_size: int = PAGE_SIZE,
     last_loaded_post_id: int = 0,
 ) -> List[GetModel]:
-    feed = await get_discovery_posts(last_loaded_post_id=last_loaded_post_id, page_size=page_size)
-    pydantic_feed = orm_post_to_pydantic_post(feed)
-    return pydantic_feed
+    feed = await get_discovery_posts(
+        wanted_feed_user_id=wanted_feed_user_id,
+        last_loaded_post_id=last_loaded_post_id,
+        page_size=page_size,
+    )
+    return feed
 
 
 def orm_post_to_pydantic_post(feed: List[Posts]) -> List[GetModel]:
@@ -134,29 +143,29 @@ def latest_posts(
     hours_ago: int = MAX_HOURS_AGO,
 ):
     query = (
-        query.where(Posts.created_at > get_past_datetime(hours=hours_ago))
-        .where(Posts.id > last_loaded_post_id)
-        .order_by(Posts.id.desc())
-        .limit(page_size)
+        query.where(Posts.created_at > get_past_datetime(hours=hours_ago)).order_by(Posts.id.desc()).limit(page_size)
     )
+
+    if last_loaded_post_id != 0:
+        query = query.where(Posts.id < last_loaded_post_id)
     return query
 
 
 @Session
 async def get_subscriber_posts(
-    session,
+    session: AsyncSession,
     subscriber_id: str,
     page_size: int = PAGE_SIZE,
     last_loaded_post_id: int = 0,
     hours_ago: int = MAX_HOURS_AGO,
 ) -> List[GetModel]:
     posts = []
-    query = (
-        select(Posts)
-        .join(UserSubscriptions, UserSubscriptions.creator_id == Posts.creator_id)
-        .where(UserSubscriptions.subscriber_id == subscriber_id)
+    query = qf.subscriber_posts(
+        subscriber_id=subscriber_id,
+        page_size=page_size,
+        last_loaded_post_id=last_loaded_post_id,
+        hours_ago=hours_ago,
     )
-    query = latest_posts(query, page_size=page_size, last_loaded_post_id=last_loaded_post_id, hours_ago=hours_ago)
     data = await session.execute(query)
     for post in data.scalars().all():
         post_attributes = await get_post_attributes(post)
@@ -186,21 +195,45 @@ async def get_creator_posts(
 @Session
 async def get_discovery_posts(
     session: AsyncSession,
+    wanted_feed_user_id: str,
     page_size: int = PAGE_SIZE,
     last_loaded_post_id: int = 0,
     hours_ago: int = MAX_HOURS_AGO,
 ) -> List[GetModel]:
-    posts = []
-    query = select(Posts).where(
-        Posts.creator_id.in_(
-            select(UserSubscriptions.creator_id)
-            .group_by(UserSubscriptions.creator_id)
-            .order_by(func.count(UserSubscriptions.creator_id))
-            .limit(10)
+    subscriber_posts_cte = qf.subscriber_posts(
+        subscriber_id=wanted_feed_user_id,
+        page_size=-1,
+        last_loaded_post_id=last_loaded_post_id,
+        hours_ago=hours_ago,
+    ).cte()
+    subscriber_count_cte = qf.subscriber_count().cte()
+    query = (
+        select(
+            schema.Posts,
         )
+        .join(
+            subscriber_posts_cte,
+            subscriber_posts_cte.c.id == Posts.id,
+            isouter=True,
+        )
+        .join(
+            schema.UserSubscriptions,
+            schema.UserSubscriptions.creator_id == Posts.creator_id,
+        )
+        .join(
+            subscriber_count_cte,
+            subscriber_count_cte.c.creator_id == Posts.creator_id,
+        )
+        .order_by(sa.sql.extract("day", schema.Posts.created_at).desc())
+        .order_by(schema.Posts.platform.asc())
+        .order_by(subscriber_count_cte.c.subscriber_count.desc())
     )
-    query = latest_posts(query, last_loaded_post_id, hours_ago, page_size)
+    query = query.where(schema.Posts.id < last_loaded_post_id)
+    query = query.limit(page_size)
+    a = query_to_string(query)
     data = await session.execute(query)
+
+    posts = []
     for post in data.scalars().all():
         post_attributes = await get_post_attributes(post)
         posts.append(GetModel(**{**post_attributes, **post.dict()}))

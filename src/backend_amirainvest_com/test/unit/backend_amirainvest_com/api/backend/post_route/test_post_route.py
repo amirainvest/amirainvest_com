@@ -109,36 +109,6 @@ async def test_list_subscriber_feed(mock_auth, factory):
         },
     )
     await mock_auth(subscriber["users"].id)
-    for _ in range(0, PAGE_SIZE):
-        await factory.gen("posts", {"posts": {"creator_id": creator["users"].id}})
-
-    async with AsyncClient(app=app, base_url="http://test") as async_client:
-        response = await async_client.post(
-            "/post/list",
-            headers=AUTH_HEADERS,
-            data=json.dumps({"feed_type": FeedType.subscriber.value}),
-        )
-
-    response_data = response.json()
-    assert response.status_code == status.HTTP_200_OK
-    assert type(response_data) == dict
-    assert type(response_data["posts"]) == list
-
-    assert response_data["feed_type"] == FeedType.subscriber.value
-    assert len(response_data["posts"]) == PAGE_SIZE
-    assert all([response["creator"]["id"] == str(creator["users"].id) for response in response_data["posts"]])
-
-
-async def test_list_subscriber_feed_no_cache(mock_auth, factory):
-    creator = await factory.gen("users")
-    subscriber = await factory.gen("users")
-    await factory.gen(
-        "user_subscriptions",
-        {
-            "user_subscriptions": {"creator_id": creator["users"].id, "subscriber_id": subscriber["users"].id},
-        },
-    )
-    await mock_auth(subscriber["users"].id)
 
     for _ in range(0, PAGE_SIZE):
         await factory.gen("posts", {"posts": {"creator_id": creator["users"].id}})
@@ -211,30 +181,6 @@ async def test_get_creator_feed(factory):
     assert all([response["creator"]["id"] == str(creator["users"].id) for response in response_data["posts"]])
 
 
-async def test_get_creator_feed_no_cache(factory):
-    creator = await factory.gen("users")
-
-    for _ in range(0, PAGE_SIZE):
-        await factory.gen("posts", {"posts": {"creator_id": creator["users"].id}})
-
-    async with AsyncClient(app=app, base_url="http://test") as async_client:
-        response = await async_client.post(
-            "/post/list",
-            headers=AUTH_HEADERS,
-            data=json.dumps({"feed_type": FeedType.creator.value, "creator_id": str(creator["users"].id)}),
-        )
-
-    response_data = response.json()
-    assert response.status_code == 200
-
-    assert type(response_data) == dict
-    assert type(response_data["posts"]) == list
-    assert response_data["feed_type"] == FeedType.creator.value
-
-    assert len(response_data["posts"]) == PAGE_SIZE
-    assert all([response["creator"]["id"] == str(creator["users"].id) for response in response_data["posts"]])
-
-
 async def test_get_empty_creator_feed(factory):
     creator = await factory.gen("users")
 
@@ -258,7 +204,7 @@ async def test_get_empty_creator_feed(factory):
 
 async def test_get_discovery_feed(factory):
     creator = await factory.gen("users")
-
+    await factory.gen("user_subscriptions")
     for _ in range(0, PAGE_SIZE):
         await factory.gen("posts", {"posts": {"creator_id": creator["users"].id}})
 
@@ -276,6 +222,6 @@ async def test_get_discovery_feed(factory):
     assert type(response_data["posts"]) == list
 
     assert response_data["feed_type"] == FeedType.discovery.value
-    #     assert len(response_data["posts"]) == PAGE_SIZE
+    assert len(response_data["posts"]) == PAGE_SIZE
 
     assert all([response["creator"]["id"] == str(creator["users"].id) for response in response_data["posts"]])

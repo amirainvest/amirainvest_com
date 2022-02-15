@@ -205,7 +205,7 @@ async def test_get_empty_creator_feed(factory):
 async def test_get_discovery_feed(factory):
     creator = await factory.gen("users")
     await factory.gen("user_subscriptions")
-    for _ in range(0, PAGE_SIZE):
+    for _ in range(0, PAGE_SIZE + 10):
         await factory.gen("posts", {"posts": {"creator_id": creator["users"].id}})
 
     async with AsyncClient(app=app, base_url="http://test") as async_client:
@@ -224,4 +224,4 @@ async def test_get_discovery_feed(factory):
     assert response_data["feed_type"] == FeedType.discovery.value
     assert len(response_data["posts"]) == PAGE_SIZE
 
-    assert all([response["creator"]["id"] == str(creator["users"].id) for response in response_data["posts"]])
+    assert all([response["creator"]["id_creator"] == str(creator["users"].id) for response in response_data["posts"]])

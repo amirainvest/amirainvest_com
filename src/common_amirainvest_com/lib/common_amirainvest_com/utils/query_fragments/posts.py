@@ -1,4 +1,4 @@
-from sqlalchemy import func
+from sqlalchemy import and_, func
 from sqlalchemy.future import select
 from sqlalchemy.orm import Query
 
@@ -46,10 +46,12 @@ def subscriber_posts(
     last_loaded_post_id: int = 0,
     hours_ago: int = MAX_HOURS_AGO,
 ) -> Query:
-    query = (
-        select(schema.Posts)
-        .join(schema.UserSubscriptions, schema.UserSubscriptions.creator_id == schema.Posts.creator_id)
-        .where(schema.UserSubscriptions.subscriber_id == subscriber_id)
+    query = select(schema.Posts).join(
+        schema.UserSubscriptions,
+        and_(
+            schema.UserSubscriptions.creator_id == schema.Posts.creator_id,
+            schema.UserSubscriptions.subscriber_id == subscriber_id,
+        ),
     )
     query = latest_posts(query, page_size=page_size, last_loaded_post_id=last_loaded_post_id, hours_ago=hours_ago)
     return query

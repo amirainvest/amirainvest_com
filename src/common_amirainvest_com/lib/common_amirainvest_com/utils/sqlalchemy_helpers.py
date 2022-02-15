@@ -1,5 +1,5 @@
 from sqlalchemy.dialects import postgresql
-from sqlalchemy.orm import Query
+from sqlalchemy.orm import Bundle, Query
 
 
 def query_to_string(query: Query) -> str:
@@ -9,3 +9,13 @@ def query_to_string(query: Query) -> str:
     compiler = postgresql.base.PGCompiler(dialect, query, compile_kwargs={"render_postcompile": True})
 
     return str(compiler) % compiler.params
+
+
+class DictBundle(Bundle):
+    def create_row_processor(self, query, procs, labels):
+        """Override create_row_processor to return values as dictionaries"""
+
+        def proc(row):
+            return dict(zip(labels, (proc(row) for proc in procs)))
+
+        return proc

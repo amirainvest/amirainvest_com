@@ -2,7 +2,8 @@ import asyncio
 from typing import List, Tuple
 
 import sqlalchemy as sa
-from sqlalchemy import func, insert, update
+from sqlalchemy.orm import Bundle
+from sqlalchemy import and_, func, insert, update
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -207,9 +208,25 @@ async def get_discovery_posts(
         hours_ago=hours_ago,
     ).cte()
     subscriber_count_cte = qf.subscriber_count().cte()
+
     query = (
         select(
             schema.Posts,
+            Bundle(
+                "creator",
+                schema.Users.id.label("id"),
+                schema.Users.first_name.label("first_name"),
+                schema.Users.last_name.label("last_name"),
+                schema.Users.username.label("username"),
+                schema.Users.picture_url.label("picture_url"),
+                schema.Users.chip_labels.label("chip_labels"),
+            ),
+            sa.case(
+                [
+                    (Bookmarks.post_id != None, True),
+                    (Bookmarks.post_id == None, False),
+                ]
+            ).label("is_bookmarked")
         )
         .join(
             subscriber_posts_cte,
@@ -224,19 +241,28 @@ async def get_discovery_posts(
             subscriber_count_cte,
             subscriber_count_cte.c.creator_id == Posts.creator_id,
         )
+        .join(
+            schema.Users,
+            schema.Users.id == schema.Posts.creator_id,
+        )
+        .join(
+            schema.Bookmarks,
+            and_(
+                schema.Bookmarks.post_id == schema.Posts.id,
+                schema.Bookmarks.user_id == wanted_feed_user_id,
+                schema.Bookmarks.is_deleted != True,
+            ),
+        )
         .order_by(sa.sql.extract("day", schema.Posts.created_at).desc())
         .order_by(schema.Posts.platform.asc())
         .order_by(subscriber_count_cte.c.subscriber_count.desc())
     )
-    query = query.where(schema.Posts.id < last_loaded_post_id)
+    if last_loaded_post_id != 0:
+        query = query.where(schema.Posts.id < last_loaded_post_id)
     query = query.limit(page_size)
-    a = query_to_string(query)
-    data = await session.execute(query)
 
-    posts = []
-    for post in data.scalars().all():
-        post_attributes = await get_post_attributes(post)
-        posts.append(GetModel(**{**post_attributes, **post.dict()}))
+    data = (await session.execute(query)).scalars().all()
+    posts = [GetModel.from_orm(post) for post in data]
     return posts
 
 

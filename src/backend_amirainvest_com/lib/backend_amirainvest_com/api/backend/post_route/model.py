@@ -9,6 +9,9 @@ from common_amirainvest_com.schemas.schema import MediaPlatform, SubscriptionLev
 
 
 class GetModel(BaseModel):
+    class Config:
+        orm_mode = True
+
     id: int
 
     creator: Creator

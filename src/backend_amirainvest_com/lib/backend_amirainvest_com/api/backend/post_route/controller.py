@@ -207,13 +207,6 @@ async def get_discovery_feed(
             ).label("is_bookmarked"),
         )
             .outerjoin(
-            subscriber_posts_cte,
-            and_(
-                subscriber_posts_cte.c.id == Posts.id,
-                subscriber_posts_cte.c.id.is_(None),
-            ),
-        )
-            .outerjoin(
             subscriber_count_cte,
             subscriber_count_cte.c.creator_id == Posts.creator_id,
         )
@@ -229,6 +222,7 @@ async def get_discovery_feed(
             schema.Users,
             schema.Users.id == schema.Posts.creator_id,
         )
+            .filter(Posts.id != subscriber_posts_cte.c.id)
             .order_by(sa.sql.extract("day", schema.Posts.created_at).desc())
             .order_by(schema.Posts.platform.asc())
             .order_by(subscriber_count_cte.c.subscriber_count.desc())

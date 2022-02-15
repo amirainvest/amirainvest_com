@@ -9,7 +9,6 @@ from backend_amirainvest_com.api.app import app
 from backend_amirainvest_com.api.backend.post_route.controller import PAGE_SIZE
 from backend_amirainvest_com.api.backend.post_route.model import FeedType
 from common_amirainvest_com.schemas.schema import Posts
-
 from ...config import AUTH_HEADERS
 
 
@@ -204,7 +203,6 @@ async def test_get_empty_creator_feed(factory):
 
 async def test_get_discovery_feed(factory):
     creator = await factory.gen("users")
-    await factory.gen("user_subscriptions")
     for _ in range(0, PAGE_SIZE + 10):
         await factory.gen("posts", {"posts": {"creator_id": creator["users"].id}})
 
@@ -223,5 +221,44 @@ async def test_get_discovery_feed(factory):
 
     assert response_data["feed_type"] == FeedType.discovery.value
     assert len(response_data["posts"]) == PAGE_SIZE
+
+    assert all([response["creator"]["id_creator"] == str(creator["users"].id) for response in response_data["posts"]])
+
+
+async def test_get_discovery_feed_filter_out_subscribed_posts(factory, mock_auth):
+    creator = await factory.gen("users")
+    for _ in range(0, PAGE_SIZE - 5):
+        await factory.gen("posts", {"posts": {"creator_id": creator["users"].id}})
+
+    subscriber = await factory.gen("users")
+    creator_sub_to = await factory.gen("users")
+    await factory.gen(
+        "user_subscriptions",
+        {
+            "user_subscriptions": {
+                "creator_id": creator_sub_to["users"].id,
+                "subscriber_id": subscriber["users"].id,
+            },
+        },
+    )
+    await factory.gen("posts", {"posts": {"creator_id": creator_sub_to["users"].id}})
+    await factory.gen("posts", {"posts": {"creator_id": creator_sub_to["users"].id}})  # Two posts breaks the query. No idea why...
+    await mock_auth(subscriber["users"].id)
+
+    async with AsyncClient(app=app, base_url="http://test") as async_client:
+        response = await async_client.post(
+            "/post/list",
+            headers=AUTH_HEADERS,
+            data=json.dumps({"feed_type": FeedType.discovery.value}),
+        )
+
+    response_data = response.json()
+    assert response.status_code == 200
+
+    assert type(response_data) == dict
+    assert type(response_data["posts"]) == list
+
+    assert response_data["feed_type"] == FeedType.discovery.value
+    assert len(response_data["posts"]) == PAGE_SIZE - 5
 
     assert all([response["creator"]["id_creator"] == str(creator["users"].id) for response in response_data["posts"]])

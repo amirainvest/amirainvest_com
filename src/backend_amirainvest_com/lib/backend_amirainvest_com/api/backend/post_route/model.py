@@ -68,6 +68,9 @@ class FeedType(str, enum.Enum):
 class ListInputModel(BaseModel):
     feed_type: FeedType
     creator_id: Optional[str]
+    subscriber_feed_last_loaded_post_id: int = 0
+    creator_feed_last_loaded_post_id: int = 0
+    discovery_feed_last_loaded_post_id: int = 0
 
     @root_validator(pre=False)
     def validate_creator_id_exists_for_feed_type(cls, values):

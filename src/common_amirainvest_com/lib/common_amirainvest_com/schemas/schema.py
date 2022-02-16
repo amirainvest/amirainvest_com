@@ -457,6 +457,9 @@ class Posts(Base, ToDict):
 
 
 class PostsModel(BaseModel):
+    class Config:
+        orm_mode = True
+
     id: int
 
     creator_id: str

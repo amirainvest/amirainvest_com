@@ -1,3 +1,5 @@
+import typing as t
+
 from sqlalchemy import insert, update
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,8 +13,8 @@ from common_amirainvest_com.utils.decorators import Session
 
 
 @Session
-async def get_controller(session: AsyncSession, post_id: int):
-    return (await session.execute(select(schema.Posts).where(schema.Posts.id == post_id))).scalars().first()
+async def get_controller(session: AsyncSession, post_id_list: t.List[int]) -> t.List[schema.Posts]:
+    return (await session.execute(select(schema.Posts).where(schema.Posts.id.in_(post_id_list)))).scalars().all()
 
 
 @Session

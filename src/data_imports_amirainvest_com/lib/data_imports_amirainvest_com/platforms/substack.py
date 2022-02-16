@@ -67,7 +67,7 @@ class SubstackUser(PlatformUser):
                         "platform_display_name": self.username,
                         "platform_user_id": self.username,
                         "platform_img_url": "",
-                        "platform_profile_url": f"https://{self.username}.substack.com/feed",
+                        "platform_profile_url": f"https://{self.username}.substack.com",
                         "twitter_handle": None,
                         "platform_post_id": article["id"],
                         "platform_post_url": article["link"],

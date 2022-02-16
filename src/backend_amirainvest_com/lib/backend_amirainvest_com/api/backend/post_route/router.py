@@ -5,18 +5,10 @@ from fastapi import APIRouter, Depends, File, status, UploadFile
 from backend_amirainvest_com.api.backend.post_route.controller import (
     create_controller,
     get_controller,
-    list_controller,
-    PAGE_SIZE,
     update_controller,
     upload_post_photo_controller,
 )
-from backend_amirainvest_com.api.backend.post_route.model import (
-    CreateModel,
-    GetModel,
-    ListInputModel,
-    ListReturnModel,
-    UpdateModel,
-)
+from backend_amirainvest_com.api.backend.post_route.model import CreateModel, UpdateModel
 from backend_amirainvest_com.controllers.auth import auth_depends_user_id
 from common_amirainvest_com.schemas.schema import PostsModel
 
@@ -25,22 +17,6 @@ router = APIRouter(prefix="/post", tags=["Post"])
 
 
 # ALL PLATFORM POSTS GENERATED VIA DATA IMPORTS
-
-
-@router.post("/list", status_code=status.HTTP_200_OK, response_model=ListReturnModel)
-async def list_route(
-    feed_wanted: ListInputModel,
-    page_size: int = PAGE_SIZE,
-    last_loaded_post_id: int = 0,
-    token=Depends(auth_depends_user_id),
-):
-    return_feed, return_feed_type = await list_controller(
-        feed_wanted=feed_wanted,
-        subscriber_id=token["https://amirainvest.com/user_id"],
-        page_size=page_size,
-        last_loaded_post_id=last_loaded_post_id,
-    )
-    return ListReturnModel(posts=return_feed, feed_type=return_feed_type)
 
 
 @router.post("/create", status_code=status.HTTP_200_OK, response_model=PostsModel)
@@ -69,7 +45,7 @@ async def update_route(
     )._asdict()
 
 
-@router.post("/upload/post_photos", status_code=status.HTTP_200_OK, response_model=GetModel)
+@router.post("/upload/post_photos", status_code=status.HTTP_200_OK, response_model=PostsModel)
 async def upload_post_photos_route(
     post_id: int,
     images: List[UploadFile] = File(...),

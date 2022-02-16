@@ -22,7 +22,7 @@ from sqlalchemy import (
     text,
     UniqueConstraint,
 )
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP, UUID
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.sql import expression
@@ -678,7 +678,7 @@ class FinancialAccountTransactions(Base, ToDict):
     plaid_investment_transaction_id = Column(String, unique=True, nullable=False)
 
     name = Column(String, nullable=False)
-    posting_date = Column(DateTime, nullable=False)
+    posting_date = Column(TIMESTAMP(timezone=True), nullable=False)
     price = Column(DECIMAL(19, 4), nullable=False)
     quantity: Decimal = Column(DECIMAL, nullable=False)
     subtype = Column(String, nullable=False)
@@ -707,7 +707,7 @@ class FinancialAccountCurrentHoldings(Base, ToDict):
 
     cost_basis = Column(DECIMAL(19, 4))
     iso_currency_code = Column(String)
-    latest_price_date = Column(DateTime)
+    latest_price_date = Column(TIMESTAMP(timezone=True), nullable=False)
     unofficial_currency_code = Column(String)
 
     created_at = Column(DateTime, server_default=UTCNow())
@@ -748,7 +748,7 @@ class PlaidSecurityPrices(Base, ToDict):
     plaid_securities_id = Column(Integer, ForeignKey("plaid_securities.id"), nullable=False)
 
     price = Column(DECIMAL(19, 4), nullable=False)
-    price_time = Column(DateTime, nullable=False)
+    price_time: datetime.datetime = Column(TIMESTAMP(timezone=True), nullable=False)
 
     created_at = Column(DateTime, server_default=UTCNow())
 
@@ -809,7 +809,7 @@ class Securities(Base, ToDict):
     last_updated = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
 
-# TODO What should we actually call this...
+# TODO Note.. we should be cognizant of time and time zone...
 class SecurityInformation(Base, ToDict):
     __tablename__ = "security_information"
 
@@ -869,6 +869,9 @@ class SecurityInformation(Base, ToDict):
     week_low_52 = Column(DECIMAL(19, 4))
     ytd_change = Column(DECIMAL(10, 4))
 
+    created_at = Column(DateTime, server_default=UTCNow())
+    updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
+
 
 class SecurityPrices(Base, ToDict):
     __tablename__ = "security_prices"
@@ -877,7 +880,7 @@ class SecurityPrices(Base, ToDict):
     security_id = Column(Integer, ForeignKey("securities.id"), nullable=False)
 
     price = Column(DECIMAL(19, 4), nullable=False)
-    price_time = Column(DateTime, nullable=False)
+    price_time = Column(TIMESTAMP(timezone=True), nullable=False)
 
     created_at = Column(DateTime, server_default=UTCNow())
 
@@ -892,6 +895,8 @@ class MarketHolidays(Base, ToDict):
     id = Column(Integer, primary_key=True, unique=True, nullable=False, autoincrement=True)
     date: datetime.datetime = Column(DateTime, unique=True, nullable=False)
     settlement_date: datetime.datetime = Column(DateTime, nullable=False)
+    created_at = Column(DateTime, server_default=UTCNow())
+    updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
 
 class Notifications(Base, ToDict):

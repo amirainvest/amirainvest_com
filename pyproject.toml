@@ -18,6 +18,8 @@ brokerage_amirainvest_com = {path = "./src/brokerage_amirainvest_com", develop =
 common_amirainvest_com = {path = "./src/common_amirainvest_com", develop = true}
 data_imports_amirainvest_com = {path = "./src/data_imports_amirainvest_com", develop = true}
 market_data_amirainvest_com = {path = "./src/market_data_amirainvest_com", develop = true}
+pytz = "^2021.3"
+types-pytz = "^2021.3.5"
 
 [tool.poetry.dev-dependencies]
 alembic = "*"

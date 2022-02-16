@@ -1,54 +1,35 @@
 from datetime import datetime
-from typing import Optional
 
+import pytz
 from dateutil import relativedelta
+from pytz import timezone
 from sqlalchemy import update
 from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy.sql.expression import cast
+from sqlalchemy.sql import cast
 from sqlalchemy.sql.functions import max
 from sqlalchemy.types import Date, Time
 
-from backend_amirainvest_com.api.backend.company_route.model import CompanyResponse, ListedCompany
-from common_amirainvest_com.iex.client import get_historical_prices, get_intraday_prices
-from common_amirainvest_com.iex.model import HistoricalPriceEnum
+from backend_amirainvest_com.api.backend.company_route.model import CompanyResponse, ListedCompany, SecurityPrice
+from common_amirainvest_com.iex.client import get_historical_five_day_pricing, get_intraday_prices
 from common_amirainvest_com.schemas.schema import Securities, SecurityInformation, SecurityPrices
 from common_amirainvest_com.utils.decorators import Session
 
 
 async def get_company_breakdown(ticker_symbol: str) -> CompanyResponse:
-    security_meta = await get_security_info(ticker_symbol)
+    security_meta = await get_security_info(ticker_symbol=ticker_symbol)
     security_information = security_meta.SecurityInformation
     security = security_meta.Securities
 
-    max_eod_pricing = await get_eod_pricing(security_id=security.id)
-    five_day_pricing: list[SecurityPrices] = []
     if not security.collect:
         await toggle_company_on(security.id)
-        historical_prices = await get_historical_prices(
-            symbol=security.ticker_symbol, range_=HistoricalPriceEnum.FiveDays10MinuteIntervals
-        )
-        intraday_prices = await get_intraday_prices(symbol=security.ticker_symbol)
 
-        prices = []
-        for ip in intraday_prices:
-            # 2022-02-14 10:30 AM
-            price_time_str = f"{ip.date} {ip.label}"
-            price_time = datetime.strptime(price_time_str, "%Y-%m-%d %I:%M %p")
-            p = SecurityPrices(security_id=security.id, price=ip.open, price_time=price_time)
-            prices.append(p)
-
-        for hp in historical_prices:
-            price_time_str = f"{hp.date} {hp.label}"
-            price_time = datetime.strptime(price_time_str, "%Y-%m-%d %H:%M")
-            p = SecurityPrices(security_id=security.id, price=hp.open, price_time=price_time)
-            five_day_pricing.append(p)
-            prices.append(p)
-
-        await bulk_add_pricing(prices)
-    else:
-        five_day_pricing = await get_hour_pricing(security_id=security.id)
+    max_eod_pricing = await get_eod_pricing(security_id=security.id)
+    prices: list[SecurityPrice] = []
+    for mp in max_eod_pricing:
+        prices.append(SecurityPrice(price_time=mp.price_time, price=mp.price))
 
     return CompanyResponse(
         name=security.humand_readable_name,
@@ -64,13 +45,78 @@ async def get_company_breakdown(ticker_symbol: str) -> CompanyResponse:
         close=security_information.close,
         market_cap=security_information.market_cap,
         average_volume=security_information.average_total_volume,
-        max_eod_pricing=max_eod_pricing,
-        five_day_pricing=five_day_pricing,
+        max_eod_pricing=prices,
     )
+
+
+async def get_five_day_pricing(ticker_symbol: str) -> list[SecurityPrice]:
+    security_meta = await get_security_info(ticker_symbol=ticker_symbol)
+    security = security_meta.Securities
+    five_day_pricing = await get_hour_pricing(security_id=security.id)
+    response: list[SecurityPrice] = []
+
+    if five_day_pricing is not None and len(five_day_pricing) > 5:
+        for fdp in five_day_pricing:
+            response.append(SecurityPrice(price_time=fdp.price_time, price=fdp.price))
+        return response
+
+    historical_prices = await get_historical_five_day_pricing(symbol=security.ticker_symbol)
+
+    five_day_pricing = []
+    et_tz = timezone("US/Eastern")
+    for hp in historical_prices:
+        if hp.open is None:
+            continue
+        if hp.label is None or hp.label == "":
+            continue
+        if hp.date is None or hp.date == "":
+            continue
+        price_time_str = f"{hp.date} {hp.label}"
+        price_time = et_tz.localize(datetime.strptime(price_time_str, "%Y-%m-%d %H:%M"))
+        price_time = price_time.astimezone(pytz.utc).replace(tzinfo=None)
+        p = SecurityPrices(security_id=security.id, price=hp.marketOpen, price_time=price_time)
+        response.append(SecurityPrice(price_time=price_time, price=hp.open))
+        five_day_pricing.append(p.dict())
+    await bulk_add_pricing(five_day_pricing)
+    return response
+
+
+async def get_intraday_pricing(ticker_symbol: str) -> list[SecurityPrice]:
+    security_meta = await get_security_info(ticker_symbol=ticker_symbol)
+    security = security_meta.Securities
+
+    intraday_pricing = await get_minute_pricing(security_id=security.id)
+    response: list[SecurityPrice] = []
+    if intraday_pricing is not None and len(intraday_pricing) > 1:
+        for ip in intraday_pricing:
+            response.append(SecurityPrice(price_time=ip.price_time, price=ip.price))
+        return response
+
+    intraday_prices = await get_intraday_prices(symbol=security.ticker_symbol)
+    intraday_pricing = []
+    et_tz = timezone("US/Eastern")
+    for ip in intraday_prices:
+        if ip.open is None:
+            continue
+        if ip.label is None or ip.label == "":
+            continue
+        if ip.date is None or ip.date == "":
+            continue
+
+        price_time_str = f"{ip.date} {ip.label}"
+        price_time = et_tz.localize(datetime.strptime(price_time_str, "%Y-%m-%d %I:%M %p"))
+        price_time = price_time.astimezone(pytz.utc).replace(tzinfo=None)
+        p = SecurityPrices(security_id=security.id, price=ip.marketOpen, price_time=price_time)
+        response.append(SecurityPrice(price_time=price_time, price=ip.open))
+        intraday_pricing.append(p.dict())
+    await bulk_add_pricing(intraday_pricing)
+    return response
 
 
 @Session
 async def bulk_add_pricing(session: AsyncSession, security_prices: list[SecurityPrices]):
+    if len(security_prices) <= 0:
+        return
     await session.execute(insert(SecurityPrices).values(security_prices).on_conflict_do_nothing())
 
 
@@ -85,13 +131,13 @@ async def get_listed_companies(session: AsyncSession) -> list[ListedCompany]:
 
 
 @Session
-async def get_security_info(session: AsyncSession, ticker_symbol: str) -> Optional[Securities]:
+async def get_security_info(session: AsyncSession, ticker_symbol: str) -> Row:
     response = await session.execute(
         select(Securities, SecurityInformation)
-        .join(SecurityInformation)
+        .join(SecurityInformation, isouter=True)
         .where(Securities.ticker_symbol == ticker_symbol)
     )
-    return response.scalar()
+    return response.one()
 
 
 @Session
@@ -99,18 +145,20 @@ async def toggle_company_on(session: AsyncSession, security_id: int):
     await session.execute(update(Securities).where(Securities.id == security_id).values({"collect": True}))
 
 
-hrs = ["10:00:00", "11:00:00", "12:00:00", "13:00:00", "14:00:00", "15:00:00", "16:00:00"]
-
-
 @Session
 async def get_hour_pricing(session: AsyncSession, security_id: int) -> list[SecurityPrices]:
+    # TODO wonder if this would be better if we slugged in ET time, set ET as TZ and converted to UTC
+    ten = datetime.utcnow().time().replace(hour=15, minute=0, second=0, microsecond=0)
+    hr = 15
+    hrs = [ten.replace(hour=hr + i) for i in range(1, 8)]
     today = datetime.utcnow()
-    seven_days = today - relativedelta.relativedelta(days=7)
+    seven_days_ago = today - relativedelta.relativedelta(days=8)
     response = await session.execute(
         select(SecurityPrices).where(
             SecurityPrices.security_id == security_id,
-            SecurityPrices.price_time.between(today, seven_days),
-            cast(SecurityPrices.price_time.in_(hrs), Time),
+            SecurityPrices.price_time >= seven_days_ago,
+            SecurityPrices.price_time < today,
+            cast(SecurityPrices.price_time, Time).in_(hrs),
         )
     )
     return response.scalars().all()
@@ -136,5 +184,12 @@ async def get_eod_pricing(session: AsyncSession, security_id: int) -> list[Secur
         .where(SecurityPrices.security_id == security_id)
         .order_by(SecurityPrices.price_time.desc())
     )
-
     return response.scalars().all()
+
+
+# async def r():
+#     pass
+
+
+# if __name__ == '__main__':
+#     asyncio.run(r())

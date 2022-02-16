@@ -29,12 +29,12 @@ class MarketHoliday(BaseModel):
 
 
 class Symbol(BaseModel):
-    symbol: Optional[str]
-    exchange: Optional[str]
-    name: Optional[str]
+    symbol: str
+    exchange: str
+    name: str
     date: Optional[str]
     isEnabled: Optional[bool]
-    type: Optional[str]
+    type: str
     region: Optional[str]
     currency: Optional[str]
     iexId: Optional[str]
@@ -43,13 +43,13 @@ class Symbol(BaseModel):
 
 
 class IEXSymbol(BaseModel):
-    symbol: Optional[str]
+    symbol: str
     date: Optional[str]
-    isEnabled: Optional[bool]
+    isEnabled: bool
 
 
 class Company(BaseModel):
-    symbol: Optional[str]
+    symbol: str
     companyName: Optional[str]
     employees: Optional[int]
     exchange: Optional[str]
@@ -86,7 +86,7 @@ class HistoricalPriceEnum(enum.Enum):
 
 
 class HistoricalPrice(BaseModel):
-    close: Optional[decimal.Decimal]
+    close: decimal.Decimal
     high: Optional[decimal.Decimal]
     low: Optional[decimal.Decimal]
     open: Optional[decimal.Decimal]
@@ -120,7 +120,7 @@ class HistoricalPriceFiveDay(BaseModel):
     open: Optional[decimal.Decimal]
     high: Optional[decimal.Decimal]
     low: Optional[decimal.Decimal]
-    close: Optional[decimal.Decimal]
+    close: decimal.Decimal
     average: Optional[decimal.Decimal]
     volume: Optional[decimal.Decimal]
     notional: Optional[decimal.Decimal]
@@ -192,11 +192,11 @@ class StockQuote(BaseModel):
     iexRealtimeSize: Optional[decimal.Decimal]
     iexVolume: Optional[decimal.Decimal]
     lastTradeTime: Optional[int]
-    latestPrice: Optional[decimal.Decimal]
-    latestSource: Optional[str]
-    latestTime: Optional[str]
-    latestUpdate: Optional[int]
-    latestVolume: Optional[decimal.Decimal]
+    latestPrice: decimal.Decimal
+    latestSource: str
+    latestTime: str
+    latestUpdate: int
+    latestVolume: decimal.Decimal
     low: Optional[decimal.Decimal]
     lowSource: Optional[str]
     lowTime: Optional[int]

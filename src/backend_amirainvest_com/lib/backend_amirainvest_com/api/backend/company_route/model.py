@@ -1,13 +1,37 @@
 import datetime
+import decimal
 from decimal import Decimal
+from typing import Optional
 
 from pydantic import BaseModel
 
-from common_amirainvest_com.schemas.schema import SecurityPrices
+
+class CompanyInfoRequest(BaseModel):
+    ticker_symbol: str
+
+
+class IntradayRequest(BaseModel):
+    ticker_symbol: str
+
+
+class FiveDayRequest(BaseModel):
+    ticker_symbol: str
+
+
+class SecurityPrice(BaseModel):
+    price: decimal.Decimal
+    price_time: datetime.datetime
 
 
 class IntradayPricing(BaseModel):
-    prices: list[SecurityPrices]
+    prices: list[SecurityPrice]
+
+    class Config:
+        arbitrary_types_allowed = True
+
+
+class FiveDayPricing(BaseModel):
+    prices: list[SecurityPrice]
 
     class Config:
         arbitrary_types_allowed = True
@@ -29,13 +53,12 @@ class CompanyResponse(BaseModel):
     market_cap: Decimal
     average_volume: Decimal
 
-    five_day_pricing: list[SecurityPrices]
-    max_eod_pricing: list[SecurityPrices]
+    # max_eod_pricing: list[SecurityPrices]
 
     class Config:
         arbitrary_types_allowed = True
 
 
 class ListedCompany(BaseModel):
-    name: str
+    name: Optional[str]
     ticker_symbol: str

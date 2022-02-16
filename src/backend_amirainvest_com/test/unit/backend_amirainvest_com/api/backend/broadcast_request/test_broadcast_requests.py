@@ -37,17 +37,17 @@ async def test_list(factory):
     )
 
 
-async def test_create(async_session_maker_test, factory):
+async def test_create(async_session_maker_test, factory, mock_auth):
     session_test: AsyncSession = async_session_maker_test()
 
     creator = await factory.gen("users")
     subscriber = await factory.gen("users")
+    await mock_auth(subscriber["users"].id)
 
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(
             "/broadcast_request/create",
             params={
-                "user_id": str(subscriber["users"].id),
                 "creator_id": str(creator["users"].id),
             },
             headers=AUTH_HEADERS,

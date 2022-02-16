@@ -37,6 +37,9 @@ test: initialize_pg _down
 	docker-compose build --build-arg USER_UID=$(UID) --progress plain integration_test_amirainvest_com
 	docker-compose  -f docker-compose.yaml run -e AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID) -e AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY) --service-ports --rm integration_test_amirainvest_com
 
+backend:
+	docker-compose  build --build-arg USER_UID=$(UID) --progress plain amirainvest_com
+	docker-compose  -f docker-compose.yaml -f docker-compose.yaml run --service-ports --rm backend_amirainvest_com
 # Just starts the postgres DB.
 db_only: _down
 	docker-compose  -f docker-compose.yaml up --abort-on-container-exit --remove-orphans postgres

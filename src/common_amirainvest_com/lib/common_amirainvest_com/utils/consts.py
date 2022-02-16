@@ -1,19 +1,17 @@
 import base64
 import json
 import os
+import typing as t
 from enum import Enum
 from json import JSONDecodeError
 
 import pkg_resources
 import plaid  # type: ignore
 import sentry_sdk
-from sentry_sdk.integrations.redis import RedisIntegration
-from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+from sentry_sdk.integrations.sqlalchemy import Integration, SqlalchemyIntegration
 from sentry_sdk.utils import BadDsn
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
-
-import redis
 
 
 __all__ = [
@@ -29,7 +27,6 @@ __all__ = [
     "AUTH0_CLIENT_SECRET",
     "AUTH0_DOMAIN",
     "AUTH0_API_AUDIENCE",
-    "WEBCACHE",
     "PLAID_CLIENT_ID",
     "PLAID_SECRET",
     "PLAID_APPLICATION_NAME",
@@ -64,7 +61,7 @@ ENVIRONMENT = Environments[os.environ.get("ENVIRONMENT", "local").strip().lower(
 PROJECT = Projects[os.environ.get("PROJECT", "mono").strip().lower()].value
 
 try:
-    integrations = [SqlalchemyIntegration(), RedisIntegration()]
+    integrations: t.List[Integration] = [SqlalchemyIntegration()]
 
     if PROJECT == "brokerage" or PROJECT == "market_data":
         from sentry_sdk.integrations.aws_lambda import AwsLambdaIntegration
@@ -88,8 +85,6 @@ except (BadDsn, JSONDecodeError):
         raise EnvironmentError("Sentry URL not set for non local env")
 
 POSTGRES_DATABASE_URL = "postgresql://{username}:{password}@{host}/{database}".format(**decode_env_var("postgres"))
-
-WEBCACHE_DICT = decode_env_var("webcache")
 
 MAX_FEED_SIZE = 200
 AWS_REGION = "us-east-1"
@@ -141,6 +136,3 @@ async_session_maker = sessionmaker(
     expire_on_commit=False,
     future=True,
 )
-
-# https://github.com/redis/redis-py
-WEBCACHE = redis.Redis(health_check_interval=30, ssl=True, ssl_cert_reqs=None, **WEBCACHE_DICT)

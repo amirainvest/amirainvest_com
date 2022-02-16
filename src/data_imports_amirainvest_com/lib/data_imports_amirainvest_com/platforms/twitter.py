@@ -195,8 +195,6 @@ class TwitterUser(PlatformUser):
             for tweet_post in tweet_posts:
                 if tweet_post["platform_post_id"] not in existing_tweet_ids:
                     await posts.create_post(tweet_post)
-                    posts.put_post_on_creators_redis_feeds(tweet_post)
-                    await posts.put_post_on_subscriber_redis_feeds(tweet_post)
 
 
 class Tweet:

@@ -36,7 +36,6 @@ pytest-asyncio = "^0"
 pytest-cov = "*"
 SQLAlchemy = {extras = ["mypy"], version = "*"}
 types-python-dateutil = "*"
-types-redis = "*"
 types-requests = "*"
 types-setuptools = "*"
 types-toml = "*"

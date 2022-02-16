@@ -10,7 +10,12 @@ from backend_amirainvest_com.api.backend.post_route.controller import (
     update_controller,
     upload_post_photo_controller,
 )
-from backend_amirainvest_com.api.backend.post_route.model import CreateModel, GetInputModel, UpdateModel, UploadPhotosModel
+from backend_amirainvest_com.api.backend.post_route.model import (
+    CreateModel,
+    GetInputModel,
+    UpdateModel,
+    UploadPhotosModel,
+)
 from backend_amirainvest_com.controllers.auth import auth_depends_user_id
 from common_amirainvest_com.schemas.schema import PostsModel
 
@@ -72,4 +77,4 @@ async def upload_post_photos_route(
         for image in images
     ]
 
-    return UploadPhotosModel(photos = photo_urls)
+    return UploadPhotosModel(photos=photo_urls)

@@ -1,5 +1,5 @@
-import typing as t
 import random
+import typing as t
 
 from sqlalchemy import insert, update
 from sqlalchemy.engine import Row
@@ -42,5 +42,5 @@ async def create_controller(session: AsyncSession, user_id: str, create_data: Cr
 
 def upload_post_photo_controller(file_bytes: bytes, filename: str, user_id: str):
     ext = random.randint(1000, 9999)
-    new_filename = str(ext)+filename
+    new_filename = str(ext) + filename
     return S3().upload_file_by_bytes(file_bytes, f"{user_id}/{new_filename}", AMIRA_POST_PHOTOS_S3_BUCKET)

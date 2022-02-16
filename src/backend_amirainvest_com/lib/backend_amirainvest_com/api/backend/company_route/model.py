@@ -42,18 +42,18 @@ class CompanyResponse(BaseModel):
     ticker: str
     industry: str
     ceo: str
-    asset_type: str
-    founding_date: datetime.date
+    asset_type: Optional[str]
+    founding_date: Optional[datetime.date]
     description: str
 
-    week_high_52: Decimal
-    week_low_52: Decimal
-    open: Decimal
-    close: Decimal
-    market_cap: Decimal
-    average_volume: Decimal
+    week_high_52: Optional[Decimal]
+    week_low_52: Optional[Decimal]
+    open: Optional[Decimal]
+    close: Optional[Decimal]
+    market_cap: Optional[Decimal]
+    average_volume: Optional[Decimal]
 
-    # max_eod_pricing: list[SecurityPrices]
+    max_eod_pricing: list[SecurityPrice]
 
     class Config:
         arbitrary_types_allowed = True

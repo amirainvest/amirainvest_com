@@ -23,16 +23,19 @@ async def get_company_breakdown(ticker_symbol: str) -> CompanyResponse:
     security_information = security_meta.SecurityInformation
     security = security_meta.Securities
 
+    if security_information is None:
+        security_information = SecurityInformation()
+
     if not security.collect:
         await toggle_company_on(security.id)
 
     max_eod_pricing = await get_eod_pricing(security_id=security.id)
     prices: list[SecurityPrice] = []
     for mp in max_eod_pricing:
-        prices.append(SecurityPrice(price_time=mp.price_time, price=mp.price))
+        prices.append(SecurityPrice(price_time=mp[1], price=mp[0]))
 
     return CompanyResponse(
-        name=security.humand_readable_name,
+        name=security.name,
         ticker=security.ticker_symbol,
         industry=security.industry,
         ceo=security.ceo,
@@ -65,7 +68,7 @@ async def get_five_day_pricing(ticker_symbol: str) -> list[SecurityPrice]:
     five_day_pricing = []
     et_tz = timezone("US/Eastern")
     for hp in historical_prices:
-        if hp.open is None:
+        if hp.marketOpen is None:
             continue
         if hp.label is None or hp.label == "":
             continue
@@ -75,7 +78,7 @@ async def get_five_day_pricing(ticker_symbol: str) -> list[SecurityPrice]:
         price_time = et_tz.localize(datetime.strptime(price_time_str, "%Y-%m-%d %H:%M"))
         price_time = price_time.astimezone(pytz.utc).replace(tzinfo=None)
         p = SecurityPrices(security_id=security.id, price=hp.marketOpen, price_time=price_time)
-        response.append(SecurityPrice(price_time=price_time, price=hp.open))
+        response.append(SecurityPrice(price_time=price_time, price=hp.marketOpen))
         five_day_pricing.append(p.dict())
     await bulk_add_pricing(five_day_pricing)
     return response
@@ -96,7 +99,7 @@ async def get_intraday_pricing(ticker_symbol: str) -> list[SecurityPrice]:
     intraday_pricing = []
     et_tz = timezone("US/Eastern")
     for ip in intraday_prices:
-        if ip.open is None:
+        if ip.marketOpen is None:
             continue
         if ip.label is None or ip.label == "":
             continue
@@ -107,7 +110,7 @@ async def get_intraday_pricing(ticker_symbol: str) -> list[SecurityPrice]:
         price_time = et_tz.localize(datetime.strptime(price_time_str, "%Y-%m-%d %I:%M %p"))
         price_time = price_time.astimezone(pytz.utc).replace(tzinfo=None)
         p = SecurityPrices(security_id=security.id, price=ip.marketOpen, price_time=price_time)
-        response.append(SecurityPrice(price_time=price_time, price=ip.open))
+        response.append(SecurityPrice(price_time=price_time, price=ip.marketOpen))
         intraday_pricing.append(p.dict())
     await bulk_add_pricing(intraday_pricing)
     return response
@@ -126,7 +129,7 @@ async def get_listed_companies(session: AsyncSession) -> list[ListedCompany]:
 
     lcs: list[ListedCompany] = []
     for lc in response.scalars().all():
-        lcs.append(ListedCompany(name=lc.human_readable_name, ticker_symbol=lc.ticker_symbol))
+        lcs.append(ListedCompany(name=lc.name, ticker_symbol=lc.ticker_symbol))
     return lcs
 
 
@@ -177,14 +180,14 @@ async def get_minute_pricing(session: AsyncSession, security_id: int) -> list[Se
 
 
 @Session
-async def get_eod_pricing(session: AsyncSession, security_id: int) -> list[SecurityPrices]:
+async def get_eod_pricing(session: AsyncSession, security_id: int) -> list[Row]:
     response = await session.execute(
         select(SecurityPrices.price, SecurityPrices.price_time)
         .distinct(cast(SecurityPrices.price_time, Date))
         .where(SecurityPrices.security_id == security_id)
-        .order_by(SecurityPrices.price_time.desc())
     )
-    return response.scalars().all()
+
+    return response.all()
 
 
 # async def r():

@@ -1,4 +1,5 @@
 import datetime
+import decimal
 import enum
 import typing as t
 import uuid
@@ -879,8 +880,8 @@ class SecurityPrices(Base, ToDict):
 
     security_id = Column(Integer, ForeignKey("securities.id"), nullable=False)
 
-    price = Column(DECIMAL(19, 4), nullable=False)
-    price_time = Column(TIMESTAMP(timezone=True), nullable=False)
+    price: decimal.Decimal = Column(DECIMAL(19, 4), nullable=False)
+    price_time: datetime.datetime = Column(TIMESTAMP(timezone=True), nullable=False)
 
     created_at = Column(DateTime, server_default=UTCNow())
 

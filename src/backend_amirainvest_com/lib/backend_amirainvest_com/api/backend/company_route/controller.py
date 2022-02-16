@@ -1,4 +1,5 @@
-from datetime import datetime
+import asyncio
+from datetime import datetime, time
 
 import pytz
 from dateutil import relativedelta
@@ -25,9 +26,6 @@ async def get_company_breakdown(ticker_symbol: str) -> CompanyResponse:
 
     if security_information is None:
         security_information = SecurityInformation()
-
-    if not security.collect:
-        await toggle_company_on(security.id)
 
     max_eod_pricing = await get_eod_pricing(security_id=security.id)
     prices: list[SecurityPrice] = []
@@ -88,29 +86,41 @@ async def get_intraday_pricing(ticker_symbol: str) -> list[SecurityPrice]:
     security_meta = await get_security_info(ticker_symbol=ticker_symbol)
     security = security_meta.Securities
 
+    collecting_pricing = security.collect
+    if not collecting_pricing:
+        await toggle_company_on(security.id)
     intraday_pricing = await get_minute_pricing(security_id=security.id)
-    response: list[SecurityPrice] = []
-    if intraday_pricing is not None and len(intraday_pricing) > 1:
-        for ip in intraday_pricing:
-            response.append(SecurityPrice(price_time=ip.price_time, price=ip.price))
-        return response
 
+    response: list[SecurityPrice] = []
+    if not collecting_pricing or (len(intraday_pricing) <= 1 and datetime.utcnow().time() > time(14, 35)):
+        return await fetch_and_add_pricing(security)
+
+    for ip in intraday_pricing:
+        response.append(SecurityPrice(price_time=ip.price_time, price=ip.price))
+    return response
+
+
+async def fetch_and_add_pricing(security: Securities) -> list[SecurityPrice]:
     intraday_prices = await get_intraday_prices(symbol=security.ticker_symbol)
     intraday_pricing = []
+    response: list[SecurityPrice] = []
     et_tz = timezone("US/Eastern")
     for ip in intraday_prices:
-        if ip.marketOpen is None:
+        if ip.open is None:
+            print("skipping market open... not avail")
             continue
         if ip.label is None or ip.label == "":
+            print("skipping... label not avail")
             continue
         if ip.date is None or ip.date == "":
+            print("Skipping ... date not avail")
             continue
 
         price_time_str = f"{ip.date} {ip.label}"
         price_time = et_tz.localize(datetime.strptime(price_time_str, "%Y-%m-%d %I:%M %p"))
         price_time = price_time.astimezone(pytz.utc).replace(tzinfo=None)
-        p = SecurityPrices(security_id=security.id, price=ip.marketOpen, price_time=price_time)
-        response.append(SecurityPrice(price_time=price_time, price=ip.marketOpen))
+        p = SecurityPrices(security_id=security.id, price=ip.open, price_time=price_time)
+        response.append(SecurityPrice(price_time=price_time, price=ip.open))
         intraday_pricing.append(p.dict())
     await bulk_add_pricing(intraday_pricing)
     return response
@@ -120,7 +130,7 @@ async def get_intraday_pricing(ticker_symbol: str) -> list[SecurityPrice]:
 async def bulk_add_pricing(session: AsyncSession, security_prices: list[SecurityPrices]):
     if len(security_prices) <= 0:
         return
-    await session.execute(insert(SecurityPrices).values(security_prices).on_conflict_do_nothing())
+    await session.execute(insert(SecurityPrices).values(security_prices))
 
 
 @Session
@@ -190,9 +200,9 @@ async def get_eod_pricing(session: AsyncSession, security_id: int) -> list[Row]:
     return response.all()
 
 
-# async def r():
-#     pass
+async def r():
+    print(await get_minute_pricing(security_id=24))
 
 
-# if __name__ == '__main__':
-#     asyncio.run(r())
+if __name__ == "__main__":
+    asyncio.run(r())

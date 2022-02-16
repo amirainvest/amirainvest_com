@@ -1,4 +1,5 @@
 import typing as t
+import random
 
 from sqlalchemy import insert, update
 from sqlalchemy.engine import Row
@@ -39,5 +40,7 @@ async def create_controller(session: AsyncSession, user_id: str, create_data: Cr
     return (await session.execute(insert(schema.Posts).values(**create_data_dict).returning(schema.Posts))).one()
 
 
-def upload_post_photo_controller(file_bytes: bytes, filename: str, user_id: str, post_id: int):
-    return S3().upload_file_by_bytes(file_bytes, f"{user_id}/{post_id}/{filename}", AMIRA_POST_PHOTOS_S3_BUCKET)
+def upload_post_photo_controller(file_bytes: bytes, filename: str, user_id: str):
+    ext = random.randint(1000, 9999)
+    new_filename = str(ext)+filename
+    return S3().upload_file_by_bytes(file_bytes, f"{user_id}/{new_filename}", AMIRA_POST_PHOTOS_S3_BUCKET)

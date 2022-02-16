@@ -136,10 +136,10 @@ class Users(Base, ToDict):
     linkedin_profile = Column(String)
     personal_site_url = Column(String)
     picture_url = Column(String)
-    public_holdings = Column(Boolean)
-    public_performance = Column(Boolean)
-    public_profile = Column(Boolean)
-    public_trades = Column(Boolean)
+    public_holdings_activate = Column(Boolean, server_default=expression.false())
+    public_performance_activate = Column(Boolean, server_default=expression.false())
+    public_profile_deactivate = Column(Boolean, server_default=expression.false())
+    public_trades_activate = Column(Boolean, server_default=expression.false())
     trading_strategies = Column(ARRAY(String))
 
     created_at = Column(DateTime, server_default=UTCNow())
@@ -172,10 +172,10 @@ class UsersModel(BaseModel):
     linkedin_profile: Optional[str]
     personal_site_url: Optional[str]
     picture_url: Optional[str]
-    public_holdings: Optional[bool]
-    public_performance: Optional[bool]
-    public_profile: Optional[bool]
-    public_trades: Optional[bool]
+    public_holdings_activate: Optional[bool]
+    public_performance_activate: Optional[bool]
+    public_profile_deactivate: Optional[bool]
+    public_trades_activate: Optional[bool]
     trading_strategies: Optional[list[str]]
 
     created_at: Optional[datetime.datetime]

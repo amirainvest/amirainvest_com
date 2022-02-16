@@ -10,7 +10,7 @@ from backend_amirainvest_com.api.backend.post_route.controller import (
     update_controller,
     upload_post_photo_controller,
 )
-from backend_amirainvest_com.api.backend.post_route.model import CreateModel, GetInputModel, UpdateModel
+from backend_amirainvest_com.api.backend.post_route.model import CreateModel, GetInputModel, UpdateModel, UploadPhotosModel
 from backend_amirainvest_com.controllers.auth import auth_depends_user_id
 from common_amirainvest_com.schemas.schema import PostsModel
 
@@ -60,22 +60,16 @@ async def update_route(
     )._asdict()
 
 
-@router.post("/upload/post_photos", status_code=status.HTTP_200_OK, response_model=PostsModel)
+@router.post("/upload/post_photos", status_code=status.HTTP_200_OK, response_model=UploadPhotosModel)
 async def upload_post_photos_route(
-    post_id: int,
     images: List[UploadFile] = File(...),
     token=Depends(auth_depends_user_id),
 ):
     photo_urls = [
         upload_post_photo_controller(
-            image.file.read(), image.filename, user_id=token["https://amirainvest.com/user_id"], post_id=post_id
+            image.file.read(), image.filename, user_id=token["https://amirainvest.com/user_id"]
         )
         for image in images
     ]
-    post = (
-        await get_controller(
-            post_id_list=[post_id],
-        )
-    )[0]
-    post.photos.extend(photo_urls)  # TODO I don't think this will work.
-    return (await update_controller(post.__dict__)).dict()
+
+    return UploadPhotosModel(photos = photo_urls)

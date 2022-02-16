@@ -1,6 +1,7 @@
 from typing import List, Tuple
 
 import sqlalchemy as sa
+from sqlalchemy import Date
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import common_amirainvest_com.utils.query_fragments.feed as qf
@@ -99,18 +100,18 @@ async def get_discovery_feed(
 
     query = (
         qf.feed_select(subscriber_id=subscriber_id)
-        .outerjoin(
+            .outerjoin(
             subscriber_posts_cte,
             subscriber_posts_cte.c.id == schema.Posts.id,
         )
-        .filter(subscriber_posts_cte.c.id.is_(None))
-        .outerjoin(
+            .filter(subscriber_posts_cte.c.id.is_(None))
+            .outerjoin(
             subscriber_count_cte,
             subscriber_count_cte.c.creator_id == schema.Posts.creator_id,
         )
-        .order_by(sa.sql.extract("day", schema.Posts.created_at).desc())
-        .order_by(schema.Posts.platform.asc())
-        .order_by(subscriber_count_cte.c.subscriber_count.desc())
+            .order_by(sa.cast(schema.Posts.created_at, Date).desc())
+            .order_by(schema.Posts.platform.asc())
+            .order_by(subscriber_count_cte.c.subscriber_count.desc())
     )
 
     if feed_info.discovery_feed_last_loaded_post_id > 0:

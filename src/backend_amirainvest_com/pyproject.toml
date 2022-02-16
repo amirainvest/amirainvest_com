@@ -31,7 +31,6 @@ requests = "^2.26.0"
 SQLAlchemy = "^1.4.27"
 uvicorn = ">= 0.15 < 1"
 pytz = "^2021.3"
-types-pytz = "^2021.3.5"
 
 [tool.poetry.dev-dependencies]
 

@@ -1,8 +1,13 @@
+import typing as t
 from typing import List, Optional
 
 from pydantic import BaseModel
 
 from common_amirainvest_com.schemas.schema import MediaPlatform, SubscriptionLevel
+
+
+class GetInputModel(BaseModel):
+    ids: t.List[int]
 
 
 class CreateModel(BaseModel):

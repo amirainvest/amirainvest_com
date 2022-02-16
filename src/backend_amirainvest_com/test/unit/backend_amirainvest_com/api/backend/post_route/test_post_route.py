@@ -10,6 +10,32 @@ from common_amirainvest_com.schemas.schema import Posts
 from ...config import AUTH_HEADERS
 
 
+async def test_get(factory):
+    post = await factory.gen("posts")
+    post2 = await factory.gen("posts")
+    await factory.gen("posts")
+
+    async with AsyncClient(app=app, base_url="http://test") as async_client:
+        response = await async_client.post(
+            "/post/get",
+            headers=AUTH_HEADERS,
+            data=json.dumps(
+                {
+                    "ids": [
+                        post["posts"].id,
+                        post2["posts"].id,
+                    ],
+                }
+            ),
+        )
+
+    assert response.status_code == 200
+    result = response.json()
+
+    assert len(result) == 2
+    assert result[0]["id"] == post["posts"].id
+
+
 async def test_create(async_session_maker_test, factory, mock_auth):
     session_test: AsyncSession = async_session_maker_test()
     user = await factory.gen("users")

@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 
 class Creator(BaseModel):
-    id: str
+    id_creator: str
     first_name: str
     last_name: str
     username: str

@@ -3,9 +3,9 @@ from decimal import Decimal
 from fastapi import APIRouter, Depends, status
 
 from backend_amirainvest_com.api.backend.portfolio.controller import (
-    get_user_subscription,
     get_portfolio_holdings,
     get_portfolio_trades,
+    get_user_subscription,
 )
 from backend_amirainvest_com.api.backend.portfolio.model import (
     HoldingsResponse,

@@ -86,8 +86,6 @@ class SubstackUser(PlatformUser):
             await create_substack_article(article)
         for article_post in article_posts:
             await posts.create_post(article_post)
-            posts.put_post_on_creators_redis_feeds(article_post)
-            await posts.put_post_on_subscriber_redis_feeds(article_post)
 
 
 async def load_user_data(username, creator_id):

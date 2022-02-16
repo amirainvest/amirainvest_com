@@ -113,7 +113,7 @@ async def run(user_id: str):
                 price=1,
                 holding_date=historical_account_holding.date,
                 quantity=historical_account_holding.cash,
-                buy_date=end_date
+                buy_date=end_date,
             )
 
             # TODO this is going to be weird with short positions, or covers...
@@ -311,10 +311,10 @@ async def get_closest_price(
 ) -> Optional[SecurityPrices]:
     response = await session.execute(
         select(SecurityPrices)
-            .join(Securities)
-            .where(Securities.id == security_id, SecurityPrices.price_time <= posting_date)
-            .order_by(SecurityPrices.price_time.desc())
-            .limit(1)
+        .join(Securities)
+        .where(Securities.id == security_id, SecurityPrices.price_time <= posting_date)
+        .order_by(SecurityPrices.price_time.desc())
+        .limit(1)
     )
     return response.scalar()
 

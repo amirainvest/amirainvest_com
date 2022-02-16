@@ -20,8 +20,7 @@ services:
         condition: service_started
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_started
+
       dynamo:
         condition: service_started
     networks:
@@ -46,8 +45,7 @@ services:
         condition: service_started
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_started
+
     volumes:
       - .:/opt
     networks:
@@ -68,8 +66,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_started
+
     networks:
       local:
 
@@ -85,8 +82,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_started
+
     networks:
       local:
     volumes:
@@ -96,20 +92,22 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfiles/backend_amirainvest_com.Dockerfile
+
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_started
       ecs-local-endpoints:
         condition: service_started
+
     environment:
       ENVIRONMENT: "local"
       AWS_CONTAINER_CREDENTIALS_RELATIVE_URI: "/creds"
+
     networks:
       local:
       credentials_network:
         ipv4_address: 169.254.170.5
+
     ports:
       - "5000:5000"
 
@@ -180,18 +178,6 @@ services:
 
     networks:
       - local
-
-  # https://hub.docker.com/_/redis/
-  redis:
-    image: redis:6.2
-    volumes:
-      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
-      - ./redis/tls:/tls
-    ports:
-      - "6379:6379"
-    networks:
-      - local
-    command: [ "redis-server" ,"/usr/local/etc/redis/redis.conf" ]
 
   dynamo:
     image: amazon/dynamodb-local

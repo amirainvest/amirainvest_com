@@ -1,5 +1,5 @@
-# python:3.9-slim
-FROM python@sha256:a9cf2d58b33ba6f273e80d1f6272186d8930c062fa2a2abc65f35bdf4609a032 as base
+#  docker pull python:3.9-slim
+FROM python@sha256:e3c1da82791d701339381d90ae63843cf078fed94bae6f36f7abe3ed3e339218 as base
 
 WORKDIR /opt
 

@@ -8,6 +8,7 @@ from common_amirainvest_com.schemas.schema import (
     FinancialAccounts,
     FinancialAccountTransactions,
     MediaPlatform,
+    PlaidSecurities,
     Posts,
     Securities,
     SubscriptionLevel,
@@ -49,13 +50,16 @@ async def create_trade_post(
     return post
 
 
+# TODO We should probably have another table that joins plaid securities and securities in some capacity
+#   other option is to put a security_id on the PlaidSecurities table, or the Transactions table...etc...
 @Session
 async def get_day_transactions(session: AsyncSession):
     return (
         await session.execute(
             select(FinancialAccounts, FinancialAccountTransactions, Securities)
             .join(FinancialAccounts)
-            .join(Securities, Securities.id == FinancialAccountTransactions.security_id)
+            .join(PlaidSecurities.id == FinancialAccountTransactions.plaid_security_id)
+            .join(Securities, Securities.ticker_symbol == PlaidSecurities.ticker_symbol)
             .where(extract("day", FinancialAccountTransactions.created_at) == datetime.today().day)
         )
     ).all()
@@ -75,9 +79,6 @@ async def create_day_transaction_posts():
             transaction["value_amount"],
             security["ticker_symbol"],
         )
-        # post_data = {k: str(v) for k, v in post.dict().items() if k in Posts.__dict__ and v}
-        # posts.put_post_on_creators_redis_feeds(post_data)
-        # await posts.put_post_on_subscriber_redis_feeds(post_data, "premium")
 
 
 @Session

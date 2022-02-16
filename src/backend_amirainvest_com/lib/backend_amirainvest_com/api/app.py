@@ -1,6 +1,3 @@
-import datetime
-import decimal
-
 import pkg_resources
 from fastapi import FastAPI
 from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
@@ -11,6 +8,7 @@ from backend_amirainvest_com.api.backend.application.router import router as app
 from backend_amirainvest_com.api.backend.bookmark.router import router as bookmark_router
 from backend_amirainvest_com.api.backend.broadcast_request.router import router as broadcast_router
 from backend_amirainvest_com.api.backend.code_challenge.router import router as code_challenge_router
+from backend_amirainvest_com.api.backend.feed_route.router import router as feed_router
 from backend_amirainvest_com.api.backend.husk_request.router import router as hust_request_router
 from backend_amirainvest_com.api.backend.notifications.router import router as notifications_router
 from backend_amirainvest_com.api.backend.plaid_route.router import router as plaid_router
@@ -43,6 +41,7 @@ app.include_router(user_feedback_router)
 app.include_router(watchlist_router)
 app.include_router(watchlist_follow_router)
 app.include_router(portfolio_router)
+app.include_router(feed_router)
 
 app.mount("/webhooks", webhooks_app)
 

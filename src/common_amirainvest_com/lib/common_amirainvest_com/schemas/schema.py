@@ -25,7 +25,7 @@ from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.sql import expression
-from sqlalchemy.types import DateTime, Date
+from sqlalchemy.types import Date, DateTime
 
 
 Base = declarative_base()

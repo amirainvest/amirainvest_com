@@ -131,7 +131,7 @@ async def bulk_add_pricing(session: AsyncSession, security_prices: list[Security
 
 @Session
 async def get_listed_companies(session: AsyncSession) -> list[ListedCompany]:
-    response = await session.execute(select(Securities))
+    response = await session.execute(select(Securities).where(Securities.issue_type.in_("cs", "ad", "et")))
 
     lcs: list[ListedCompany] = []
     for lc in response.scalars().all():

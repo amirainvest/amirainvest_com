@@ -746,6 +746,8 @@ class PlaidSecurities(Base, ToDict):
         String, unique=True, info={"factory": FactoryInfo(default="", generator=(fake.unique.name, None)).dict()}
     )
 
+    security_id = Column(Integer, ForeignKey("securities.id"))
+
     name = Column(String, nullable=False)
 
     cusip = Column(String)

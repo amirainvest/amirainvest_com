@@ -1,6 +1,8 @@
+import typing as t
 from typing import List
 
 from fastapi import APIRouter, Depends, File, status, UploadFile
+from pydantic import parse_obj_as
 
 from backend_amirainvest_com.api.backend.post_route.controller import (
     create_controller,
@@ -8,7 +10,7 @@ from backend_amirainvest_com.api.backend.post_route.controller import (
     update_controller,
     upload_post_photo_controller,
 )
-from backend_amirainvest_com.api.backend.post_route.model import CreateModel, UpdateModel
+from backend_amirainvest_com.api.backend.post_route.model import CreateModel, GetInputModel, UpdateModel
 from backend_amirainvest_com.controllers.auth import auth_depends_user_id
 from common_amirainvest_com.schemas.schema import PostsModel
 
@@ -17,6 +19,19 @@ router = APIRouter(prefix="/post", tags=["Post"])
 
 
 # ALL PLATFORM POSTS GENERATED VIA DATA IMPORTS
+
+
+@router.post(
+    "/get", status_code=status.HTTP_200_OK, response_model=t.List[PostsModel], response_model_exclude_none=True
+)
+async def get_route(
+    get_input: GetInputModel,
+    token=Depends(auth_depends_user_id),
+):
+    post_id_list = get_input.ids
+    data = await get_controller(post_id_list=post_id_list)
+    models = parse_obj_as(t.List[PostsModel], data)
+    return models
 
 
 @router.post("/create", status_code=status.HTTP_200_OK, response_model=PostsModel)
@@ -57,8 +72,10 @@ async def upload_post_photos_route(
         )
         for image in images
     ]
-    post = await get_controller(
-        post_id,
-    )
-    post.photos.extend(photo_urls)
+    post = (
+        await get_controller(
+            post_id_list=[post_id],
+        )
+    )[0]
+    post.photos.extend(photo_urls)  # TODO I don't think this will work.
     return (await update_controller(post.__dict__)).dict()

@@ -731,7 +731,7 @@ class FinancialAccountHoldingsHistory(Base, ToDict):
     quantity: Decimal = Column(DECIMAL(19, 4), nullable=False)
     holding_date = Column(Date, nullable=False)
     cost_basis = Column(DECIMAL(19, 4))
-
+    date = Column(Date, nullable=False)
     buy_date = Column(Date, nullable=False)
 
 
@@ -981,10 +981,3 @@ class ChipLabels(Base, ToDict):
     __tablename__ = "chip_labels"
     id = Column(Integer, primary_key=True, unique=True, autoincrement=True)
     name = Column(String, nullable=False)
-
-
-class MarketHolidays(Base, ToDict):
-    __tablename__ = "market_holidays"
-    id = Column(Integer, primary_key=True, unique=True, autoincrement=True)
-    date = Column(DateTime, unique=True, nullable=False)
-    settlement_date = Column(DateTime, nullable=False)

@@ -5,12 +5,13 @@ import pprint
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
+from common_amirainvest_com.iex.client import get_company_info, get_stock_quote, get_supported_securities_list
+from common_amirainvest_com.iex.exceptions import IEXException
+from common_amirainvest_com.iex.model import Symbol
 from common_amirainvest_com.schemas.schema import Securities
 from common_amirainvest_com.utils import logger
 from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
 from common_amirainvest_com.utils.decorators import Session
-from market_data_amirainvest_com.iex import get_company_info, get_stock_quote, get_supported_securities_list, IEXError
-from market_data_amirainvest_com.models.iex import Symbol
 
 
 failed_things = []
@@ -88,7 +89,7 @@ async def work(session: AsyncSession, s: Symbol):
                 currency=quote.currency,
             )
         )
-    except IEXError as err:
+    except IEXException as err:
         global failed_things
         failed_things.append({"symbol": s.symbol, "error": err})
 

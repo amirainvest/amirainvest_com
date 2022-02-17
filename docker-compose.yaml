@@ -93,6 +93,9 @@ services:
       context: .
       dockerfile: ./Dockerfiles/backend_amirainvest_com.Dockerfile
 
+    volumes:
+      - ./local.env:/opt/local.env
+
     depends_on:
       postgres:
         condition: service_healthy

@@ -2,11 +2,12 @@ import argparse
 import asyncio
 from random import randrange
 
+from common_amirainvest_com.iex.client import get_historical_prices
+from common_amirainvest_com.iex.model import HistoricalPriceEnum
 from common_amirainvest_com.s3.client import S3
 from common_amirainvest_com.s3.consts import AMIRA_SECURITIES_HISTORICAL_PRICES_BUCKET
 from common_amirainvest_com.schemas.schema import Securities
 from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
-from market_data_amirainvest_com.iex import get_historical_prices, HistoricalPriceEnum
 from market_data_amirainvest_com.repository import add_to_db, add_to_s3, get_securities, group_securities
 
 

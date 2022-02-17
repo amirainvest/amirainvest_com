@@ -5,9 +5,9 @@ import re
 from decimal import Decimal
 from pprint import pprint
 
+from common_amirainvest_com.iex.model import HistoricalPrice
 from common_amirainvest_com.s3.client import S3
 from common_amirainvest_com.s3.consts import AMIRA_SECURITIES_HISTORICAL_PRICES_BUCKET
-from market_data_amirainvest_com.models.iex import HistoricalPrice
 from market_data_amirainvest_com.repository import add_to_db, get_security_by_ticker_symbol
 
 

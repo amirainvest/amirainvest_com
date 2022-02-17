@@ -37,6 +37,7 @@ types-python-dateutil = "*"
 types-requests = "*"
 types-setuptools = "*"
 types-toml = "*"
+types-pytz = "^2021.3.5"
 
 [tool.black]
 line-length = 120

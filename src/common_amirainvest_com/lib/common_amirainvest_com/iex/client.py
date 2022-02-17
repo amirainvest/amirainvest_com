@@ -24,10 +24,7 @@ async def get_historical_five_day_pricing(symbol: str) -> list[HistoricalPriceFi
         r = await client.get(request_url, timeout=20, params=query_strings)
         validate_response(r.status_code, r.text)
         response = r.json()
-        arr = []
-        for item in response:
-            arr.append(HistoricalPriceFiveDay(**item))
-        return arr
+        return [HistoricalPriceFiveDay.parse_obj(item) for item in response]
 
 
 # TODO ... Need to fix/clean-up... IEX passes a different JSON structure PER range date... from the same API endpoint
@@ -47,10 +44,7 @@ async def get_historical_prices(symbol: str, range_: Union[HistoricalPriceEnum, 
         r = await client.get(request_url, timeout=20, params=query_strings)
         validate_response(r.status_code, r.text)
         response = r.json()
-        arr = []
-        for item in response:
-            arr.append(HistoricalPrice(**item))
-        return arr
+        return [HistoricalPrice.parse_obj(item) for item in response]
 
 
 async def get_intraday_prices(symbol: str, iex_prices_when_null: bool = True) -> list[IntradayPrice]:
@@ -60,10 +54,7 @@ async def get_intraday_prices(symbol: str, iex_prices_when_null: bool = True) ->
         r = await client.get(request_url, timeout=20.0, params=query_strings)
         validate_response(r.status_code, r.text)
         response = r.json()
-        arr = []
-        for item in response:
-            arr.append(IntradayPrice(**item))
-        return arr
+        return [IntradayPrice.parse_obj(item) for item in response]
 
 
 async def get_stock_quote(symbol: str) -> StockQuote:
@@ -73,7 +64,7 @@ async def get_stock_quote(symbol: str) -> StockQuote:
         r = await client.get(request_url, timeout=20.0, params=query_strings)
         validate_response(r.status_code, r.text)
         response = r.json()
-        return StockQuote(**response)
+        return StockQuote.parse_obj(response)
 
 
 async def get_stock_quote_prices(symbols: list[str]) -> list[StockQuote]:
@@ -84,11 +75,7 @@ async def get_stock_quote_prices(symbols: list[str]) -> list[StockQuote]:
         r = await client.get(request_url, timeout=20.0, params=query_strings)
         validate_response(r.status_code, r.text)
         response = r.json()
-        arr = []
-        for key in response:
-            quote = response[key]["quote"]
-            arr.append(StockQuote(**quote))
-        return arr
+        return [StockQuote.parse_obj(response[key]["quote"]) for key in response]
 
 
 async def get_company_info(symbol: str) -> Company:
@@ -98,7 +85,7 @@ async def get_company_info(symbol: str) -> Company:
         r = await client.get(request_url, timeout=20.0, params=query_strings)
         validate_response(r.status_code, r.text)
         response = r.json()
-        return Company(**response)
+        return Company.parse_obj(response)
 
 
 async def get_supported_securities_list() -> list[Symbol]:
@@ -108,10 +95,7 @@ async def get_supported_securities_list() -> list[Symbol]:
         r = await client.get(request_url, timeout=20.0, params=query_strings)
         validate_response(r.status_code, r.text)
         response = r.json()
-        arr = []
-        for item in response:
-            arr.append(Symbol(**item))
-        return arr
+        return [Symbol.parse_obj(item) for item in response]
 
 
 async def get_market_holidays(holiday_direction: MarketHolidayDirection) -> list[MarketHoliday]:
@@ -121,10 +105,7 @@ async def get_market_holidays(holiday_direction: MarketHolidayDirection) -> list
         r = await client.get(request_url, timeout=20.0, params=query_strings)
         validate_response(r.status_code, r.text)
         response = r.json()
-        arr = []
-        for item in response:
-            arr.append(MarketHoliday(**item))
-        return arr
+        return [MarketHoliday.parse_obj(item) for item in response]
 
 
 # TODO: Text can sometime can be blank and we should probably hard-code

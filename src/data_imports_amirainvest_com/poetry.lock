@@ -427,7 +427,7 @@ unicode_backport = ["unicodedata2"]
 
 [[package]]
 name = "common-amirainvest-com"
-version = "0.37.0"
+version = "0.38.0"
 description = ""
 category = "main"
 optional = false

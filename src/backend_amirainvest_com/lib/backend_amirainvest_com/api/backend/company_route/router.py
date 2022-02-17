@@ -7,13 +7,10 @@ from backend_amirainvest_com.api.backend.company_route.controller import (
     get_listed_companies,
 )
 from backend_amirainvest_com.api.backend.company_route.model import (
-    CompanyInfoRequest,
+    CompanyRequest,
     CompanyResponse,
-    FiveDayPricing,
-    FiveDayRequest,
-    IntradayPricing,
-    IntradayRequest,
     ListedCompany,
+    PricingResponse,
 )
 from backend_amirainvest_com.controllers.auth import auth_depends_user_id
 
@@ -23,20 +20,20 @@ router = APIRouter(prefix="/company", tags=["Company"])
 
 # TODO Will the ticker_symbol be passed in via a route/query param/body?
 @router.post("/", status_code=status.HTTP_200_OK, response_model=CompanyResponse)
-async def get_company_info_route(company_info_req: CompanyInfoRequest, token=Depends(auth_depends_user_id)):
+async def get_company_info_route(company_info_req: CompanyRequest, token=Depends(auth_depends_user_id)):
     return await get_company_breakdown(ticker_symbol=company_info_req.ticker_symbol)
 
 
-@router.post("/intraday", status_code=status.HTTP_200_OK, response_model=IntradayPricing)
-async def get_intraday_pricing_route(intraday_req: IntradayRequest, token=Depends(auth_depends_user_id)):
+@router.post("/intraday", status_code=status.HTTP_200_OK, response_model=PricingResponse)
+async def get_intraday_pricing_route(intraday_req: CompanyRequest, token=Depends(auth_depends_user_id)):
     intraday_pricing = await get_intraday_pricing(ticker_symbol=intraday_req.ticker_symbol)
-    return IntradayPricing(prices=intraday_pricing)
+    return PricingResponse(prices=intraday_pricing)
 
 
-@router.post("/week", status_code=status.HTTP_200_OK, response_model=FiveDayPricing)
-async def get_five_day_pricing_route(five_day_req: FiveDayRequest, token=Depends(auth_depends_user_id)):
+@router.post("/week", status_code=status.HTTP_200_OK, response_model=PricingResponse)
+async def get_five_day_pricing_route(five_day_req: CompanyRequest, token=Depends(auth_depends_user_id)):
     five_day_pricing = await get_five_day_pricing(ticker_symbol=five_day_req.ticker_symbol)
-    return FiveDayPricing(prices=five_day_pricing)
+    return PricingResponse(prices=five_day_pricing)
 
 
 @router.post("/list", status_code=status.HTTP_200_OK, response_model=list[ListedCompany])

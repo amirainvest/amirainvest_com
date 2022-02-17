@@ -6,15 +6,7 @@ from typing import Optional
 from pydantic import BaseModel
 
 
-class CompanyInfoRequest(BaseModel):
-    ticker_symbol: str
-
-
-class IntradayRequest(BaseModel):
-    ticker_symbol: str
-
-
-class FiveDayRequest(BaseModel):
+class CompanyRequest(BaseModel):
     ticker_symbol: str
 
 
@@ -23,18 +15,8 @@ class SecurityPrice(BaseModel):
     price_time: datetime.datetime
 
 
-class IntradayPricing(BaseModel):
+class PricingResponse(BaseModel):
     prices: list[SecurityPrice]
-
-    class Config:
-        arbitrary_types_allowed = True
-
-
-class FiveDayPricing(BaseModel):
-    prices: list[SecurityPrice]
-
-    class Config:
-        arbitrary_types_allowed = True
 
 
 class CompanyResponse(BaseModel):
@@ -54,9 +36,6 @@ class CompanyResponse(BaseModel):
     average_volume: Optional[Decimal]
 
     max_eod_pricing: list[SecurityPrice]
-
-    class Config:
-        arbitrary_types_allowed = True
 
 
 class ListedCompany(BaseModel):

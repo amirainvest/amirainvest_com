@@ -13,15 +13,16 @@ async def get_trading_strategies(session):
 
 @Session
 async def get_benchmarks(session):
-    return (
+    benchmarks = (
         (
             await session.execute(
-                select(Securities.id, Securities.human_readable_name).where(Securities.is_benchmark == True)  # noqa: E712
+                select(Securities).where(Securities.is_benchmark == True)  # noqa: E712
             )
         )
         .scalars()
         .all()
     )
+    return [{"id":x.id, "benchmark":x.human_readable_name} for x in benchmarks]
 
 
 @Session

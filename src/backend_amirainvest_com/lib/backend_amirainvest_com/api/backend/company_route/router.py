@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter, status, Depends
 
 from backend_amirainvest_com.api.backend.company_route.controller import (
     get_company_breakdown,
@@ -15,7 +15,7 @@ from backend_amirainvest_com.api.backend.company_route.model import (
     IntradayRequest,
     ListedCompany,
 )
-from backend_amirainvest_com.controllers.auth import auth_depends_user_id, Depends
+from backend_amirainvest_com.controllers.auth import auth_depends_user_id
 
 
 router = APIRouter(prefix="/company", tags=["Company"])

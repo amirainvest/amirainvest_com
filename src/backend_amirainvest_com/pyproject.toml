@@ -30,6 +30,7 @@ python-multipart = "^0"
 requests = "^2.26.0"
 SQLAlchemy = "^1.4.27"
 uvicorn = ">= 0.15 < 1"
+pytz = "^2021.3"
 
 [tool.poetry.dev-dependencies]
 

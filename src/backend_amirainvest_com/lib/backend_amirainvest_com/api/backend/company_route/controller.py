@@ -1,4 +1,3 @@
-import asyncio
 from datetime import datetime, time
 
 import pytz
@@ -107,13 +106,10 @@ async def fetch_and_add_pricing(security: Securities) -> list[SecurityPrice]:
     et_tz = timezone("US/Eastern")
     for ip in intraday_prices:
         if ip.open is None:
-            print("skipping market open... not avail")
             continue
         if ip.label is None or ip.label == "":
-            print("skipping... label not avail")
             continue
         if ip.date is None or ip.date == "":
-            print("Skipping ... date not avail")
             continue
 
         price_time_str = f"{ip.date} {ip.label}"
@@ -130,7 +126,7 @@ async def fetch_and_add_pricing(security: Securities) -> list[SecurityPrice]:
 async def bulk_add_pricing(session: AsyncSession, security_prices: list[SecurityPrices]):
     if len(security_prices) <= 0:
         return
-    await session.execute(insert(SecurityPrices).values(security_prices))
+    await session.execute(insert(SecurityPrices).values(security_prices).on_conflict_do_nothing())
 
 
 @Session
@@ -161,6 +157,7 @@ async def toggle_company_on(session: AsyncSession, security_id: int):
 @Session
 async def get_hour_pricing(session: AsyncSession, security_id: int) -> list[SecurityPrices]:
     # TODO wonder if this would be better if we slugged in ET time, set ET as TZ and converted to UTC
+
     ten = datetime.utcnow().time().replace(hour=15, minute=0, second=0, microsecond=0)
     hr = 15
     hrs = [ten.replace(hour=hr + i) for i in range(1, 8)]
@@ -198,11 +195,3 @@ async def get_eod_pricing(session: AsyncSession, security_id: int) -> list[Row]:
     )
 
     return response.all()
-
-
-async def r():
-    print(await get_minute_pricing(security_id=24))
-
-
-if __name__ == "__main__":
-    asyncio.run(r())

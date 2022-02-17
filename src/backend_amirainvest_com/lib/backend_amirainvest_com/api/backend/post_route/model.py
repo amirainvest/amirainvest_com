@@ -31,3 +31,7 @@ class CreateModel(BaseModel):
 class UpdateModel(CreateModel):
     id: int
     platform: Optional[MediaPlatform]  # type: ignore
+
+
+class UploadPhotosModel(BaseModel):
+    photos: List[str]

@@ -1,7 +1,7 @@
 """user_nomenclature
 
 Revision ID: a65d664c3658
-Revises: 3cde2bf6392a
+Revises: 66f7f028b573
 Create Date: 2022-02-16 21:18:45.724156
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'a65d664c3658'
-down_revision = '3cde2bf6392a'
+down_revision = '66f7f028b573'
 branch_labels = None
 depends_on = None
 

@@ -16,7 +16,7 @@ async def get_benchmarks(session):
     return (
         (
             await session.execute(
-                select(Securities.human_readable_name).where(Securities.is_benchmark == True)  # noqa: E712
+                select(Securities.id, Securities.human_readable_name).where(Securities.is_benchmark == True)  # noqa: E712
             )
         )
         .scalars()

@@ -1,3 +1,4 @@
+import datetime
 import typing as t
 from enum import Enum
 
@@ -48,25 +49,25 @@ class ListReturnModel(ListModelBase[GetReturnModel]):
 
 
 class UserUpdate(BaseModel):
+    email: t.Optional[str]
     first_name: t.Optional[str]
     last_name: t.Optional[str]
-    benchmark: t.Optional[int]
     bio: t.Optional[str]
-    chip_labels: t.Optional[t.List[str]]
+    benchmark: t.Optional[int]
+    chip_labels: t.Optional[list[str]]
+    deleted_at: t.Optional[datetime.datetime]
     interests_diversification_rating: t.Optional[int]
     linkedin_profile: t.Optional[str]
     personal_site_url: t.Optional[str]
     picture_url: t.Optional[str]
-    public_holdings: t.Optional[bool]
-    public_performance: t.Optional[bool]
-    public_profile: t.Optional[bool]
-    public_trades: t.Optional[bool]
-
-    interests_value: t.Optional[bool]
-    interests_growth: t.Optional[bool]
-    interests_long_term: t.Optional[bool]
-    interests_short_term: t.Optional[bool]
-
+    public_holdings_activate: t.Optional[bool]
+    public_performance_activate: t.Optional[bool]
+    public_profile_deactivate: t.Optional[bool]
+    public_trades_activate: t.Optional[bool]
+    trading_strategies: t.Optional[list[str]]
+    created_at: t.Optional[datetime.datetime]
+    email_verified: t.Optional[bool]
+    is_claimed: t.Optional[bool]
     is_deactivated: t.Optional[bool]
     is_deleted: t.Optional[bool]
 
@@ -80,7 +81,6 @@ class InitPostModel(BaseModel):
     last_name: str
     username: str
     email: str
-    benchmark: t.Optional[int]
 
 
 class Http409Enum(Enum):

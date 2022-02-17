@@ -25,4 +25,4 @@ async def test_config(factory):
 
     assert response_data["chip_labels"][0] == "Test chip"
     assert response_data["trading_strategies"][0] == "Test trading"
-    assert response_data["benchmarks"][0] == "Test benchmark"
+    assert response_data["benchmarks"][0]["benchmark"] == "Test benchmark"

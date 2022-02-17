@@ -49,13 +49,13 @@ class ListReturnModel(ListModelBase[GetReturnModel]):
 
 
 class UserUpdate(BaseModel):
-    email: str
-    username: str
+    email: t.Optional[str]
+    username: t.Optional[str]
 
     sub: t.Optional[str]
 
-    first_name: str
-    last_name: str
+    first_name: t.Optional[str]
+    last_name: t.Optional[str]
 
     bio: t.Optional[str]
     benchmark: t.Optional[int]

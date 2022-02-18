@@ -2,11 +2,11 @@ from typing import List, Optional
 
 from pydantic import BaseModel
 
-from common_amirainvest_com.schemas.schema import TwitterUsers, YouTubers, SubstackUsers, MediaPlatform
+from common_amirainvest_com.schemas.schema import TwitterUsers, YouTubers, SubstackUsers, ClaimablePlatform
 
 
 class PlatformModel(BaseModel):
-    platform: str
+    platform: ClaimablePlatform
     username: str
 
 

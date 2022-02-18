@@ -20,7 +20,31 @@ async def get_platforms_route(token=Depends(auth_depends_user_id)):
     "/create", status_code=status.HTTP_200_OK, response_model=List[CreatePlatformModel], response_model_exclude_none=True
 )
 async def create_platforms_route(platform_data: t.List[PlatformModel], token=Depends(auth_depends_user_id)):
-    unclaimed_user = await check_platforms(platform_data)
-
-    if unclaimed_user: 
+    claimed_platforms, unclaimed_platforms = await check_platforms(platform_data)
+    if len(claimed_platforms)> 0:
+        #response code 425 return t.List[PlatformModel]
         pass
+    elif len(unclaimed_platforms)>0:
+        #response code 427 return t.List[PlatformModel]
+        pass
+    else:
+        user_id=token["https://amirainvest.com/user_id"]
+        await create_platforms(user_id, platform_data)
+
+
+
+@router.post(
+    "/claim", status_code=status.HTTP_200_OK, response_model='TBD', response_model_exclude_none=True
+)
+async def claim_platforms_route():
+    pass
+
+
+
+@router.post(
+    "/update", status_code=status.HTTP_200_OK, response_model='TBD', response_model_exclude_none=True
+)
+#have an is_deleted field here
+async def update_platforms_route():
+    pass
+

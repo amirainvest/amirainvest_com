@@ -72,6 +72,12 @@ class SubscriptionLevel(enum.Enum):
     premium = "premium"
 
 
+class ClaimablePlatform(enum.Enum):
+    youtube = "youtube"
+    substack = "substack"
+    twitter = "twitter"
+
+
 class MediaPlatform(enum.Enum):
     youtube = "youtube"
     substack = "substack"

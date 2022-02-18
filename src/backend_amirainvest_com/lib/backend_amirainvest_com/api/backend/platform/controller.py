@@ -137,6 +137,17 @@ async def create_platforms(user_id: str, platform_data: t.List[PlatformModel]) -
 async def create_twitter_user(session: AsyncSession, user_id:str, username: str):
     return
 
+
+@Session
+async def create_substack_user(session: AsyncSession, user_id:str, username: str):
+    return
+
+
+@Session
+async def create_youtube_user(session: AsyncSession, user_id:str, username: str):
+    return
+
+
 if __name__=="__main__":
     substack, users = asyncio.run(check_substack_username(username='testuser', claimed=False))
     print(substack, users)

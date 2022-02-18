@@ -6,7 +6,7 @@ from backend_amirainvest_com.controllers.auth import auth_depends_user_id
 
 
 
-router = APIRouter(prefix="/platforms", tags=["Platform Users Claims"])
+router = APIRouter(prefix="/platforms", tags=["Platform Users/Claims"])
 
 
 @router.post(
@@ -22,14 +22,14 @@ async def get_platforms_route(token=Depends(auth_depends_user_id)):
 async def create_platforms_route(platform_data: t.List[PlatformModel], token=Depends(auth_depends_user_id)):
     claimed_platforms, unclaimed_platforms = await check_platforms(platform_data)
     if len(claimed_platforms)> 0:
-        #response code 425 return t.List[PlatformModel]
+        #response code 425 return t.List[PlatformModel]. User can't claim. Contact us if in error
         pass
     elif len(unclaimed_platforms)>0:
-        #response code 427 return t.List[PlatformModel]
+        #response code 427 return t.List[PlatformModel]  User can choose to claim
         pass
     else:
         user_id=token["https://amirainvest.com/user_id"]
-        await create_platforms(user_id, platform_data)
+        return await create_platforms(user_id, platform_data)
 
 
 
@@ -37,6 +37,9 @@ async def create_platforms_route(platform_data: t.List[PlatformModel], token=Dep
     "/claim", status_code=status.HTTP_200_OK, response_model='TBD', response_model_exclude_none=True
 )
 async def claim_platforms_route():
+    #update husk info
+    #update subscribers, posts
+    #generate notifications
     pass
 
 
@@ -44,7 +47,8 @@ async def claim_platforms_route():
 @router.post(
     "/update", status_code=status.HTTP_200_OK, response_model='TBD', response_model_exclude_none=True
 )
-#have an is_deleted field here
 async def update_platforms_route():
+    #have an is_deleted field here
+    #will need to check for collisions here too. FE will need to reverify
     pass
 

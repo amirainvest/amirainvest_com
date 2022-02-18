@@ -1,15 +1,14 @@
-from decimal import Decimal
-
 from fastapi import APIRouter, Depends, status
 
 from backend_amirainvest_com.api.backend.portfolio.controller import (
     get_portfolio_holdings,
     get_portfolio_trades,
     get_user_subscription,
+    get_portfolio_summary,
 )
 from backend_amirainvest_com.api.backend.portfolio.model import (
     HoldingsResponse,
-    Portfolio,
+    PortfolioResponse,
     PortfolioRequest,
     PortfolioType,
     TradingHistoryResponse,
@@ -20,25 +19,11 @@ from backend_amirainvest_com.controllers.auth import auth_depends_user_id
 router = APIRouter(prefix="/portfolio", tags=["Portfolio"])
 
 
-@router.post("/summary", status_code=status.HTTP_200_OK)
+@router.post("/summary", status_code=status.HTTP_200_OK, response_model=PortfolioResponse)
 async def route_get_portfolio_summary(portfolio_request: PortfolioRequest, token=Depends(auth_depends_user_id)):
-    user_id = token["https://amirainvest.com/user_id"]
-    requesting_creator = await is_requesting_creator(user_id=user_id, requesting_user_id=portfolio_request.user_id)
-
-    return Portfolio(
-        id=portfolio_request.user_id,
-        return_history=[],
-        benchmark_return_history=[],
-        portfolio_allocation=[],
-        total_return=Decimal(0),
-        beta=Decimal(0),
-        sharpe_ratio=Decimal(0),
-        percentage_long=Decimal(0),
-        percentage_short=Decimal(0),
-        percentage_gross=Decimal(0),
-        percentage_net=Decimal(0),
-        portfolio_type=PortfolioType.Creator if requesting_creator else PortfolioType.User,
-    )
+    # user_id = token["https://amirainvest.com/user_id"]
+    # requesting_creator = await is_requesting_creator(user_id=user_id, requesting_user_id=portfolio_request.user_id)
+    return await get_portfolio_summary(user_id=portfolio_request.user_id, is_creator=False)
 
 
 @router.post("/holdings", status_code=status.HTTP_200_OK, response_model=HoldingsResponse, responses={})
@@ -66,6 +51,6 @@ async def is_requesting_creator(user_id: str, requesting_user_id: str) -> bool:
     if user_id != user_id:
         subscriber = await get_user_subscription(user_id=user_id, creator_id=requesting_user_id)
         if subscriber is None:
-            raise Exception("user is not a subscriber of creator")
+            raise Exception("user is not a subscriber of the creator")
         requesting_creator = True
     return requesting_creator

@@ -663,8 +663,8 @@ class FinancialAccounts(Base, ToDict):
     limit = Column(DECIMAL(19, 4))
     mask = Column(String)
     official_account_name = Column(String)
-    sub_type = Column(String)
     type = Column(String)
+    sub_type = Column(String)
     unofficial_currency_code = Column(String)
     user_assigned_account_name = Column(String)
 
@@ -685,8 +685,8 @@ class FinancialAccountTransactions(Base, ToDict):
     posting_date = Column(TIMESTAMP(timezone=True), nullable=False)
     price = Column(DECIMAL(19, 4), nullable=False)
     quantity: Decimal = Column(DECIMAL, nullable=False)
-    subtype: str = Column(String, nullable=False)
     type: str = Column(String, nullable=False)
+    subtype: str = Column(String, nullable=False)
     value_amount: decimal.Decimal = Column(DECIMAL(19, 4), nullable=False)
 
     fees = Column(DECIMAL(19, 4))
@@ -719,7 +719,7 @@ class FinancialAccountCurrentHoldings(Base, ToDict):
 
 class FinancialAccountHoldingsHistory(Base, ToDict):
     __tablename__ = "financial_account_holdings_history"
-    __table_args__ = (UniqueConstraint("account_id", "security_id", "date"),)
+    __table_args__ = (UniqueConstraint("account_id", "security_id", "holding_date"),)
 
     id = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
 
@@ -731,7 +731,7 @@ class FinancialAccountHoldingsHistory(Base, ToDict):
     quantity: Decimal = Column(DECIMAL(19, 4), nullable=False)
     holding_date = Column(Date, nullable=False)
     cost_basis = Column(DECIMAL(19, 4))
-    date = Column(Date, nullable=False)
+
     buy_date = Column(Date, nullable=False)
 
 
@@ -742,11 +742,12 @@ class PlaidSecurities(Base, ToDict):
     financial_institution_id = Column(Integer, ForeignKey("financial_institutions.id"))
 
     plaid_security_id = Column(String, unique=True)
+
+    security_id = Column(Integer, ForeignKey("securities.id"))
+
     ticker_symbol = Column(
         String, unique=True, info={"factory": FactoryInfo(default="", generator=(fake.unique.name, None)).dict()}
     )
-
-    security_id = Column(Integer, ForeignKey("securities.id"))
 
     name = Column(String, nullable=False)
 
@@ -916,7 +917,7 @@ class SecurityPrices(Base, ToDict):
 class MarketHolidays(Base, ToDict):
     __tablename__ = "market_holidays"
     id = Column(Integer, primary_key=True, unique=True, nullable=False, autoincrement=True)
-    date: datetime.datetime = Column(DateTime, unique=True, nullable=False)
+    date: datetime.date = Column(Date, unique=True, nullable=False)
     settlement_date: datetime.datetime = Column(DateTime, nullable=False)
     created_at = Column(DateTime, server_default=UTCNow())
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)

@@ -9,9 +9,12 @@ from sqlalchemy.sql import func, label
 from backend_amirainvest_com.api.backend.portfolio.model import (
     HistoricalTrade,
     Holding,
-    HoldingPercentageRate,
     MarketValue,
     PortfolioValue,
+    HistoricalReturn,
+    PortfolioResponse,
+    PortfolioType,
+    HistoricalPeriod,
 )
 from common_amirainvest_com.schemas.schema import (
     FinancialAccountHoldingsHistory,
@@ -26,26 +29,28 @@ from common_amirainvest_com.utils.decorators import Session
 
 
 async def get_portfolio_trades(user_id: str, is_creator: bool) -> list[HistoricalTrade]:
-    pass
-    # trading_history = await get_trading_history(user_id)
-    # baseline_holdings = await get_baseline_holdings()
-    # response: list[HistoricalTrade] = []
-    # percentage_change_in_pos = Decimal(100)
-    # for trade in trading_history:
-    #     fat = trade.FinancialAccountTransactions
-    #     mv = fat.price * fat.quantity
-    #     response.append(
-    #         HistoricalTrade(
-    #             trade_date=fat.posting_date,
-    #             ticker=trade.PlaidSecurities.ticker_symbol,
-    #             transaction_type=fat.type,
-    #             transaction_price=fat.price,
-    #             transaction_market_value=is_creator if is_creator else mv,
-    #             percentage_change_in_position=percentage_change_in_pos,
-    #         )
-    #     )
-    #
-    # return response
+    trading_history = await get_trading_history(user_id=user_id)
+    baseline_holdings = await get_user_baseline_holdings(user_id=user_id)
+
+    security_holdings_dict: dict[int, tuple[Decimal, Decimal]] = {}
+    for bh in baseline_holdings:
+        security_holdings_dict[bh.PlaidSecurities.id] = (Decimal(100), bh.FinancialAccountHoldingsHistory.quantity)
+
+    response: list[HistoricalTrade] = []
+    for trade in trading_history:
+        fat = trade.FinancialAccountTransactions
+        mv = fat.price * fat.quantity
+        response.append(
+            HistoricalTrade(
+                trade_date=fat.posting_date,
+                ticker=trade.PlaidSecurities.ticker_symbol,
+                transaction_type=fat.type,
+                transaction_price=fat.price,
+                transaction_market_value=is_creator if is_creator else mv,
+                percentage_change_in_position=percentage_change(holdings_dict=security_holdings_dict, transaction=fat),
+            )
+        )
+    return response
 
 
 async def get_portfolio_holdings(user_id: str, is_creator: bool) -> list[Holding]:
@@ -72,6 +77,72 @@ async def get_portfolio_holdings(user_id: str, is_creator: bool) -> list[Holding
     return response
 
 
+async def get_portfolio_summary(user_id: str, is_creator: bool) -> PortfolioResponse:
+    market_values = await get_market_values(user_id=user_id)
+    cash_transactions_by_date = await get_cash_transactions_by_date(user_id=user_id)
+
+    # list of portfolio dates and daily returns
+    holding_percentage_rates = await get_portfolio_holding_percentage_rates(
+        market_values=market_values, cash_transactions_by_date=cash_transactions_by_date
+    )
+
+    # Portfolio Return History Finished
+    rate = 1
+    return_history_with_dates = []
+    return_history_twrs = []
+    for hpr in holding_percentage_rates:
+        rate = rate * (hpr.hp + 1)
+        return_history_with_dates.append(
+            HistoricalReturn(
+                date=hpr.date,
+                daily_return=rate - 1,
+            )
+        )
+        return_history_twrs.append(rate - 1)
+
+    # Benchmark Return History
+    # TODO ... change this out to an actual id
+    benchmark_return_history = await compute_benchmark(benchmark_id=9876)
+
+    rate = 1
+    benchmark_twrs_with_dates = []
+    benchmark_twrs = []
+    for brh in benchmark_return_history:
+        rate = rate * (brh.hp + 1)
+        benchmark_twrs_with_dates.append(
+            HistoricalReturn(
+                date=brh.date,
+                daily_return=rate - 1
+            )
+        )
+        benchmark_twrs.append(rate - 1)
+
+    # Time Weighted Return Finished
+    time_weighted_return = return_history_with_dates[len(return_history_with_dates) - 1].daily_return
+
+    # TODO:
+    #   portfolio_allocation
+    #   beta
+    #   sharpe_ratio
+    #   percentage_long
+    #   percentage_short
+    #   percentage_gross
+    #   percentage_net
+    return PortfolioResponse(
+        user_id=user_id,
+        return_history=return_history_with_dates,
+        benchmark_return_history=benchmark_twrs_with_dates,
+        total_return=time_weighted_return,
+        beta=Decimal(0),
+        sharpe_ratio=Decimal(0),
+        percentage_long=Decimal(0),
+        percentage_short=Decimal(0),
+        percentage_gross=Decimal(0),
+        percentage_net=Decimal(0),
+        portfolio_type=PortfolioType.Creator if is_creator else PortfolioType.User,
+    )
+
+
 @Session
 async def get_cash_transactions_by_date(
     session: AsyncSession, user_id: int
@@ -92,109 +163,127 @@ async def get_cash_transactions_by_date(
 
 @Session
 async def get_market_values_for_account(session: AsyncSession, account_id: int) -> list[MarketValue]:
-    # TODO validate how we should label market value of short position, can we take the naive approach?
     market_value_by_day_response = await session.execute(
         select(
-            FinancialAccountHoldingsHistory.price_time,
+            FinancialAccountHoldingsHistory.holding_date,
             label(
                 "market_value",
                 func.sum(FinancialAccountHoldingsHistory.price * FinancialAccountHoldingsHistory.quantity),
             ),
         )
-        .where(FinancialAccountHoldingsHistory.account_id == account_id)
-        .group_by(FinancialAccountHoldingsHistory.price_time)
-        .order_by(FinancialAccountHoldingsHistory.price_time.asc())
+            .where(FinancialAccountHoldingsHistory.account_id == account_id)
+            .group_by(FinancialAccountHoldingsHistory.holding_date)
+            .order_by(FinancialAccountHoldingsHistory.holding_date.asc())
     )
     results = market_value_by_day_response.all()
-    market_values = []
-    for res in results:
-        d = res._asdict()
-        market_values.append(MarketValue(**d))
+    market_values = [MarketValue.parse_obj(res._asdict()) for res in results]
     return market_values
 
 
 @Session
 async def get_market_values(session: AsyncSession, user_id: int) -> list[MarketValue]:
-    # TODO validate how we should label market value of short position, can we take the naive approach?
     market_value_by_day_response = await session.execute(
         select(
-            FinancialAccountHoldingsHistory.price_time,
+            FinancialAccountHoldingsHistory.holding_date.label("date"),
             label(
-                "market_value",
+                "value",
                 func.sum(FinancialAccountHoldingsHistory.price * FinancialAccountHoldingsHistory.quantity),
             ),
         )
-        .join(FinancialAccounts)
-        .where(FinancialAccounts.user_id == user_id)
-        .group_by(FinancialAccountHoldingsHistory.price_time)
-        .order_by(FinancialAccountHoldingsHistory.price_time.asc())
+            .join(FinancialAccounts)
+            .where(FinancialAccounts.user_id == user_id)
+            .group_by(FinancialAccountHoldingsHistory.holding_date)
+            .order_by(FinancialAccountHoldingsHistory.holding_date.asc())
     )
 
     results = market_value_by_day_response.all()
-    market_values = []
-    for res in results:
-        d = res._asdict()
-        market_values.append(MarketValue(**d))
+    market_values = [MarketValue.parse_obj(res._asdict()) for res in results]
     return market_values
 
 
-async def get_summary(user_id: str):
-    pass
-    # market_values = await get_market_values(user_id=user_id)
-    # cash_transactions_by_date = await get_cash_transactions_by_date(user_id=user_id)
-
-    # list of portfolio dates and daily returns
-    # portfolio_holding_rates = await get_portfolio_holding_percentage_rates(
-    #     market_values=market_values, cash_transactions_by_date=cash_transactions_by_date
-    # )
-    # TODO calculate time weighted return
-
-
 async def get_portfolio_holding_percentage_rates(
-    market_values: list[MarketValue], cash_transactions_by_date: dict[date, list[FinancialAccountTransactions]]
-) -> list[HoldingPercentageRate]:
-    holding_percentage_rates: list[HoldingPercentageRate] = [
-        HoldingPercentageRate(rate=market_values[0].value, date=market_values[0].date)
-    ]
+    market_values: list[MarketValue],
+    cash_transactions_by_date: dict[date, list[FinancialAccountTransactions]]
+) -> list[HistoricalPeriod]:
+    hpr_history = [HistoricalPeriod(
+        date=market_values[0].date,
+        mv=market_values[0].value,
+        hp=0,
+    )]
 
     for index, _ in enumerate(market_values[1:]):
         mv_today = market_values[index].value
         mv_today_date = market_values[index].date
-        mv_yesterday = holding_percentage_rates[len(holding_percentage_rates) - 1].value
-        mv_yesterday_date = holding_percentage_rates[len(holding_percentage_rates) - 1].date
+        mv_yesterday = hpr_history[len(hpr_history) - 1].mv
 
         # Two if statements factor subtract deposits / add back withdraws
         # dividends / interest fees / etc, are already added in via holdings history
-        if mv_yesterday_date in cash_transactions_by_date:
-            mv_yesterday = modify_market_value_by_cash_flow(
-                market_value=mv_yesterday, transactions=cash_transactions_by_date[mv_yesterday_date]
+        if mv_today_date in cash_transactions_by_date:
+            mv_today = modify_market_value_by_cash_flow(
+                market_value=mv_today, transactions=cash_transactions_by_date[mv_today_date]
             )
 
-        hpr = (mv_today - mv_yesterday) / mv_today
-        holding_percentage_rates.append(HoldingPercentageRate(rate=hpr, date=mv_today_date))
+        hpr_history.append(
+            HistoricalPeriod(
+                date=mv_today_date,
+                mv=mv_today,
+                hp=(mv_today - mv_yesterday) / mv_yesterday,
+            )
+        )
 
-    return holding_percentage_rates
+    return hpr_history
 
 
 def modify_market_value_by_cash_flow(
     market_value: Decimal, transactions: list[FinancialAccountTransactions]
 ) -> Decimal:
-    # TODO subtract deposits + add back withdraws
-    #   to note... dividends/interest fees / etc... are already allocated to cash in the holdings history
-    #   we do not need to account for them
-    # for tx in transactions:
-    #     if tx.type == "cash":
-    #         pass
-    #     if tx.type == ""
+    for tx in transactions:
+        if tx.type != "cash" or tx.type != "buy":
+            continue
+        if tx.subtype == "contribution":
+            market_value = market_value - tx.value_amount
+        if tx.subtype == "deposit":
+            market_value = market_value - tx.value_amount
+        if tx.subtype == "withdraw":
+            market_value = market_value + tx.value_amount
     return market_value
+
+
+@Session
+async def compute_benchmark(session: AsyncSession, benchmark_id: int) -> list[HistoricalPeriod]:
+    response = await session.execute(
+        select(SecurityPrices)
+            .where(SecurityPrices.security_id == benchmark_id)
+            .order_by(SecurityPrices.price_time.asc())
+    )
+
+    all = response.scalars().all()
+
+    hpr_history = [HistoricalPeriod(
+        date=all[0].price_time,
+        mv=all[0].price,
+        hp=0,
+    )]
+
+    for r in all[1:]:
+        yesterday = hpr_history[len(hpr_history) - 1]
+        hp = (r.price - yesterday.mv) / yesterday.mv
+        hpr_history.append(
+            HistoricalPeriod(
+                date=r.price_time,
+                mv=r.price,
+                hp=hp,
+            )
+        )
+    return hpr_history
 
 
 @Session
 async def get_user_subscription(session: AsyncSession, user_id: str, creator_id: str) -> Optional[UserSubscriptions]:
     response = await session.execute(
         select(UserSubscriptions)
-        .where(UserSubscriptions.subscriber_id == user_id)
-        .where(UserSubscriptions.creator_id == creator_id)
+            .where(UserSubscriptions.subscriber_id == user_id)
+            .where(UserSubscriptions.creator_id == creator_id)
     )
     return response.scalar()
 
@@ -203,12 +292,27 @@ async def get_user_subscription(session: AsyncSession, user_id: str, creator_id:
 async def get_user_holdings_with_securities_data(session: AsyncSession, user_id: str) -> list:
     response = await session.execute(
         select(FinancialAccountHoldingsHistory, PlaidSecurities)
-        .join(PlaidSecurities)
-        .join(FinancialAccounts)
-        .where(
+            .join(PlaidSecurities)
+            .join(FinancialAccounts)
+            .where(
             FinancialAccounts.user_id == user_id,
             FinancialAccountHoldingsHistory.holding_date
             == select(func.max(FinancialAccountHoldingsHistory.holding_date)),
+        )
+    )
+    return response.all()
+
+
+@Session
+async def get_user_baseline_holdings(session: AsyncSession, user_id: str) -> list:
+    response = await session.execute(
+        select(FinancialAccountHoldingsHistory, PlaidSecurities)
+            .join(PlaidSecurities)
+            .join(FinancialAccounts)
+            .where(
+            FinancialAccounts.user_id == user_id,
+            FinancialAccountHoldingsHistory.holding_date
+            == select(func.min(FinancialAccountHoldingsHistory.holding_date)),
         )
     )
     return response.all()
@@ -220,29 +324,12 @@ async def get_recent_stock_price(session: AsyncSession, ticker_symbol: str) -> O
     return (
         await session.execute(
             select(SecurityPrices)
-            .join(Securities.id)
-            .where(Securities.ticker_symbol == ticker_symbol)
-            .order_by(SecurityPrices.price_time.desc())
-            .limit(1)
+                .join(Securities.id)
+                .where(Securities.ticker_symbol == ticker_symbol)
+                .order_by(SecurityPrices.price_time.desc())
+                .limit(1)
         )
     ).scalar()
-
-
-def compute_buy_date(share_qty: Decimal, transactions: list[FinancialAccountTransactions]) -> tuple:
-    buy_date = None
-    for tx in transactions:
-        if tx.type == "buy":
-            share_qty = Decimal(share_qty) + tx.quantity
-        if tx.type == "sell":
-            share_qty = Decimal(share_qty) - tx.quantity
-
-        if buy_date is None and tx.type == "buy":
-            buy_date = tx.posting_date
-
-        if buy_date is not None and tx.type == "buy" and share_qty == 0:
-            buy_date = tx.posting_date
-
-    return buy_date, share_qty
 
 
 @Session
@@ -254,12 +341,38 @@ async def get_ticker_symbol_by_plaid_id(session: AsyncSession, plaid_id: int) ->
 async def get_trading_history(session: AsyncSession, user_id: str) -> list:
     response = await session.execute(
         select(FinancialAccountTransactions, PlaidSecurities)
-        .join(FinancialAccounts)
-        .join(PlaidSecurities)
-        .where(FinancialAccounts.user_id == user_id)
-        .order_by(FinancialAccountTransactions.posting_date.desc())
+            .join(FinancialAccounts)
+            .join(PlaidSecurities)
+            .where(FinancialAccounts.user_id == user_id)
+            .order_by(FinancialAccountTransactions.posting_date.desc())
     )
     return response.all()
+
+
+# TODO... can we have a single set of rules somewhere that we just apply things too?
+def percentage_change(
+    holdings_dict: dict[int, tuple[Decimal, Decimal]], transaction: FinancialAccountTransactions
+) -> Decimal:
+    try:
+        holding = holdings_dict[transaction.plaid_security_id]
+    except KeyError:
+        if transaction.type == "buy" or transaction.type == "transfer":
+            holdings_dict[transaction.plaid_security_id] = (Decimal(100), transaction.quantity)
+            return Decimal(100)
+        if transaction.type == "cash":
+            pass  # TODO: What should we do with cash??
+            return Decimal(100)
+        raise Exception("We should have a holding before any other transaction...")  # TODO change eventually and report
+
+    # cur_quantity = holding[1]
+    # if transaction.type == "buy":
+    #     final_quantity = cur_quantity + transaction.quantity
+    #     change = Decimal((final_quantity - cur_quantity)/cur_quantity)
+    #     holding[]
+    #     return change
+    # if transaction.type == "sell":
+    #
+    # if transaction.type == "transfer":
 
 
 def get_portfolio_value(holdings: list, user_id: str) -> PortfolioValue:

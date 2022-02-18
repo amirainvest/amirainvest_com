@@ -4,6 +4,7 @@ import uuid
 from decimal import Decimal
 
 from pydantic import BaseModel
+from typing import Optional
 
 
 class PortfolioRequest(BaseModel):
@@ -50,7 +51,7 @@ class HoldingsResponse(BaseModel):
 
 
 class HistoricalReturn(BaseModel):
-    Date: datetime.datetime
+    date: datetime.date
     daily_return: Decimal
 
 
@@ -59,11 +60,17 @@ class SectionAllocation(BaseModel):
     percentage: Decimal
 
 
-class Portfolio(BaseModel):
-    id: int
-    return_history: list[HistoricalReturn]
-    benchmark_return_history: list[HistoricalReturn]
-    portfolio_allocation: list[SectionAllocation]
+class HistoricalPeriod(BaseModel):
+    date: datetime.date
+    mv: Decimal
+    hp: Decimal
+
+
+class PortfolioResponse(BaseModel):
+    user_id: str
+    return_history: Optional[list[HistoricalReturn]]
+    benchmark_return_history: Optional[list[HistoricalReturn]]
+    portfolio_allocation: Optional[list[SectionAllocation]]
     total_return: Decimal
     beta: Decimal
     sharpe_ratio: Decimal
@@ -75,10 +82,5 @@ class Portfolio(BaseModel):
 
 
 class MarketValue(BaseModel):
-    value: Decimal
-    date: datetime.date
-
-
-class HoldingPercentageRate(BaseModel):
     value: Decimal
     date: datetime.date

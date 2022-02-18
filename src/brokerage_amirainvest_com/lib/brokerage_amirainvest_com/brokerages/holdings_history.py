@@ -22,11 +22,6 @@ from common_amirainvest_com.schemas.schema import (
 from common_amirainvest_com.utils.decorators import Session
 
 
-# TODO should we have a holdings and a price date(e.g., a price_date could be price time could be priced further back
-#  than a holding?
-# TODO add a buy_back date so its easier to query on the frontend ....
-
-
 class HistoricalAccount(BaseModel):
     class Config:
         arbitrary_types_allowed = True
@@ -53,9 +48,8 @@ async def run(user_id: str):
         holdings = await get_current_financial_holdings(account_id=account.id)
 
         # Need to find today or prior day trading day, and set our holdings that price
-        # We also need to adjust and make sure that the day is over...?
         next_trading_day = find_next_trading_day(
-            datetime.now().replace(hour=21, minute=0, second=0, microsecond=0), market_holidays
+            day=datetime.now().replace(hour=21, minute=0, second=0, microsecond=0), market_holidays=market_holidays
         )
 
         historical_account = await create_historical_account(
@@ -94,60 +88,75 @@ async def run(user_id: str):
                 if sp is not None:
                     p = sp.price
                 today_holding.price = p
-                today_holding.price_time = tomorrow
+                today_holding.holding_date = tomorrow
                 tomorrow_holdings.holdings.append(today_holding)
 
             historical_account_holdings.append(tomorrow_holdings)
 
-        insertable = []
-        iex_cash_security = await get_cash_security_iex()
-        historical_account_holdings = historical_account_holdings.reverse()
+        historical_account_holdings.reverse()
+        await add_holdings_to_database(
+            end_date=end_date,
+            historical_holdings=historical_account_holdings,
+            plaid_cash_security=plaid_cash_security
+        )
 
-        buy_date_dict: [int, date] = {}
-        cost_basis_dict: [int, decimal.Decimal] = {}
-        for historical_account_holding in historical_account_holdings:
-            cash_holding = FinancialAccountHoldingsHistory(
-                account_id=historical_account_holding.id,
-                plaid_security_id=plaid_cash_security.id,
-                security_id=iex_cash_security.id,
-                price=1,
-                holding_date=historical_account_holding.date,
-                quantity=historical_account_holding.cash,
-                buy_date=end_date,
-            )
 
-            # TODO this is going to be weird with short positions, or covers...
-            insertable.append(cash_holding)
-            for h in historical_account_holding.holdings:
+async def add_holdings_to_database(
+    end_date: datetime, historical_holdings: list[FinancialAccountHoldingsHistory], plaid_cash_security: PlaidSecurities
+):
+    insertable = []
+    buy_date_dict: [int, date] = {}
+    cost_basis_dict: [int, decimal.Decimal] = {}
+    for historical_account_holding in historical_holdings:
+        cash_holding = FinancialAccountHoldingsHistory(
+            account_id=historical_account_holding.id,
+            plaid_security_id=plaid_cash_security.id,
+            security_id=plaid_cash_security.security_id,
+            price=1,
+            holding_date=historical_account_holding.date,
+            quantity=historical_account_holding.cash,
+            buy_date=end_date,
+            date=datetime.utcnow()
+        )
+
+        insertable.append(cash_holding)
+        for h in historical_account_holding.holdings:
+            h.date = datetime.utcnow()
+            try:
+                buy_date = buy_date_dict[h.plaid_security_id]
+            except KeyError:
+                buy_date = historical_account_holding.date
+
+            try:
+                cost_basis = buy_date_dict[h.plaid_security_id]
+            except KeyError:
+                cost_basis = h.price
+
+            if h.quantity == 0:
                 try:
-                    buy_date = buy_date_dict[h.plaid_security_id]
-                except KeyError:
-                    buy_date = historical_account_holding.date
-
-                try:
-                    cost_basis = buy_date_dict[h.plaid_security_id]
-                except KeyError:
-                    cost_basis = h.price
-
-                if h.quantity == 0:
                     del buy_date_dict[h.plaid_security_id]
+                except KeyError:
+                    pass
+                try:
                     del cost_basis_dict[h.plaid_security_id]
-                    continue
+                except KeyError:
+                    pass
+                continue
 
-                h.buy_date = buy_date
-                h.cost_basis = cost_basis
-                insertable.append(h)
-        await insert_historical_holdings(insertable)
+            h.buy_date = buy_date
+            h.cost_basis = cost_basis
+            insertable.append(h)
+    await insert_historical_holdings(insertable)
 
 
-def find_next_trading_day(day: datetime, market_holidays: dict[datetime, None]) -> datetime:
+def find_next_trading_day(day: datetime, market_holidays: dict[date, None]) -> datetime:
     while not is_trading_day(day, market_holidays):
         day = day - relativedelta(days=1)
     return day
 
 
-def is_trading_day(day: datetime, market_holidays: dict[datetime, None]) -> bool:
-    if day.date() in market_holidays or day.weekday() > 4:
+def is_trading_day(day: date, market_holidays: dict[date, None]) -> bool:
+    if day in market_holidays or day.weekday() > 4:
         return False
     return True
 
@@ -164,8 +173,6 @@ async def create_historical_account(
     for holding in holdings:
         security_id = await get_security_id_by_plaid_security_id(holding.plaid_security_id)
 
-        # TODO we could either keep cash as a property on account, or... as a security, thinking
-        #   we just keep it as a property for now...
         if holding.plaid_security_id == cash_security.id:
             historical_account.cash = holding.quantity
             continue
@@ -175,10 +182,9 @@ async def create_historical_account(
                 account_id=holding.account_id,
                 plaid_security_id=holding.plaid_security_id,
                 security_id=security_id,
-                user_id=user_id,
-                price=holding.latest_price,
-                price_time=trading_day,
                 quantity=holding.quantity,
+                price=holding.latest_price,
+                holding_date=trading_day,
             )
         )
 
@@ -229,7 +235,7 @@ async def sell_sell(
                 security_id=sec_id,
                 user_id=account_holdings.user_id,
                 price=transaction.price,
-                price_time=None,
+                holding_date=None,
                 quantity=(-1 * transaction.quantity),
             )
         )
@@ -281,7 +287,7 @@ def get_current_holding_if_exists(
     transaction: FinancialAccountTransactions, holdings: list[FinancialAccountHoldingsHistory]
 ) -> Tuple[Optional[FinancialAccountHoldingsHistory], Optional[int]]:
     for idx, holding in enumerate(holdings):
-        if transaction.security_id == holding.plaid_security_id and transaction.type:
+        if transaction.plaid_security_id == holding.plaid_security_id and transaction.type:
             return holding, idx
     return None, None
 
@@ -293,15 +299,7 @@ async def insert_historical_holdings(session: AsyncSession, historical_holdings:
 
 @Session
 async def get_cash_security_plaid(session: AsyncSession) -> Optional[PlaidSecurities]:
-    # TODO should we use a different security id, what if we buy on the FX?
     response = await session.execute(select(PlaidSecurities).where(PlaidSecurities.ticker_symbol == "CUR:USD"))
-    return response.scalar()
-
-
-@Session
-async def get_cash_security_iex(session: AsyncSession) -> Optional[SecurityPrices]:
-    # TODO should we use a different security id, what if we buy on the FX?
-    response = await session.execute(select(Securities).where(Securities.ticker_symbol == "CUR:USD"))
     return response.scalar()
 
 
@@ -311,10 +309,10 @@ async def get_closest_price(
 ) -> Optional[SecurityPrices]:
     response = await session.execute(
         select(SecurityPrices)
-        .join(Securities)
-        .where(Securities.id == security_id, SecurityPrices.price_time <= posting_date)
-        .order_by(SecurityPrices.price_time.desc())
-        .limit(1)
+            .join(Securities)
+            .where(Securities.id == security_id, SecurityPrices.price_time <= posting_date)
+            .order_by(SecurityPrices.price_time.desc())
+            .limit(1)
     )
     return response.scalar()
 
@@ -338,12 +336,12 @@ async def get_security_id_by_plaid_security_id(session: AsyncSession, plaid_secu
 
 
 @Session
-async def get_market_holidays_dict(session: AsyncSession) -> dict[datetime, None]:
+async def get_market_holidays_dict(session: AsyncSession) -> dict[date, None]:
     response = await session.execute(select(MarketHolidays))
 
-    holiday_dict: dict[datetime, None] = {}
+    holiday_dict: dict[date, None] = {}
     for holiday in response.scalars().all():
-        holiday_dict[holiday.date.date()] = None
+        holiday_dict[holiday.date] = None
     return holiday_dict
 
 
@@ -365,9 +363,8 @@ async def get_financial_transactions_dict(
 
 
 @Session
-async def get_current_financial_holdings(
-    session: AsyncSession, account_id: int
-) -> list[FinancialAccountCurrentHoldings]:
+async def get_current_financial_holdings(session: AsyncSession, account_id: int) \
+        -> list[FinancialAccountCurrentHoldings]:
     response = await session.execute(
         select(FinancialAccountCurrentHoldings).where(FinancialAccountCurrentHoldings.account_id == account_id)
     )
@@ -381,4 +378,4 @@ async def get_financial_accounts(session: AsyncSession, user_id: str) -> list[Fi
 
 
 if __name__ == "__main__":
-    asyncio.run(run(user_id="f6b8bdfc-5a9d-11ec-bc23-0242ac1a0002"))
+    asyncio.run(run(user_id="53a7c663-2c10-47d1-afbc-bf3962f0dbd0"))

@@ -39,7 +39,7 @@ async def create_platforms_route(platform_data: t.List[PlatformModel], token=Dep
 async def claim_platforms_route():
     #update husk info
     #update subscribers, posts
-    #generate notifications
+    #generate notifications here, in the controller functions
     pass
 
 

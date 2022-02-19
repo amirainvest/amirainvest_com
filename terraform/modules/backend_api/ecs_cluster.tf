@@ -1,17 +1,10 @@
 resource "aws_ecs_cluster" "api" {
-  capacity_providers = ["FARGATE", "FARGATE_SPOT"]
-
   configuration {
     execute_command_configuration {
       logging = "DEFAULT"
     }
   }
 
-  default_capacity_provider_strategy {
-    base              = "0"
-    capacity_provider = "FARGATE_SPOT"
-    weight            = "1"
-  }
 
   name = "api"
 
@@ -26,5 +19,15 @@ resource "aws_ecs_cluster" "api" {
 
   tags_all = {
     "ecs:cluster:createdFrom" = "ecs-console-v2"
+  }
+}
+
+resource "aws_ecs_cluster_capacity_providers" "api" {
+  cluster_name       = aws_ecs_cluster.api.name
+  capacity_providers = ["FARGATE", "FARGATE_SPOT"]
+  default_capacity_provider_strategy {
+    base              = "0"
+    weight            = "1"
+    capacity_provider = "FARGATE_SPOT"
   }
 }

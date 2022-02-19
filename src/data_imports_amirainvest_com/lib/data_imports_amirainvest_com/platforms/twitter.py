@@ -147,6 +147,7 @@ class TwitterUser(PlatformUser):
                         "twitter_handle": self.username,
                         "platform_post_id": tweet.tweet_id,
                         "platform_post_url": tweet.tweet_url,
+                        "created_at": created_at,
                     }
                 )
         return tweets, tweet_posts

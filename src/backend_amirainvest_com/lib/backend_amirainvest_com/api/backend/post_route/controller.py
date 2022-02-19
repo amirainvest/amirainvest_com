@@ -11,6 +11,7 @@ from backend_amirainvest_com.utils.s3 import S3
 from common_amirainvest_com.s3.consts import AMIRA_POST_PHOTOS_S3_BUCKET
 from common_amirainvest_com.schemas import schema
 from common_amirainvest_com.utils.decorators import Session
+from common_amirainvest_com.controllers.notifications import create_notification
 
 
 @Session
@@ -37,6 +38,12 @@ async def update_controller(session: AsyncSession, user_id: str, update_data: Up
 async def create_controller(session: AsyncSession, user_id: str, create_data: CreateModel) -> Row:
     create_data_dict = create_data.dict(exclude_none=True)
     create_data_dict["creator_id"] = user_id
+    creator = (await session.execute(select(schema.Users).where(schema.Users.id == user_id))).scalars().one()
+    (
+        await create_notification(
+            user_id, "amira_post", f"New Post From {creator.first_name} {creator.last_name}", user_id
+        )
+    )
     return (await session.execute(insert(schema.Posts).values(**create_data_dict).returning(schema.Posts))).one()
 
 

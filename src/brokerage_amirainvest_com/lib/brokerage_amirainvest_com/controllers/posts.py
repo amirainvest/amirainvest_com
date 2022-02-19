@@ -14,6 +14,7 @@ from common_amirainvest_com.schemas.schema import (
     Users,
 )
 from common_amirainvest_com.utils.decorators import Session
+from common_amirainvest_com.controllers.notifications import create_notification
 
 
 @Session
@@ -46,6 +47,12 @@ async def create_trade_post(
         platform_post_url=None,
     )
     session.add(post)
+    creator = (await session.execute(select(Users).where(Users.id == creator_id))).scalars().one()
+    (
+        await create_notification(
+            creator_id, "amira_post", f"New Trade From {creator.first_name} {creator.last_name}", str(post.id)
+        )
+    )
     return post
 
 

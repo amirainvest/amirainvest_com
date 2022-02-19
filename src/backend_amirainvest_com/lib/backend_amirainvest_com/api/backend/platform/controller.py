@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import parse_obj_as
 
 from backend_amirainvest_com.api.backend.user_route.controller import handle_data_imports
-from backend_amirainvest_com.api.backend.platform.model import PlatformModel
+from backend_amirainvest_com.api.backend.platform.model import PlatformModel, CreatePlatformModel
 from common_amirainvest_com.utils.decorators import Session
 from common_amirainvest_com.schemas.schema import TwitterUsers, YouTubers, SubstackUsers, Users
 
@@ -73,12 +73,13 @@ async def check_platforms(platform_data: t.List[PlatformModel]):
     claimed_platforms = []
     for p in platform_data:
         if p.platform == "twitter":
-            platform, claimed = await check_twitter_username(p.username)
+            platform, user = await check_twitter_username(p.username)
         elif p.platform == "youtube":
-            platform, claimed = await check_youtube_username(p.username)
+            platform, user = await check_youtube_username(p.username)
         elif p.platform == "substack":
-            platform, claimed = await check_substack_username(p.username)
+            platform, user = await check_substack_username(p.username)
         
+        claimed = user.is_claimed
         if claimed:
             claimed_platforms.append(platform)
         else:
@@ -92,7 +93,7 @@ async def check_twitter_username(session: AsyncSession, username: str):
     twitter, users = (
         await (
             session.execute(
-                select(TwitterUsers.username, Uses.is_claimed)
+                select(TwitterUsers.username, Users)
                 .join(Users)
                 .where(TwitterUsers.username == username)
             )
@@ -105,7 +106,7 @@ async def check_twitter_username(session: AsyncSession, username: str):
 async def check_substack_username(session: AsyncSession, username: str):
     substack, users =  (
         await session.execute(
-            select(SubstackUsers.username, Users.is_claimed)
+            select(SubstackUsers.username, Users)
             .join(Users)
             .where(SubstackUsers.username == username)
         )
@@ -118,7 +119,7 @@ async def check_youtube_username(session: AsyncSession, username: str):
     youtube, users = (
         await (
             session.execute(
-                select(YouTubers.channel_username, Users.is_claimed)
+                select(YouTubers.channel_username, Users)
                 .join(Users)
                 .where(YouTubers.channel_username == username)
             )
@@ -144,12 +145,28 @@ async def create_platforms(user_id: str, platform_data: t.List[PlatformModel]) -
 #update subscribers, posts
 #generate notifications here, in the controller functions
 async def update_after_claim(claimed_platforms: t.List[PlatformModel], user_id: str):
+    husk_user_ids = await get_husk_user_id
     pass
 
 
-@Session
-async def get_husk_user_id(session: AsyncSession, claimed_platforms:t.List[PlatformModel]) -> str:
-    pass
+async def get_husk_user_id(claimed_platforms:t.List[PlatformModel]) -> t.List:
+    husk_user_ids = []
+    for p in claimed_platforms:
+        if p.platform == "twitter":
+            platform, user = await check_twitter_username(p.username)
+        elif p.platform == "youtube":
+            platform, user = await check_youtube_username(p.username)
+        elif p.platform == "substack":
+            platform, user = await check_substack_username(p.username)
+        
+        husk_user_ids.append(
+            {
+                "platform":platform, 
+                "user_id": user.user_id
+            }
+        )
+    return husk_user_ids
+
 
 @Session
 async def update_husk_platforms(session: AsyncSession, claimed_platforms: t.List[PlatformModel], user_id: str):
@@ -162,5 +179,5 @@ async def update_husk_subscribers(session: AsyncSession, claimed_platforms: t.Li
 
 
 if __name__=="__main__":
-    substack, users = asyncio.run(check_substack_username(username='testuser', claimed=False))
-    print(substack, users)
+    substack, users = asyncio.run(check_substack_username(username='testuser'))
+    print(substack, users, users.is_claimed, users.username)

@@ -11,5 +11,5 @@ class PlatformModel(BaseModel):
 
 
 class CreatePlatformModel(PlatformModel):
-    unclaimed_user: bool = False
+    is_claimed: bool = True
 

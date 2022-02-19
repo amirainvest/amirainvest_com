@@ -4,7 +4,9 @@ import typing as t
 from sqlalchemy import insert, update, select
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
+from pydantic import parse_obj_as
 
+from backend_amirainvest_com.api.backend.user_route.controller import handle_data_imports
 from backend_amirainvest_com.api.backend.platform.model import PlatformModel
 from common_amirainvest_com.utils.decorators import Session
 from common_amirainvest_com.schemas.schema import TwitterUsers, YouTubers, SubstackUsers, Users
@@ -125,27 +127,38 @@ async def check_youtube_username(session: AsyncSession, username: str):
     return ({"youtube":youtube}, users)
 
 
-@Session
-async def update_after_claim(session: AsyncSession,): #update_claim_data: t.List[UpdateClaimModel]):
+
+async def create_platforms(user_id: str, platform_data: t.List[PlatformModel]) -> t.List[CreatePlatformModel]:
+    data_import_message = {"creator_id":user_id}
+    for p in platform_data:
+        if p.platform == "twitter":
+            data_import_message["twitter_username"] = p.platform
+        elif p.platform == "youtube":
+            data_import_message["youtube_channel_id"] = p.platform
+        elif p.platform == "substack":
+            data_import_message["substack_username"] = p.platform
+    handle_data_imports(**data_import_message)
+    return parse_obj_as(t.List[CreatePlatformModel], platform_data)
+
+#update husk info
+#update subscribers, posts
+#generate notifications here, in the controller functions
+async def update_after_claim(claimed_platforms: t.List[PlatformModel], user_id: str):
     pass
 
 
-async def create_platforms(user_id: str, platform_data: t.List[PlatformModel]) -> t.List[PlatformModel]:
+@Session
+async def get_husk_user_id(session: AsyncSession, claimed_platforms:t.List[PlatformModel]) -> str:
     pass
 
 @Session
-async def create_twitter_user(session: AsyncSession, user_id:str, username: str):
-    return
+async def update_husk_platforms(session: AsyncSession, claimed_platforms: t.List[PlatformModel], user_id: str):
+    pass
 
 
 @Session
-async def create_substack_user(session: AsyncSession, user_id:str, username: str):
-    return
-
-
-@Session
-async def create_youtube_user(session: AsyncSession, user_id:str, username: str):
-    return
+async def update_husk_subscribers(session: AsyncSession, claimed_platforms: t.List[PlatformModel], user_id: str):
+    pass
 
 
 if __name__=="__main__":

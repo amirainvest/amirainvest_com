@@ -85,7 +85,7 @@ async def create_user_no_sub(session, user_data: dict) -> Users:
     return user
 
 
-async def handle_user_create(user_data: dict):
+async def handle_user_create(user_data: dict): #depricated
     user = await create_user_no_sub(
         user_data,
     )

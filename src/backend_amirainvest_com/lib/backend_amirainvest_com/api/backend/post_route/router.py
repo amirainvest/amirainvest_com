@@ -2,7 +2,6 @@ import typing as t
 from typing import List
 
 from fastapi import APIRouter, Depends, File, status, UploadFile
-from pydantic import parse_obj_as
 
 from backend_amirainvest_com.api.backend.post_route.controller import (
     create_controller,
@@ -13,6 +12,7 @@ from backend_amirainvest_com.api.backend.post_route.controller import (
 from backend_amirainvest_com.api.backend.post_route.model import (
     CreateModel,
     GetInputModel,
+    GetResponseModel,
     UpdateModel,
     UploadPhotosModel,
 )
@@ -27,16 +27,15 @@ router = APIRouter(prefix="/post", tags=["Post"])
 
 
 @router.post(
-    "/get", status_code=status.HTTP_200_OK, response_model=t.List[PostsModel], response_model_exclude_none=True
+    "/get", status_code=status.HTTP_200_OK, response_model=t.List[GetResponseModel], response_model_exclude_none=True
 )
 async def get_route(
     get_input: GetInputModel,
     token=Depends(auth_depends_user_id),
 ):
     post_id_list = get_input.ids
-    data = await get_controller(post_id_list=post_id_list)
-    models = parse_obj_as(t.List[PostsModel], data)
-    return models
+    data = await get_controller(subscriber_id=token["https://amirainvest.com/user_id"], post_id_list=post_id_list)
+    return data
 
 
 @router.post("/create", status_code=status.HTTP_200_OK, response_model=PostsModel)

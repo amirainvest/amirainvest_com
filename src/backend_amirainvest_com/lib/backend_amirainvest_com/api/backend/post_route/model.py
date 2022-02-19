@@ -3,7 +3,11 @@ from typing import List, Optional
 
 from pydantic import BaseModel
 
+from backend_amirainvest_com.api.backend.feed_route.model import GetResponseModel
 from common_amirainvest_com.schemas.schema import MediaPlatform, SubscriptionLevel
+
+
+assert GetResponseModel
 
 
 class GetInputModel(BaseModel):

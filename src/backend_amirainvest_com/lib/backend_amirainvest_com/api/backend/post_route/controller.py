@@ -4,9 +4,9 @@ from time import time
 from sqlalchemy import insert, update
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
 
-from backend_amirainvest_com.api.backend.post_route.model import CreateModel, UpdateModel
+import common_amirainvest_com.utils.query_fragments.feed as qf
+from backend_amirainvest_com.api.backend.post_route.model import CreateModel, GetResponseModel, UpdateModel
 from backend_amirainvest_com.utils.s3 import S3
 from common_amirainvest_com.s3.consts import AMIRA_POST_PHOTOS_S3_BUCKET
 from common_amirainvest_com.schemas import schema
@@ -14,8 +14,14 @@ from common_amirainvest_com.utils.decorators import Session
 
 
 @Session
-async def get_controller(session: AsyncSession, post_id_list: t.List[int]) -> t.List[schema.Posts]:
-    return (await session.execute(select(schema.Posts).where(schema.Posts.id.in_(post_id_list)))).scalars().all()
+async def get_controller(
+    session: AsyncSession, subscriber_id: str, post_id_list: t.List[int]
+) -> t.List[GetResponseModel]:
+    query = qf.feed_select(subscriber_id=subscriber_id)
+    query = query.where(schema.Posts.id.in_(post_id_list))
+    data = await session.execute(query)
+    posts = [GetResponseModel.from_orm(post) for post in data]
+    return posts
 
 
 @Session

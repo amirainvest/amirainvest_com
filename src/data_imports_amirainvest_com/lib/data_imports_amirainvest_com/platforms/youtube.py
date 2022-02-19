@@ -131,14 +131,15 @@ class YouTuber(PlatformUser):
             for video_data in playlist_data.get("items", []):
                 created_at = parse_iso_8601_from_string(video_data["contentDetails"]["videoPublishedAt"])
                 if video_data["contentDetails"]["videoId"] not in [x.video_id for x in stored_videos]:
+                    video_id = video_data["contentDetails"]["videoId"]
                     videos.append(
                         YouTubeVideo(
                             channel_id=self.channel_id,
                             title=video_data["snippet"]["title"],
                             published_at=created_at,
                             video_id=video_data["contentDetails"]["videoId"],
-                            video_url=f"https://www.youtube.com/{video_data['contentDetails']['videoId']}",
-                            embed_url=f"https://www.youtube.com/embed/{video_data['contentDetails']['videoId']}",
+                            video_url=f"https://www.youtube.com/watch?v={video_id}",
+                            embed_url=f"https://www.youtube.com/embed/{video_id}",
                         )
                     )
                     video_posts.append(
@@ -146,7 +147,7 @@ class YouTuber(PlatformUser):
                             "creator_id": self.creator_id,
                             "subscription_level": SubscriptionLevel.standard,
                             "title": video_data["snippet"]["title"],
-                            "content": f"https://www.youtube.com/embed/{video_data['contentDetails']['videoId']}",
+                            "content": f"https://www.youtube.com/embed/{video_id}",
                             "photos": [],
                             "platform": MediaPlatform.youtube,
                             "platform_display_name": self.channel_username,
@@ -154,8 +155,8 @@ class YouTuber(PlatformUser):
                             "platform_img_url": self.profile_img_url,
                             "platform_profile_url": f"https://www.youtube.com/channel/{self.channel_id}",
                             "twitter_handle": None,
-                            "platform_post_id": video_data["contentDetails"]["videoId"],
-                            "platform_post_url": f"https://www.youtube.com/{video_data['contentDetails']['videoId']}",
+                            "platform_post_id": video_id,
+                            "platform_post_url": f"https://www.youtube.com/watch?v={video_id}",
                             "created_at": created_at,
                             "updated_at": created_at,
                         }

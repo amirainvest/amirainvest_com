@@ -1,4 +1,5 @@
 import datetime
+import decimal
 import enum
 import typing as t
 import uuid
@@ -15,16 +16,18 @@ from sqlalchemy import (
     DECIMAL,
     Enum,
     ForeignKey,
+    func,
+    Index,
     Integer,
     String,
     text,
     UniqueConstraint,
 )
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP, UUID
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.sql import expression
-from sqlalchemy.types import DateTime
+from sqlalchemy.types import Date, DateTime
 
 
 Base = declarative_base()
@@ -136,10 +139,10 @@ class Users(Base, ToDict):
     linkedin_profile = Column(String)
     personal_site_url = Column(String)
     picture_url = Column(String)
-    public_holdings = Column(Boolean)
-    public_performance = Column(Boolean)
-    public_profile = Column(Boolean)
-    public_trades = Column(Boolean)
+    public_holdings_activate = Column(Boolean, server_default=expression.false())
+    public_performance_activate = Column(Boolean, server_default=expression.false())
+    public_profile_deactivate = Column(Boolean, server_default=expression.false())
+    public_trades_activate = Column(Boolean, server_default=expression.false())
     trading_strategies = Column(ARRAY(String))
 
     created_at = Column(DateTime, server_default=UTCNow())
@@ -172,10 +175,10 @@ class UsersModel(BaseModel):
     linkedin_profile: Optional[str]
     personal_site_url: Optional[str]
     picture_url: Optional[str]
-    public_holdings: Optional[bool]
-    public_performance: Optional[bool]
-    public_profile: Optional[bool]
-    public_trades: Optional[bool]
+    public_holdings_activate: Optional[bool]
+    public_performance_activate: Optional[bool]
+    public_profile_deactivate: Optional[bool]
+    public_trades_activate: Optional[bool]
     trading_strategies: Optional[list[str]]
 
     created_at: Optional[datetime.datetime]
@@ -679,7 +682,7 @@ class FinancialAccountTransactions(Base, ToDict):
     plaid_investment_transaction_id = Column(String, unique=True, nullable=False)
 
     name = Column(String, nullable=False)
-    posting_date = Column(DateTime, nullable=False)
+    posting_date = Column(TIMESTAMP(timezone=True), nullable=False)
     price = Column(DECIMAL(19, 4), nullable=False)
     quantity: Decimal = Column(DECIMAL, nullable=False)
     subtype = Column(String, nullable=False)
@@ -708,7 +711,7 @@ class FinancialAccountCurrentHoldings(Base, ToDict):
 
     cost_basis = Column(DECIMAL(19, 4))
     iso_currency_code = Column(String)
-    latest_price_date = Column(DateTime)
+    latest_price_date = Column(TIMESTAMP(timezone=True), nullable=False)
     unofficial_currency_code = Column(String)
 
     created_at = Column(DateTime, server_default=UTCNow())
@@ -749,7 +752,7 @@ class PlaidSecurityPrices(Base, ToDict):
     plaid_securities_id = Column(Integer, ForeignKey("plaid_securities.id"), nullable=False)
 
     price = Column(DECIMAL(19, 4), nullable=False)
-    price_time = Column(DateTime, nullable=False)
+    price_time: datetime.datetime = Column(TIMESTAMP(timezone=True), nullable=False)
 
     created_at = Column(DateTime, server_default=UTCNow())
 
@@ -790,6 +793,8 @@ class Securities(Base, ToDict):
     name = Column(String, nullable=False)
     open_price = Column(DECIMAL(19, 4), nullable=False)
 
+    founding_date = Column(Date)
+    asset_type = Column(String)
     address = Column(String)
     ceo = Column(String)
     currency = Column(String)
@@ -808,17 +813,94 @@ class Securities(Base, ToDict):
     last_updated = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
 
+# TODO Note.. we should be cognizant of time and time zone...
+class SecurityInformation(Base, ToDict):
+    __tablename__ = "security_information"
+
+    id: int = Column(Integer, primary_key=True, unique=True, nullable=False, autoincrement=True)
+
+    security_id: int = Column(Integer, ForeignKey("securities.id"), unique=True, nullable=False)
+
+    average_total_volume = Column(DECIMAL(19, 5))
+    change = Column(DECIMAL(19, 5))
+    change_percentage = Column(DECIMAL(19, 5))
+    close = Column(DECIMAL(19, 5))
+    close_source = Column(String)
+    close_time = Column(Integer)
+    currency = Column(String)
+    delayed_price = Column(DECIMAL(19, 5))
+    delayed_price_time = Column(Integer)
+    extended_change = Column(DECIMAL(19, 5))
+    extended_change_percentage = Column(DECIMAL(19, 5))
+    extended_price = Column(DECIMAL(19, 4))
+    extended_price_time = Column(Integer)
+    high = Column(DECIMAL(19, 4))
+    high_source = Column(String)
+    high_time = Column(Integer)
+    iex_ask_price = Column(DECIMAL(19, 4))
+    iex_ask_size = Column(Integer)
+    iex_bid_price = Column(DECIMAL(19, 4))
+    iex_bid_size = Column(Integer)
+    iex_close = Column(DECIMAL(19, 4))
+    iex_close_time = Column(Integer)
+    iex_last_updated = Column(Integer)
+    iex_market_percentage = Column(DECIMAL(19, 5))
+    iex_open = Column(DECIMAL(19, 4))
+    iex_open_time = Column(Integer)
+    iex_realtime_price = Column(DECIMAL(19, 4))
+    iex_real_time_size = Column(DECIMAL(19, 5))
+    iex_volume = Column(DECIMAL(19, 4))
+    last_trade_time = Column(Integer)
+    latest_price = Column(DECIMAL(19, 4))
+    latest_source = Column(String)
+    latest_time = Column(String)
+    latest_update = Column(Integer)
+    latest_volume = Column(DECIMAL(19, 5))
+    low = Column(DECIMAL(19, 4))
+    low_source = Column(String)
+    low_time = Column(Integer)
+    market_cap = Column(DECIMAL(19, 4))
+    odd_lot_delayed_price = Column(DECIMAL(19, 4))
+    odd_lot_delayed_price_time = Column(Integer)
+    open = Column(DECIMAL(19, 4))
+    open_time = Column(Integer)
+    open_source = Column(String)
+    pe_ratio = Column(DECIMAL(19, 4))
+    previous_close = Column(DECIMAL(19, 4))
+    previous_volume = Column(DECIMAL(19, 4))
+    volume = Column(DECIMAL(19, 4))
+    week_high_52 = Column(DECIMAL(19, 4))
+    week_low_52 = Column(DECIMAL(19, 4))
+    ytd_change = Column(DECIMAL(10, 4))
+
+    created_at = Column(DateTime, server_default=UTCNow())
+    updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
+
+
 class SecurityPrices(Base, ToDict):
     __tablename__ = "security_prices"
-    __table_args__ = (UniqueConstraint("security_id", "price_time"),)
     id = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
 
     security_id = Column(Integer, ForeignKey("securities.id"), nullable=False)
 
-    price = Column(DECIMAL(19, 4), nullable=False)
-    price_time = Column(DateTime, nullable=False)
+    price: decimal.Decimal = Column(DECIMAL(19, 4), nullable=False)
+    price_time: datetime.datetime = Column(TIMESTAMP(timezone=True), nullable=False)
 
     created_at = Column(DateTime, server_default=UTCNow())
+
+    __table_args__ = (
+        UniqueConstraint("security_id", "price_time"),
+        Index("security_prices_price_time_idx", func.brin(price_time), postgresql_using="brin"),
+    )
+
+
+class MarketHolidays(Base, ToDict):
+    __tablename__ = "market_holidays"
+    id = Column(Integer, primary_key=True, unique=True, nullable=False, autoincrement=True)
+    date: datetime.datetime = Column(DateTime, unique=True, nullable=False)
+    settlement_date: datetime.datetime = Column(DateTime, nullable=False)
+    created_at = Column(DateTime, server_default=UTCNow())
+    updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
 
 class Notifications(Base, ToDict):

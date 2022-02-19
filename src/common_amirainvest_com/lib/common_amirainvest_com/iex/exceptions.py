@@ -1,0 +1,2 @@
+class IEXException(Exception):
+    pass

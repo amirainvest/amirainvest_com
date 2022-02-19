@@ -1,9 +1,10 @@
 import asyncio
 import time
 
+from common_amirainvest_com.iex.client import get_historical_prices
+from common_amirainvest_com.iex.model import HistoricalPriceEnum
 from common_amirainvest_com.schemas.schema import Securities
 from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
-from market_data_amirainvest_com.iex import get_historical_prices, HistoricalPriceEnum
 from market_data_amirainvest_com.repository import add_to_db, get_securities, group_securities
 
 

@@ -4,6 +4,7 @@ from time import time
 from sqlalchemy import insert, update
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
 import common_amirainvest_com.utils.query_fragments.feed as qf
 from backend_amirainvest_com.api.backend.post_route.model import CreateModel, GetResponseModel, UpdateModel

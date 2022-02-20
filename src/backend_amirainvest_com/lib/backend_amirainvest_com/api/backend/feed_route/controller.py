@@ -1,6 +1,7 @@
 from typing import List, Tuple
 
 import sqlalchemy as sa
+from sqlalchemy import Date
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import common_amirainvest_com.utils.query_fragments.feed as qf
@@ -108,7 +109,7 @@ async def get_discovery_feed(
             subscriber_count_cte,
             subscriber_count_cte.c.creator_id == schema.Posts.creator_id,
         )
-        .order_by(sa.sql.extract("day", schema.Posts.created_at).desc())
+        .order_by(sa.cast(schema.Posts.created_at, Date).desc())
         .order_by(schema.Posts.platform.asc())
         .order_by(subscriber_count_cte.c.subscriber_count.desc())
     )

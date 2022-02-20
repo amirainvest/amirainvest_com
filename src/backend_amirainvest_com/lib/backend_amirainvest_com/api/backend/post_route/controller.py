@@ -8,10 +8,10 @@ from sqlalchemy.future import select
 
 from backend_amirainvest_com.api.backend.post_route.model import CreateModel, UpdateModel
 from backend_amirainvest_com.utils.s3 import S3
+from common_amirainvest_com.controllers.notifications import create_notification
 from common_amirainvest_com.s3.consts import AMIRA_POST_PHOTOS_S3_BUCKET
 from common_amirainvest_com.schemas import schema
 from common_amirainvest_com.utils.decorators import Session
-from common_amirainvest_com.controllers.notifications import create_notification
 
 
 @Session
@@ -41,7 +41,11 @@ async def create_controller(session: AsyncSession, user_id: str, create_data: Cr
     creator = (await session.execute(select(schema.Users).where(schema.Users.id == user_id))).scalars().one()
     (
         await create_notification(
-            user_id, "amira_post", f"New Post From {creator.first_name} {creator.last_name}", user_id
+            user_id,
+            "amira_post",
+            {"text": f"New Post From {creator.first_name} {creator.last_name}"},
+            user_id,
+            creator.picture_url,
         )
     )
     return (await session.execute(insert(schema.Posts).values(**create_data_dict).returning(schema.Posts))).one()

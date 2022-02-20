@@ -4,12 +4,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from backend_amirainvest_com.api.backend.notifications.model import (
-    CreateModel,
     CreateSettingsModel,
     UpdateModel,
     UpdateSettingsModel,
 )
-from common_amirainvest_com.schemas.schema import Notifications, NotificationSettings, NotificationTypes
+from common_amirainvest_com.schemas.schema import Notifications, NotificationSettings
 from common_amirainvest_com.utils.decorators import Session
 
 

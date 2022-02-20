@@ -3,6 +3,7 @@ from datetime import datetime
 from sqlalchemy import extract, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from common_amirainvest_com.controllers.notifications import create_notification
 from common_amirainvest_com.schemas.schema import (
     FinancialAccountCurrentHoldings,
     FinancialAccounts,
@@ -14,7 +15,6 @@ from common_amirainvest_com.schemas.schema import (
     Users,
 )
 from common_amirainvest_com.utils.decorators import Session
-from common_amirainvest_com.controllers.notifications import create_notification
 
 
 @Session
@@ -30,12 +30,14 @@ async def create_trade_post(
     transaction_id,
     transaction_value: float,
     security_ticker: str,
+    security_purchase_price: float,
 ) -> Posts:
+    trade_action, content = await generate_content(creator_id, security_ticker, transaction_value)
     post = Posts(
         creator_id=creator_id,
         subscription_level=SubscriptionLevel.standard,
         title=None,
-        content=(await generate_content(creator_id, security_ticker, transaction_value)),
+        content=content,
         photos=[],
         platform=MediaPlatform.brokerage,
         platform_display_name=None,
@@ -50,7 +52,17 @@ async def create_trade_post(
     creator = (await session.execute(select(Users).where(Users.id == creator_id))).scalars().one()
     (
         await create_notification(
-            creator_id, "amira_post", f"New Trade From {creator.first_name} {creator.last_name}", str(post.id)
+            creator_id,
+            "trade",
+            {
+                "ticker": security_ticker,
+                "trade_action": trade_action,
+                "amira_username": creator.username,
+                "created_at": post.created_at,
+                "ticker_purchase_price": security_purchase_price,
+            },
+            creator_id,
+            creator.picture_url,
         )
     )
     return post
@@ -81,6 +93,7 @@ async def create_day_transaction_posts():
             transaction["plaid_investment_transaction_id"],
             transaction["value_amount"],
             security["ticker_symbol"],
+            transaction["price"],
         )
 
 
@@ -147,4 +160,4 @@ async def generate_content(creator_id: str, security_ticker: str, transaction_va
         "decreased_long": f"Decreased position in {security_ticker} by {percentage_of_portfolio}%",
         "decreased_short": f"Decreased short position in {security_ticker} by {percentage_of_portfolio}%",
     }[trade_action]
-    return f"""<p>{text}</p>"""
+    return trade_action, f"""<p>{text}</p>"""

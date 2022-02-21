@@ -1,9 +1,10 @@
 import asyncio
 import typing as t
 
-from sqlalchemy import insert, update, select
+from sqlalchemy import update, select
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.dialects.postgresql import insert
 from pydantic import parse_obj_as
 
 from backend_amirainvest_com.api.backend.user_route.controller import handle_data_imports
@@ -145,21 +146,25 @@ async def create_platforms(user_id: str, platform_data: t.List[PlatformModel]) -
 #update subscribers
 #update posts
 #generate notifications here, in the controller functions
-async def update_after_claim(claimed_platforms: t.List[PlatformModel], user_id: str):
+async def claim_platforms(claimed_platforms: t.List[PlatformModel], user_id: str):
     husk_platform_ids = await get_husk_platform_user_id(claimed_platforms)
     await update_husk_platforms(user_id, husk_platform_ids)
     await update_husk_posts(user_id, husk_platform_ids)
     unique_husk_user_ids = await check_husk_user_ids_unique(husk_platform_ids)
-    await update_husk_subscribers(user_id, unique_husk_user_ids)
+    husk_subscribers = await get_husk_broadcast_requests(unique_husk_user_ids)
+    await update_husk_subscribers(user_id, husk_subscribers)
     #await generate_notifications()
+    claimed = parse_obj_as(t.List[CreatePlatformModel], platform_data)
+    for p in claimed:
+        p.is_claimed = True
+    return claimed
 
 
 async def check_husk_user_ids_unique(husk_user_ids: t.List) -> t.List:
-    unique_ids = []
+    unique_ids = set()
     for husk in husk_user_ids:
-        if husk["user_id"] not in unique_ids:
-            unique_ids.append(husk["user_id"])
-    return unique_ids
+        unique_ids.add(husk["user_id"])
+    return list(unique_ids)
 
 
 
@@ -227,15 +232,38 @@ async def update_husk_posts(session: AsyncSession, user_id: str, husk_platform_i
         )
 
 @Session
-async def get_husk_broadcast_requests(session: AsyncSession, user_id: str, husk_unique_ids: t.List):
+async def get_husk_broadcast_requests(session: AsyncSession, husk_unique_ids: t.List) ->t.List:
+    unique_requests = []
     for husk_id in husk_unique_ids:
         requests = (await session.execute(
             select(BroadcastRequests.subscriber_id)
             .where(BroadcastRequests.creator_id == husk_id)
         )).all()
+        temp = {
+            "husk_id":husk_id,
+            "unique_requests":list(set([x[0] for x in requests]))
+        }
+        unique_requests.append(temp) 
+    return unique_requests
+
+@Session
+async def update_husk_subscribers(session: AsyncSession, user_id: str, husk_subscribers: t.List):
+    updated_subscriptions = []
+    for husk in husk_subscribers:
+        await session.execute(
+            update(UserSubscriptions)
+            .where(UserSubscriptions.creator_id == husk["husk_id"])
+            .where(UserSubscriptions.subscriber_id.in_(husk["unique_requests"]))
+            .values({"creator_id":user_id})
+        )
+
+        vals = [{"subscriber_id":x, "creator_id":user_id} for x in husk["unique_requests"]]
+        stmt = insert(UserSubscriptions).values(vals)
+        stmt = stmt.on_conflict_do_nothing(constraint="uq_user_sub")
+        await session.execute(stmt)
+        
 
 
 
-if __name__=="__main__":
-    substack, users = asyncio.run(check_substack_username(username='testuser'))
-    print(substack, users, users.is_claimed, users.username)
+# if __name__=="__main__":
+#     asyncio.run(update_husk_subscribers('8133ef39-5df5-4e35-a127-629309e53828', [{'husk_id': '8133ef39-5df5-4e35-a127-629309e53890', 'unique_requests': ['8133ef39-5df5-4e35-a127-629309e66666', '8133ef39-5df5-4e35-a127-629309e55555']}]))

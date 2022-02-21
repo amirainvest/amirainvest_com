@@ -48,7 +48,7 @@ async def create_platforms_route(platform_data: t.List[PlatformModel], token=Dep
 )
 async def claim_platforms_route(platform_data: t.List[PlatformModel], token=Depends(auth_depends_user_id)):
     user_id=token["https://amirainvest.com/user_id"]
-    return await update_after_claim(platform_data, user_id)
+    return await claim_platforms(platform_data, user_id)
 
 
 

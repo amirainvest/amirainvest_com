@@ -1,4 +1,6 @@
 from datetime import datetime
+from decimal import Decimal
+from typing import Tuple
 
 from sqlalchemy import extract, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -28,9 +30,10 @@ async def create_trade_post(
     creator_id: str,
     plaid_user_id,
     transaction_id,
-    transaction_value: float,
+    transaction_value: Decimal,
     security_ticker: str,
-    security_purchase_price: float,
+    security_purchase_price: Decimal,
+    posting_date: str,
 ) -> Posts:
     trade_action, content = await generate_content(creator_id, security_ticker, transaction_value)
     post = Posts(
@@ -58,7 +61,7 @@ async def create_trade_post(
                 "ticker": security_ticker,
                 "trade_action": trade_action,
                 "amira_username": creator.username,
-                "created_at": post.created_at,
+                "transaction_date": posting_date,
                 "ticker_purchase_price": security_purchase_price,
             },
             creator_id,
@@ -94,6 +97,7 @@ async def create_day_transaction_posts():
             transaction["value_amount"],
             security["ticker_symbol"],
             transaction["price"],
+            transaction["posting_date"],
         )
 
 
@@ -128,10 +132,12 @@ async def get_user_portfolio_value(creator_id: str):
     return portfolio_value
 
 
-async def get_trade_attributes(creator_id: str, security_ticker: str, transaction_value: float):
+async def get_trade_attributes(creator_id: str, security_ticker: str, transaction_value: Decimal):
     previously_owned, holding = await get_existing_holding(creator_id, security_ticker)
     portfolio_value = await get_user_portfolio_value(creator_id)
-    percentage_of_portfolio = round((transaction_value * 100 / portfolio_value), 4)
+    percentage_of_portfolio = 100
+    if portfolio_value > 0:
+        percentage_of_portfolio = round((transaction_value * 100 / portfolio_value), 4)
     if previously_owned:
         if transaction_value > 0:
             start = "increased"
@@ -148,7 +154,7 @@ async def get_trade_attributes(creator_id: str, security_ticker: str, transactio
     return percentage_of_portfolio, f"{start}_{end}"
 
 
-async def generate_content(creator_id: str, security_ticker: str, transaction_value: float):
+async def generate_content(creator_id: str, security_ticker: str, transaction_value: Decimal) -> Tuple[str, str]:
     percentage_of_portfolio, trade_action = await get_trade_attributes(creator_id, security_ticker, transaction_value)
     text = {
         "open_long": f"Opened {percentage_of_portfolio}% position in {security_ticker}",
@@ -161,3 +167,25 @@ async def generate_content(creator_id: str, security_ticker: str, transaction_va
         "decreased_short": f"Decreased short position in {security_ticker} by {percentage_of_portfolio}%",
     }[trade_action]
     return trade_action, f"""<p>{text}</p>"""
+
+
+if __name__ == "__main__":
+    from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
+
+    creator_id = "85da7605-64c8-4530-84d5-2dfb3547d7e6"
+    plaid_user_id = "123524"
+    transaction_id = "12"
+    transaction_value = 420.69
+    security_ticker = "TLSA"
+    security_purchase_price = 20.33
+    posting_date = "2022-01-01"
+    run_async_function_synchronously(
+        create_trade_post,
+        creator_id,
+        plaid_user_id,
+        transaction_id,
+        transaction_value,
+        security_ticker,
+        security_purchase_price,
+        posting_date,
+    )

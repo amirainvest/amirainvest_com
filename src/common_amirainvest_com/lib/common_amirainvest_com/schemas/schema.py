@@ -19,7 +19,6 @@ from sqlalchemy import (
     func,
     Index,
     Integer,
-    JSON,
     String,
     text,
     UniqueConstraint,
@@ -909,7 +908,7 @@ class Notifications(Base, ToDict):
     id = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
     user_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     notification_type = Column(Enum(NotificationTypes), nullable=False)
-    body = Column(JSON, nullable=False)
+    body = Column(JSONB, nullable=False)
     redirect = Column(String, nullable=False)
     is_read = Column(Boolean, default=False, nullable=False)
     is_deleted = Column(Boolean, default=False, nullable=False)
@@ -934,6 +933,7 @@ class NotificationsModel(BaseModel):
 class NotificationSettings(Base, ToDict):
     __tablename__ = "notification_settings"
     id = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
+    body = Column(JSONB, nullable=False)
     user_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     mention = Column(Boolean, default=True, nullable=False)
     upvote = Column(Boolean, default=True, nullable=False)

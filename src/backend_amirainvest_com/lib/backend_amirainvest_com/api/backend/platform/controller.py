@@ -9,7 +9,7 @@ from pydantic import parse_obj_as
 from backend_amirainvest_com.api.backend.user_route.controller import handle_data_imports
 from backend_amirainvest_com.api.backend.platform.model import PlatformModel, CreatePlatformModel
 from common_amirainvest_com.utils.decorators import Session
-from common_amirainvest_com.schemas.schema import TwitterUsers, YouTubers, SubstackUsers, Users
+from common_amirainvest_com.schemas.schema import TwitterUsers, YouTubers, SubstackUsers, Users, BroadcastRequests, UserSubscriptions, Posts
 
 
 
@@ -142,14 +142,28 @@ async def create_platforms(user_id: str, platform_data: t.List[PlatformModel]) -
     return parse_obj_as(t.List[CreatePlatformModel], platform_data)
 
 #update husk info
-#update subscribers, posts
+#update subscribers
+#update posts
 #generate notifications here, in the controller functions
 async def update_after_claim(claimed_platforms: t.List[PlatformModel], user_id: str):
-    husk_user_ids = await get_husk_user_id
-    pass
+    husk_platform_ids = await get_husk_platform_user_id(claimed_platforms)
+    await update_husk_platforms(user_id, husk_platform_ids)
+    await update_husk_posts(user_id, husk_platform_ids)
+    unique_husk_user_ids = await check_husk_user_ids_unique(husk_platform_ids)
+    await update_husk_subscribers(user_id, unique_husk_user_ids)
+    #await generate_notifications()
 
 
-async def get_husk_user_id(claimed_platforms:t.List[PlatformModel]) -> t.List:
+async def check_husk_user_ids_unique(husk_user_ids: t.List) -> t.List:
+    unique_ids = []
+    for husk in husk_user_ids:
+        if husk["user_id"] not in unique_ids:
+            unique_ids.append(husk["user_id"])
+    return unique_ids
+
+
+
+async def get_husk_platform_user_id(claimed_platforms:t.List[PlatformModel]) -> t.List:
     husk_user_ids = []
     for p in claimed_platforms:
         if p.platform == "twitter":
@@ -168,14 +182,58 @@ async def get_husk_user_id(claimed_platforms:t.List[PlatformModel]) -> t.List:
     return husk_user_ids
 
 
-@Session
-async def update_husk_platforms(session: AsyncSession, claimed_platforms: t.List[PlatformModel], user_id: str):
-    pass
+async def update_husk_platforms(user_id: str, husk_platform_ids: t.List):
+    for h in husk_user_ids:
+        if h['platform'] == "twitter":
+            await update_twitter_user_id(h.user_id, user_id)
+        elif h['platform'] == "youtube":
+            await update_youtuber_id(h.user_id, user_id)
+        elif h['platform'] == "substack":
+            await update_substack_user_id(h.user_id, user_id)
 
 
 @Session
-async def update_husk_subscribers(session: AsyncSession, claimed_platforms: t.List[PlatformModel], user_id: str):
-    pass
+async def update_twitter_user_id(session: AsyncSession, husk_user_id: str, user_id: str):
+    await session.execute(
+        update(TwitterUsers)
+        .where(TwitterUsers.creator_id == husk_user_id)
+        .values({"creator_id":user_id})
+    )
+
+@Session
+async def update_youtuber_id(session: AsyncSession, husk_user_id: str, user_id: str):
+    await session.execute(
+        update(YouTubers)
+        .where(YouTubers.creator_id == husk_user_id)
+        .values({"creator_id":user_id})
+    )
+
+@Session
+async def update_substack_user_id(session: AsyncSession, husk_user_id: str, user_id: str):
+    await session.execute(
+        update(SubstackUsers)
+        .where(SubstackUsers.creator_id == husk_user_id)
+        .values({"creator_id": user_id})
+    )
+
+@Session
+async def update_husk_posts(session: AsyncSession, user_id: str, husk_platform_ids: t.List):
+    for p in husk_platform_ids:
+        await session.execute(
+            update(Posts)
+            .where(Posts.creator_id == p.user_id)
+            .where(Posts.platfrom == p.platform)
+            .values({"creator_id": user_id})
+        )
+
+@Session
+async def get_husk_broadcast_requests(session: AsyncSession, user_id: str, husk_unique_ids: t.List):
+    for husk_id in husk_unique_ids:
+        requests = (await session.execute(
+            select(BroadcastRequests.subscriber_id)
+            .where(BroadcastRequests.creator_id == husk_id)
+        )).all()
+
 
 
 if __name__=="__main__":

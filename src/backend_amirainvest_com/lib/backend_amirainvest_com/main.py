@@ -18,7 +18,7 @@ class ProductionUvicornWorker(UvicornWorker):
         "ws": "none",
         "interface": "asgi3",
         "proxy_headers": "true",
-        "limit_concurrency": 10,
+        "limit_concurrency": 5,
         "backlog": 2048,
     }
 

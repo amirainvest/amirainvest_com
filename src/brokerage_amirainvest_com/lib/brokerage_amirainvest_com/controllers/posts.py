@@ -50,8 +50,6 @@ async def create_trade_post(
     return post
 
 
-# TODO We should probably have another table that joins plaid securities and securities in some capacity
-#   other option is to put a security_id on the PlaidSecurities table, or the Transactions table...etc...
 @Session
 async def get_day_transactions(session: AsyncSession):
     return (
@@ -86,8 +84,10 @@ async def get_current_holdings(session: AsyncSession, user_id: str):
     return (
         await session.execute(
             select(FinancialAccountCurrentHoldings, Securities)
-            .join(Securities, Securities.id == FinancialAccountCurrentHoldings.plaid_security_id)
-            .where(FinancialAccountCurrentHoldings.user_id == user_id)
+            .join(PlaidSecurities, PlaidSecurities.id == FinancialAccountCurrentHoldings.plaid_security_id)
+            .join(Securities, Securities.id == PlaidSecurities.security_id)
+            .join(FinancialAccounts)
+            .where(FinancialAccounts.user_id == user_id)
         )
     ).all()
 

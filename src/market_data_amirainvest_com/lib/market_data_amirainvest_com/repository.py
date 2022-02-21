@@ -1,5 +1,5 @@
 import csv
-from datetime import datetime
+from datetime import date, datetime
 from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -285,7 +285,7 @@ async def add_market_holidays(session: AsyncSession, market_holidays: list[Marke
     for mh in market_holidays:
         dates.append(mh.date)
     response = await session.execute(select(MarketHolidays).where(MarketHolidays.date.in_(dates)))
-    date_dict: dict[datetime, None] = {}
+    date_dict: dict[date, None] = {}
     for mh in response.scalars().all():
         date_dict[mh.date] = None
 

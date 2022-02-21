@@ -2,6 +2,7 @@ import asyncio
 import decimal
 from copy import deepcopy
 from datetime import date, datetime
+from decimal import Decimal
 from typing import Optional, Tuple
 
 from dateutil.relativedelta import relativedelta
@@ -27,108 +28,110 @@ class HistoricalAccount(BaseModel):
         arbitrary_types_allowed = True
 
     id: int
-    date: datetime
+    date: date
     user_id: str
     cash: decimal.Decimal
     holdings: list[FinancialAccountHoldingsHistory]
 
 
-async def run(user_id: str):
+async def compute_account_holdings_history(
+    transactions_by_date: dict[date, list[FinancialAccountTransactions]],
+    account: FinancialAccounts,
+    user_id: str,
+    holdings: list[FinancialAccountCurrentHoldings],
+    market_dates: list[date],
+    plaid_cash_security: PlaidSecurities,
+) -> list[HistoricalAccount]:
+    # Compute array of trading days and then iterate over that... rather than doing it per day and trying to
+    # fix the next day, we can always just reference one back
+    # [[Holdings]]; first security is always cash hen we only have one data structure to keep in head...
+    historical_account = await create_historical_account(
+        holdings=holdings,
+        account=account,
+        user_id=user_id,
+        cash_security=plaid_cash_security,
+        trading_day=market_dates[0],
+    )
+
+    account_historical_holdings: list = [historical_account]
+    for market_date_idx, market_date in enumerate(market_dates[1 : len(market_dates) - 1]):
+        today_holdings = deepcopy(account_historical_holdings[len(account_historical_holdings) - 1])
+
+        if market_date in transactions_by_date:
+            transactions = transactions_by_date[market_date]
+            for transaction in transactions:
+                today_holdings = await perform_transaction(today_holdings, transaction)
+
+        next_market_date = market_dates[market_date_idx + 1]
+        prior_holdings = HistoricalAccount(
+            id=today_holdings.id,
+            date=next_market_date,
+            user_id=today_holdings.user_id,
+            holdings=[],
+            cash=today_holdings.cash,
+        )
+
+        for today_holding in today_holdings.holdings:
+            p = today_holding.price
+            sp = await get_closest_price(today_holding.security_id, next_market_date)
+            if sp is not None:
+                p = sp.price
+            today_holding.price = p
+            today_holding.holding_date = next_market_date
+            prior_holdings.holdings.append(today_holding)
+
+        account_historical_holdings.append(prior_holdings)
+    account_historical_holdings.sort(key=lambda x: x.date)
+    return account_historical_holdings
+
+
+async def run(user_id: str, start_date: date, end_date: date):
     accounts = await get_financial_accounts(user_id=user_id)
-    market_holidays = await get_market_holidays_dict()
     plaid_cash_security = await get_cash_security_plaid()
-
-    # Run For History
-    # end_date = datetime.now().replace(hour=21, minute=0, second=0, microsecond=0) - relativedelta(years=2)
-    end_date = datetime.utcnow().replace(month=1, day=1, hour=21, minute=0, second=0, microsecond=0)
-    today = datetime.now().replace(hour=21, minute=0, second=0, microsecond=0) + relativedelta(days=1)
-
+    market_dates = await get_market_dates(start_date=start_date, end_date=end_date)
     for account in accounts:
         transactions_by_date = await get_financial_transactions_dict(account_id=account.id)
         holdings = await get_current_financial_holdings(account_id=account.id)
 
-        # Need to find today or prior day trading day, and set our holdings that price
-        next_trading_day = find_next_trading_day(
-            day=datetime.now().replace(hour=21, minute=0, second=0, microsecond=0), market_holidays=market_holidays
-        )
-
-        historical_account = await create_historical_account(
+        account_historical_holdings = await compute_account_holdings_history(
+            transactions_by_date=transactions_by_date,
             holdings=holdings,
-            account=account,
+            market_dates=market_dates,
+            plaid_cash_security=plaid_cash_security,
             user_id=user_id,
-            cash_security=plaid_cash_security,
-            trading_day=next_trading_day,
+            account=account,
         )
-
-        historical_account_holdings: list = [historical_account]
-        while today > end_date:
-            today = today - relativedelta(days=1)
-            if not is_trading_day(day=today, market_holidays=market_holidays):
-                continue
-
-            today_holdings = deepcopy(historical_account_holdings[len(historical_account_holdings) - 1])
-
-            if today.date() in transactions_by_date:
-                transactions = transactions_by_date[today.date()]
-                for transaction in transactions:
-                    today_holdings = await perform_transaction(today_holdings, transaction)
-
-            tomorrow = find_next_trading_day(today - relativedelta(days=1), market_holidays)
-            tomorrow_holdings = HistoricalAccount(
-                id=today_holdings.id,
-                date=tomorrow,
-                user_id=today_holdings.user_id,
-                holdings=[],
-                cash=today_holdings.cash,
-            )
-
-            for today_holding in today_holdings.holdings:
-                p = today_holding.price
-                sp = await get_closest_price(today_holding.security_id, tomorrow)
-                if sp is not None:
-                    p = sp.price
-                today_holding.price = p
-                today_holding.holding_date = tomorrow
-                tomorrow_holdings.holdings.append(today_holding)
-
-            historical_account_holdings.append(tomorrow_holdings)
-
-        historical_account_holdings.reverse()
         await add_holdings_to_database(
-            end_date=end_date,
-            historical_holdings=historical_account_holdings,
-            plaid_cash_security=plaid_cash_security
+            end_date=end_date, historical_holdings=account_historical_holdings, plaid_cash_security=plaid_cash_security
         )
 
 
 async def add_holdings_to_database(
-    end_date: datetime, historical_holdings: list[FinancialAccountHoldingsHistory], plaid_cash_security: PlaidSecurities
+    end_date: date, historical_holdings: list[HistoricalAccount], plaid_cash_security: PlaidSecurities
 ):
     insertable = []
-    buy_date_dict: [int, date] = {}
-    cost_basis_dict: [int, decimal.Decimal] = {}
+    buy_date_dict: dict[int, date] = {}
+    cost_basis_dict: dict[int, Decimal] = {}
     for historical_account_holding in historical_holdings:
         cash_holding = FinancialAccountHoldingsHistory(
             account_id=historical_account_holding.id,
             plaid_security_id=plaid_cash_security.id,
             security_id=plaid_cash_security.security_id,
-            price=1,
+            price=Decimal(1),
             holding_date=historical_account_holding.date,
             quantity=historical_account_holding.cash,
             buy_date=end_date,
-            date=datetime.utcnow()
         )
 
         insertable.append(cash_holding)
         for h in historical_account_holding.holdings:
-            h.date = datetime.utcnow()
             try:
                 buy_date = buy_date_dict[h.plaid_security_id]
             except KeyError:
                 buy_date = historical_account_holding.date
 
             try:
-                cost_basis = buy_date_dict[h.plaid_security_id]
+                cost_basis = cost_basis_dict[h.plaid_security_id]
             except KeyError:
                 cost_basis = h.price
 
@@ -149,10 +152,16 @@ async def add_holdings_to_database(
     await insert_historical_holdings(insertable)
 
 
-def find_next_trading_day(day: datetime, market_holidays: dict[date, None]) -> datetime:
-    while not is_trading_day(day, market_holidays):
-        day = day - relativedelta(days=1)
-    return day
+async def get_market_dates(start_date: date, end_date: date) -> list[date]:
+    market_holidays = await get_market_holidays_dict()
+    market_dates: list[date] = []
+    while start_date >= end_date:
+        start_date = start_date - relativedelta(days=1)
+        if not is_trading_day(day=start_date, market_holidays=market_holidays):
+            continue
+        market_dates.append(start_date)
+    market_dates.sort(reverse=True)
+    return market_dates
 
 
 def is_trading_day(day: date, market_holidays: dict[date, None]) -> bool:
@@ -166,7 +175,7 @@ async def create_historical_account(
     account: FinancialAccounts,
     user_id: str,
     cash_security: PlaidSecurities,
-    trading_day: datetime,
+    trading_day: date,
 ) -> HistoricalAccount:
     historical_account = HistoricalAccount(id=account.id, date=trading_day, user_id=user_id, holdings=[], cash=0)
 
@@ -227,13 +236,12 @@ async def sell_sell(
     account_holdings.cash = account_holdings.cash + transaction.value_amount
     current_holding, index = get_current_holding_if_exists(transaction=transaction, holdings=account_holdings.holdings)
     if current_holding is None:
-        sec_id = await get_security_id_by_plaid_security_id(transaction.security_id)
+        sec_id = await get_security_id_by_plaid_security_id(transaction.plaid_security_id)
         account_holdings.holdings.append(
             FinancialAccountHoldingsHistory(
                 account_id=account_holdings.id,
-                plaid_security_id=transaction.security_id,
+                plaid_security_id=transaction.plaid_security_id,
                 security_id=sec_id,
-                user_id=account_holdings.user_id,
                 price=transaction.price,
                 holding_date=None,
                 quantity=(-1 * transaction.quantity),
@@ -309,16 +317,20 @@ async def get_closest_price(
 ) -> Optional[SecurityPrices]:
     response = await session.execute(
         select(SecurityPrices)
-            .join(Securities)
-            .where(Securities.id == security_id, SecurityPrices.price_time <= posting_date)
-            .order_by(SecurityPrices.price_time.desc())
-            .limit(1)
+        .join(Securities)
+        .where(Securities.id == security_id, SecurityPrices.price_time <= posting_date)
+        .order_by(SecurityPrices.price_time.desc())
+        .limit(1)
     )
     return response.scalar()
 
 
 @Session
-async def get_security_id_by_plaid_security_id(session: AsyncSession, plaid_security_id: int) -> Optional[int]:
+async def get_security_id_by_plaid_security_id(
+    session: AsyncSession, plaid_security_id: Optional[int]
+) -> Optional[int]:
+    if plaid_security_id is None:
+        return None
     plaid_response = await session.execute(select(PlaidSecurities).where(PlaidSecurities.id == plaid_security_id))
     plaid_security = plaid_response.scalar()
     if plaid_security is None:
@@ -363,8 +375,9 @@ async def get_financial_transactions_dict(
 
 
 @Session
-async def get_current_financial_holdings(session: AsyncSession, account_id: int) \
-        -> list[FinancialAccountCurrentHoldings]:
+async def get_current_financial_holdings(
+    session: AsyncSession, account_id: int
+) -> list[FinancialAccountCurrentHoldings]:
     response = await session.execute(
         select(FinancialAccountCurrentHoldings).where(FinancialAccountCurrentHoldings.account_id == account_id)
     )
@@ -378,4 +391,10 @@ async def get_financial_accounts(session: AsyncSession, user_id: str) -> list[Fi
 
 
 if __name__ == "__main__":
-    asyncio.run(run(user_id="53a7c663-2c10-47d1-afbc-bf3962f0dbd0"))
+    ending_date = datetime.utcnow().replace(month=1, day=1, hour=21, minute=0, second=0, microsecond=0)
+    starting_date = datetime.now().replace(hour=21, minute=0, second=0, microsecond=0) + relativedelta(days=1)
+    asyncio.run(
+        run(
+            user_id="53a7c663-2c10-47d1-afbc-bf3962f0dbd0", start_date=starting_date.date(), end_date=ending_date.date()
+        )
+    )

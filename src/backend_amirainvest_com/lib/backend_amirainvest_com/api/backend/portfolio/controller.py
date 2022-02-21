@@ -7,14 +7,14 @@ from sqlalchemy.future import select
 from sqlalchemy.sql import func, label
 
 from backend_amirainvest_com.api.backend.portfolio.model import (
+    HistoricalPeriod,
+    HistoricalReturn,
     HistoricalTrade,
     Holding,
     MarketValue,
-    PortfolioValue,
-    HistoricalReturn,
     PortfolioResponse,
     PortfolioType,
-    HistoricalPeriod,
+    PortfolioValue,
 )
 from common_amirainvest_com.schemas.schema import (
     FinancialAccountHoldingsHistory,
@@ -47,7 +47,7 @@ async def get_portfolio_trades(user_id: str, is_creator: bool) -> list[Historica
                 transaction_type=fat.type,
                 transaction_price=fat.price,
                 transaction_market_value=is_creator if is_creator else mv,
-                percentage_change_in_position=percentage_change(holdings_dict=security_holdings_dict, transaction=fat),
+                percentage_change_in_position=None,  # TODO
             )
         )
     return response
@@ -87,35 +87,30 @@ async def get_portfolio_summary(user_id: str, is_creator: bool) -> PortfolioResp
     )
 
     # Portfolio Return History Finished
-    rate = 1
+    rate = Decimal(1)
     return_history_with_dates = []
     return_history_twrs = []
     for hpr in holding_percentage_rates:
-        rate = rate * (hpr.hp + 1)
+        rate = rate * (hpr.hp + Decimal(1))
         return_history_with_dates.append(
             HistoricalReturn(
                 date=hpr.date,
                 daily_return=rate - 1,
             )
         )
-        return_history_twrs.append(rate - 1)
+        return_history_twrs.append(rate - Decimal(1))
 
     # Benchmark Return History
     # TODO ... change this out to an actual id
     benchmark_return_history = await compute_benchmark(benchmark_id=9876)
 
-    rate = 1
+    rate = Decimal(1)
     benchmark_twrs_with_dates = []
     benchmark_twrs = []
     for brh in benchmark_return_history:
-        rate = rate * (brh.hp + 1)
-        benchmark_twrs_with_dates.append(
-            HistoricalReturn(
-                date=brh.date,
-                daily_return=rate - 1
-            )
-        )
-        benchmark_twrs.append(rate - 1)
+        rate = rate * (brh.hp + Decimal(1))
+        benchmark_twrs_with_dates.append(HistoricalReturn(date=brh.date, daily_return=rate - 1))
+        benchmark_twrs.append(rate - Decimal(1))
 
     # Time Weighted Return Finished
     time_weighted_return = return_history_with_dates[len(return_history_with_dates) - 1].daily_return
@@ -171,9 +166,9 @@ async def get_market_values_for_account(session: AsyncSession, account_id: int) 
                 func.sum(FinancialAccountHoldingsHistory.price * FinancialAccountHoldingsHistory.quantity),
             ),
         )
-            .where(FinancialAccountHoldingsHistory.account_id == account_id)
-            .group_by(FinancialAccountHoldingsHistory.holding_date)
-            .order_by(FinancialAccountHoldingsHistory.holding_date.asc())
+        .where(FinancialAccountHoldingsHistory.account_id == account_id)
+        .group_by(FinancialAccountHoldingsHistory.holding_date)
+        .order_by(FinancialAccountHoldingsHistory.holding_date.asc())
     )
     results = market_value_by_day_response.all()
     market_values = [MarketValue.parse_obj(res._asdict()) for res in results]
@@ -190,10 +185,10 @@ async def get_market_values(session: AsyncSession, user_id: int) -> list[MarketV
                 func.sum(FinancialAccountHoldingsHistory.price * FinancialAccountHoldingsHistory.quantity),
             ),
         )
-            .join(FinancialAccounts)
-            .where(FinancialAccounts.user_id == user_id)
-            .group_by(FinancialAccountHoldingsHistory.holding_date)
-            .order_by(FinancialAccountHoldingsHistory.holding_date.asc())
+        .join(FinancialAccounts)
+        .where(FinancialAccounts.user_id == user_id)
+        .group_by(FinancialAccountHoldingsHistory.holding_date)
+        .order_by(FinancialAccountHoldingsHistory.holding_date.asc())
     )
 
     results = market_value_by_day_response.all()
@@ -202,14 +197,15 @@ async def get_market_values(session: AsyncSession, user_id: int) -> list[MarketV
 
 
 async def get_portfolio_holding_percentage_rates(
-    market_values: list[MarketValue],
-    cash_transactions_by_date: dict[date, list[FinancialAccountTransactions]]
+    market_values: list[MarketValue], cash_transactions_by_date: dict[date, list[FinancialAccountTransactions]]
 ) -> list[HistoricalPeriod]:
-    hpr_history = [HistoricalPeriod(
-        date=market_values[0].date,
-        mv=market_values[0].value,
-        hp=0,
-    )]
+    hpr_history = [
+        HistoricalPeriod(
+            date=market_values[0].date,
+            mv=market_values[0].value,
+            hp=0,
+        )
+    ]
 
     for index, _ in enumerate(market_values[1:]):
         mv_today = market_values[index].value
@@ -253,17 +249,19 @@ def modify_market_value_by_cash_flow(
 async def compute_benchmark(session: AsyncSession, benchmark_id: int) -> list[HistoricalPeriod]:
     response = await session.execute(
         select(SecurityPrices)
-            .where(SecurityPrices.security_id == benchmark_id)
-            .order_by(SecurityPrices.price_time.asc())
+        .where(SecurityPrices.security_id == benchmark_id)
+        .order_by(SecurityPrices.price_time.asc())
     )
 
     all = response.scalars().all()
 
-    hpr_history = [HistoricalPeriod(
-        date=all[0].price_time,
-        mv=all[0].price,
-        hp=0,
-    )]
+    hpr_history = [
+        HistoricalPeriod(
+            date=all[0].price_time,
+            mv=all[0].price,
+            hp=0,
+        )
+    ]
 
     for r in all[1:]:
         yesterday = hpr_history[len(hpr_history) - 1]
@@ -282,8 +280,8 @@ async def compute_benchmark(session: AsyncSession, benchmark_id: int) -> list[Hi
 async def get_user_subscription(session: AsyncSession, user_id: str, creator_id: str) -> Optional[UserSubscriptions]:
     response = await session.execute(
         select(UserSubscriptions)
-            .where(UserSubscriptions.subscriber_id == user_id)
-            .where(UserSubscriptions.creator_id == creator_id)
+        .where(UserSubscriptions.subscriber_id == user_id)
+        .where(UserSubscriptions.creator_id == creator_id)
     )
     return response.scalar()
 
@@ -292,9 +290,9 @@ async def get_user_subscription(session: AsyncSession, user_id: str, creator_id:
 async def get_user_holdings_with_securities_data(session: AsyncSession, user_id: str) -> list:
     response = await session.execute(
         select(FinancialAccountHoldingsHistory, PlaidSecurities)
-            .join(PlaidSecurities)
-            .join(FinancialAccounts)
-            .where(
+        .join(PlaidSecurities)
+        .join(FinancialAccounts)
+        .where(
             FinancialAccounts.user_id == user_id,
             FinancialAccountHoldingsHistory.holding_date
             == select(func.max(FinancialAccountHoldingsHistory.holding_date)),
@@ -307,9 +305,9 @@ async def get_user_holdings_with_securities_data(session: AsyncSession, user_id:
 async def get_user_baseline_holdings(session: AsyncSession, user_id: str) -> list:
     response = await session.execute(
         select(FinancialAccountHoldingsHistory, PlaidSecurities)
-            .join(PlaidSecurities)
-            .join(FinancialAccounts)
-            .where(
+        .join(PlaidSecurities)
+        .join(FinancialAccounts)
+        .where(
             FinancialAccounts.user_id == user_id,
             FinancialAccountHoldingsHistory.holding_date
             == select(func.min(FinancialAccountHoldingsHistory.holding_date)),
@@ -324,10 +322,10 @@ async def get_recent_stock_price(session: AsyncSession, ticker_symbol: str) -> O
     return (
         await session.execute(
             select(SecurityPrices)
-                .join(Securities.id)
-                .where(Securities.ticker_symbol == ticker_symbol)
-                .order_by(SecurityPrices.price_time.desc())
-                .limit(1)
+            .join(Securities.id)
+            .where(Securities.ticker_symbol == ticker_symbol)
+            .order_by(SecurityPrices.price_time.desc())
+            .limit(1)
         )
     ).scalar()
 
@@ -341,38 +339,12 @@ async def get_ticker_symbol_by_plaid_id(session: AsyncSession, plaid_id: int) ->
 async def get_trading_history(session: AsyncSession, user_id: str) -> list:
     response = await session.execute(
         select(FinancialAccountTransactions, PlaidSecurities)
-            .join(FinancialAccounts)
-            .join(PlaidSecurities)
-            .where(FinancialAccounts.user_id == user_id)
-            .order_by(FinancialAccountTransactions.posting_date.desc())
+        .join(FinancialAccounts)
+        .join(PlaidSecurities)
+        .where(FinancialAccounts.user_id == user_id)
+        .order_by(FinancialAccountTransactions.posting_date.desc())
     )
     return response.all()
-
-
-# TODO... can we have a single set of rules somewhere that we just apply things too?
-def percentage_change(
-    holdings_dict: dict[int, tuple[Decimal, Decimal]], transaction: FinancialAccountTransactions
-) -> Decimal:
-    try:
-        holding = holdings_dict[transaction.plaid_security_id]
-    except KeyError:
-        if transaction.type == "buy" or transaction.type == "transfer":
-            holdings_dict[transaction.plaid_security_id] = (Decimal(100), transaction.quantity)
-            return Decimal(100)
-        if transaction.type == "cash":
-            pass  # TODO: What should we do with cash??
-            return Decimal(100)
-        raise Exception("We should have a holding before any other transaction...")  # TODO change eventually and report
-
-    # cur_quantity = holding[1]
-    # if transaction.type == "buy":
-    #     final_quantity = cur_quantity + transaction.quantity
-    #     change = Decimal((final_quantity - cur_quantity)/cur_quantity)
-    #     holding[]
-    #     return change
-    # if transaction.type == "sell":
-    #
-    # if transaction.type == "transfer":
 
 
 def get_portfolio_value(holdings: list, user_id: str) -> PortfolioValue:

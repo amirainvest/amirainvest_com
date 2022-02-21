@@ -34,6 +34,9 @@ async def upsert_brokerage_account(
     await provider_service.collect_investment_history(
         provider_key=brokerage.value, user_id=user_id, item_id=token_identifier, job_id=job_id
     )
+    await provider_service.compute_holdings_history(
+        provider_key=brokerage.value, user_id=user_id, item_id=token_identifier, job_id=job_id
+    )
 
 
 options = {

@@ -933,7 +933,6 @@ class NotificationsModel(BaseModel):
 class NotificationSettings(Base, ToDict):
     __tablename__ = "notification_settings"
     id = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
-    body = Column(JSONB, nullable=False)
     user_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     mention = Column(Boolean, default=True, nullable=False)
     upvote = Column(Boolean, default=True, nullable=False)

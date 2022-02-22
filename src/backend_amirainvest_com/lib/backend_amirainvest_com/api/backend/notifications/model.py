@@ -9,13 +9,13 @@ assert NotificationsModel
 assert NotificationSettingsModel
 
 
-class CreateModel(NotificationsModel):
+class CreateModel(BaseModel):
     notification_type: NotificationTypes
-    body: str
+    body: dict
     redirect: str
     is_read: Optional[bool]
     is_deleted: Optional[bool]
-    profile_url: Optional[str]
+    picture_url: Optional[str]
 
 
 class UpdateModel(BaseModel):

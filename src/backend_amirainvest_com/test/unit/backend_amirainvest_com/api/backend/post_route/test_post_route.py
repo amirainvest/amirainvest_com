@@ -104,9 +104,6 @@ async def test_update(async_session_maker_test, factory, mock_auth):
         )
     assert response.status_code == 200
     result = response.json()
-
     assert result["platform_user_id"] == "updated"
-
     db_result = (await session_test.execute(select(Posts))).scalars().one()
-
     assert db_result.platform_user_id == "updated"

@@ -139,10 +139,10 @@ class Users(Base, ToDict):
     linkedin_profile = Column(String)
     personal_site_url = Column(String)
     picture_url = Column(String)
-    public_holdings_activate = Column(Boolean, server_default=expression.false())
-    public_performance_activate = Column(Boolean, server_default=expression.false())
-    public_profile_deactivate = Column(Boolean, server_default=expression.false())
-    public_trades_activate = Column(Boolean, server_default=expression.false())
+    public_holdings_activate = Column(Boolean, nullable=False, default=False, server_default=expression.false())
+    public_performance_activate = Column(Boolean, nullable=False, default=False, server_default=expression.false())
+    public_profile_deactivate = Column(Boolean, nullable=False, default=False, server_default=expression.false())
+    public_trades_activate = Column(Boolean, nullable=False, default=False, server_default=expression.false())
     trading_strategies = Column(ARRAY(String))
 
     created_at = Column(DateTime, server_default=UTCNow())
@@ -908,21 +908,20 @@ class Notifications(Base, ToDict):
     id = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
     user_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     notification_type = Column(Enum(NotificationTypes), nullable=False)
-    body = Column(String, nullable=False)
+    body = Column(JSONB, nullable=False)
     redirect = Column(String, nullable=False)
     is_read = Column(Boolean, default=False, nullable=False)
     is_deleted = Column(Boolean, default=False, nullable=False)
     profile_url = Column(String, nullable=True)
     created_at = Column(DateTime, server_default=UTCNow())
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
-    # TODO: update body to be a dict if needed
 
 
 class NotificationsModel(BaseModel):
     id: int
     user_id: str
     notification_type: NotificationTypes
-    body: str
+    body: dict
     redirect: str
     is_read: Optional[bool]
     is_deleted: Optional[bool]

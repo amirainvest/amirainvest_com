@@ -30,8 +30,6 @@ async def create_platforms_route(platform_data: List[PlatformModel], token=Depen
     claimed_platforms, unclaimed_platforms = await check_platforms(platform_data)
     if len(claimed_platforms)> 0:
         #response code 425 return t.List[PlatformModel]. User can't claim. Contact us if in error
-        print(claimed_platforms)
-        print(t.List[CreatePlatformModel])
         return parse_obj_as(t.List[CreatePlatformModel], claimed_platforms)
 
     elif len(unclaimed_platforms)>0:

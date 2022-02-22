@@ -71,7 +71,9 @@ async def get_youtube_username(session: AsyncSession, user_id: str):
 async def check_platforms(platform_data: t.List[PlatformModel]):
     unclaimed_platforms = []
     claimed_platforms = []
+    count = 0
     for p in platform_data:
+        count += 1
         if p.platform.value == "twitter":
             platform, user = await check_twitter_username(p.username)
         elif p.platform.value == "youtube":
@@ -80,12 +82,11 @@ async def check_platforms(platform_data: t.List[PlatformModel]):
             platform, user = await check_substack_username(p.username)
         
         claimed = user.is_claimed
-        if claimed:
+        if claimed == True:
             claimed_platforms.append(platform) # TODO: can just pass p, not remake the platform dict
         else:
             unclaimed_platforms.append(platform)
-
-    return unclaimed_platforms, claimed_platforms
+    return claimed_platforms, unclaimed_platforms
 
 
 @Session
@@ -104,19 +105,19 @@ async def check_twitter_username(session: AsyncSession, username: str):
 
 @Session
 async def check_substack_username(session: AsyncSession, username: str):
-    substack, users =  (
+    substack_username, users =  (
         await session.execute(
             select(SubstackUsers.username, Users)
             .join(Users)
             .where(SubstackUsers.username == username)
         )
     ).one_or_none()
-    return ({"substack":substack}, users)
+    return ({"platform":"substack","username":substack_username}, users)
 
 
 @Session
 async def check_youtube_username(session: AsyncSession, username: str):
-    youtube, users = (
+    youtube_channel, users = (
         await (
             session.execute(
                 select(YouTubers.channel_username, Users)
@@ -125,7 +126,7 @@ async def check_youtube_username(session: AsyncSession, username: str):
             )
         )
     ).one_or_none()
-    return ({"youtube":youtube}, users)
+    return ({"platform":"youtube", "username":youtube_channel}, users)
 
 
 

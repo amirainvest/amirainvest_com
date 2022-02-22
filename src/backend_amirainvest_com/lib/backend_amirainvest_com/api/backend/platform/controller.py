@@ -25,9 +25,8 @@ async def get_controller(user_id: str) -> t.List[PlatformModel]:
     substack = await get_substack_username(user_id)
     if substack:
         platforms.append(PlatformModel(platform='substack', username=substack.username))
-    
-    if len(platforms) >0:
-        return platforms
+ 
+    return platforms
 
 
 @Session
@@ -73,16 +72,16 @@ async def check_platforms(platform_data: t.List[PlatformModel]):
     unclaimed_platforms = []
     claimed_platforms = []
     for p in platform_data:
-        if p.platform == "twitter":
+        if p.platform.value == "twitter":
             platform, user = await check_twitter_username(p.username)
-        elif p.platform == "youtube":
+        elif p.platform.value == "youtube":
             platform, user = await check_youtube_username(p.username)
-        elif p.platform == "substack":
+        elif p.platform.value == "substack":
             platform, user = await check_substack_username(p.username)
         
         claimed = user.is_claimed
         if claimed:
-            claimed_platforms.append(platform)
+            claimed_platforms.append(platform) # TODO: can just pass p, not remake the platform dict
         else:
             unclaimed_platforms.append(platform)
 
@@ -91,7 +90,7 @@ async def check_platforms(platform_data: t.List[PlatformModel]):
 
 @Session
 async def check_twitter_username(session: AsyncSession, username: str):
-    twitter, users = (
+    twitter_username, users = (
         await (
             session.execute(
                 select(TwitterUsers.username, Users)
@@ -100,7 +99,7 @@ async def check_twitter_username(session: AsyncSession, username: str):
             )
         )
     ).one_or_none()
-    return ({"twitter":twitter}, users)
+    return ({"platform":"twitter", "username":twitter_username}, users)
 
 
 @Session
@@ -265,5 +264,10 @@ async def update_husk_subscribers(session: AsyncSession, user_id: str, husk_subs
 
 
 
-# if __name__=="__main__":
-#     asyncio.run(update_husk_subscribers('8133ef39-5df5-4e35-a127-629309e53828', [{'husk_id': '8133ef39-5df5-4e35-a127-629309e53890', 'unique_requests': ['8133ef39-5df5-4e35-a127-629309e66666', '8133ef39-5df5-4e35-a127-629309e55555']}]))
+if __name__=="__main__":
+    platform, user = asyncio.run(check_twitter_username('testuser'))
+    print("platform", platform)
+    print("user:", user)
+    print(user.is_claimed)    
+        
+        #update_husk_subscribers('8133ef39-5df5-4e35-a127-629309e53828', [{'husk_id': '8133ef39-5df5-4e35-a127-629309e53890', 'unique_requests': ['8133ef39-5df5-4e35-a127-629309e66666', '8133ef39-5df5-4e35-a127-629309e55555']}]))

@@ -57,7 +57,7 @@ async def update_controller(session, user_id: str, user_data: model.UserUpdate) 
     ).one()
 
 
-def handle_data_imports(creator_id: str, substack_username: str, youtube_channel_id: str, twitter_username: str):
+def handle_data_imports(creator_id: str, substack_username: str, youtube_channel_id: str, twitter_username: str, expedited: bool = True):
     sqs_digestible_platform_data = []
     if substack_username:
         sqs_digestible_platform_data.append(
@@ -74,7 +74,7 @@ def handle_data_imports(creator_id: str, substack_username: str, youtube_channel
     if sqs_digestible_platform_data:
         add_data_import_data_to_sqs_queue(
             sqs_digestible_platform_data,
-            expedited=True,
+            expedited=expedited,
         )
 
 

@@ -25,7 +25,7 @@ async def get_controller(user_id: str) -> t.List[PlatformModel]:
     substack = await get_substack_username(user_id)
     if substack:
         platforms.append(PlatformModel(platform='substack', username=substack.username))
- 
+
     return platforms
 
 
@@ -131,7 +131,7 @@ async def check_youtube_username(session: AsyncSession, username: str):
 
 
 async def create_platforms(user_id: str, platform_data: t.List[PlatformModel]) -> t.List[CreatePlatformModel]:
-    data_import_message = {"creator_id":user_id}
+    data_import_message = {"creator_id":user_id, "expedited":False}
     for p in platform_data:
         if p.platform == "twitter":
             data_import_message["twitter_username"] = p.platform
@@ -154,7 +154,7 @@ async def claim_platforms(claimed_platforms: t.List[PlatformModel], user_id: str
     husk_subscribers = await get_husk_broadcast_requests(unique_husk_user_ids)
     await update_husk_subscribers(user_id, husk_subscribers)
     #await generate_notifications()
-    claimed = parse_obj_as(t.List[CreatePlatformModel], platform_data)
+    claimed = parse_obj_as(t.List[CreatePlatformModel], claimed_platforms)
     for p in claimed:
         p.is_claimed = True
     return claimed
@@ -171,30 +171,30 @@ async def check_husk_user_ids_unique(husk_user_ids: t.List) -> t.List:
 async def get_husk_platform_user_id(claimed_platforms:t.List[PlatformModel]) -> t.List:
     husk_user_ids = []
     for p in claimed_platforms:
-        if p.platform == "twitter":
+        if p.platform.value == "twitter":
             platform, user = await check_twitter_username(p.username)
-        elif p.platform == "youtube":
+        elif p.platform.value == "youtube":
             platform, user = await check_youtube_username(p.username)
-        elif p.platform == "substack":
+        elif p.platform.value == "substack":
             platform, user = await check_substack_username(p.username)
-        
+
         husk_user_ids.append(
             {
-                "platform":platform, 
-                "user_id": user.user_id
+                "platform":platform["platform"], 
+                "user_id": user.id
             }
         )
     return husk_user_ids
 
 
 async def update_husk_platforms(user_id: str, husk_platform_ids: t.List):
-    for h in husk_user_ids:
+    for h in husk_platform_ids:
         if h['platform'] == "twitter":
-            await update_twitter_user_id(h.user_id, user_id)
+            await update_twitter_user_id(h["user_id"], user_id)
         elif h['platform'] == "youtube":
-            await update_youtuber_id(h.user_id, user_id)
+            await update_youtuber_id(h["user_id"], user_id)
         elif h['platform'] == "substack":
-            await update_substack_user_id(h.user_id, user_id)
+            await update_substack_user_id(h["user_id"], user_id)
 
 
 @Session
@@ -226,8 +226,8 @@ async def update_husk_posts(session: AsyncSession, user_id: str, husk_platform_i
     for p in husk_platform_ids:
         await session.execute(
             update(Posts)
-            .where(Posts.creator_id == p.user_id)
-            .where(Posts.platfrom == p.platform)
+            .where(Posts.creator_id == p["user_id"])
+            .where(Posts.platform == p["platform"])
             .values({"creator_id": user_id})
         )
 
@@ -258,6 +258,7 @@ async def update_husk_subscribers(session: AsyncSession, user_id: str, husk_subs
         )
 
         vals = [{"subscriber_id":x, "creator_id":user_id} for x in husk["unique_requests"]]
+        print(vals)
         stmt = insert(UserSubscriptions).values(vals)
         stmt = stmt.on_conflict_do_nothing(constraint="uq_user_sub")
         await session.execute(stmt)

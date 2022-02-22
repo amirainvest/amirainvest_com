@@ -71,6 +71,7 @@ class SubstackUser(PlatformUser):
                         "twitter_handle": None,
                         "platform_post_id": article["id"],
                         "platform_post_url": article["link"],
+                        "created_at": created_at,
                     }
                 )
         return articles, article_posts

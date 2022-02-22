@@ -167,25 +167,3 @@ async def generate_content(creator_id: str, security_ticker: str, transaction_va
         "decreased_short": f"Decreased short position in {security_ticker} by {percentage_of_portfolio}%",
     }[trade_action]
     return trade_action, f"""<p>{text}</p>"""
-
-
-if __name__ == "__main__":
-    from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
-
-    creator_id = "85da7605-64c8-4530-84d5-2dfb3547d7e6"
-    plaid_user_id = "123524"
-    transaction_id = "12"
-    transaction_value = 420.69
-    security_ticker = "TLSA"
-    security_purchase_price = 20.33
-    posting_date = "2022-01-01"
-    run_async_function_synchronously(
-        create_trade_post,
-        creator_id,
-        plaid_user_id,
-        transaction_id,
-        transaction_value,
-        security_ticker,
-        security_purchase_price,
-        posting_date,
-    )

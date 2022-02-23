@@ -9,6 +9,7 @@ module "backend_api" {
   ]
   vpc_id = module.networking.aws_vpc_public_private_id
 }
+
 module "brokerage_data_lambda_base" {
   source      = "./modules/brokerage_data_lambda_base"
   region      = var.region
@@ -63,6 +64,13 @@ module "market_data_eod_updates_lambda" {
   vpc_id = module.networking.aws_vpc_public_private_id
 }
 
+module "data_imports" {
+  source          = "./modules/data_imports"
+  region          = var.region
+  environment     = var.environment
+  private_subnets = module.networking.private-subnets
+  vpc_id          = module.networking.aws_vpc_public_private_id
+}
 
 module "networking" {
   source      = "./modules/networking"
@@ -80,12 +88,21 @@ terraform {
 }
 
 moved {
-  from = module.market_data_realtime_updates_lambda.module.market_data_realtime_updates_lambda.aws_ecr_repository.lambda
-  to   = module.market_data_lambda_base.aws_ecr_repository.market_data_lambda
+  from = aws_sqs_queue.data-imports
+  to   = module.data_imports.aws_sqs_queue.data-imports
 }
 
 moved {
-  from = module.brokerage_data_lambda.module.brokerage_data_lambda.aws_ecr_repository.lambda
-  to   = module.brokerage_data_lambda_base.aws_ecr_repository.brokerage_data_lambda
+  from = aws_sqs_queue.data-imports-deadletters
+  to   = module.data_imports.aws_sqs_queue.data-imports-deadletters
 }
 
+moved {
+  from = aws_sqs_queue.expedited-data-imports
+  to   = module.data_imports.aws_sqs_queue.expedited-data-imports
+}
+
+moved {
+  from = aws_sqs_queue.expedited-data-imports-deadletters
+  to   = module.data_imports.aws_sqs_queue.expedited-data-imports-deadletters
+}

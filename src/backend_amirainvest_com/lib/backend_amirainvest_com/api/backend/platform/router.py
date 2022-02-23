@@ -1,6 +1,7 @@
 import typing as t
 from typing import List
 from fastapi import APIRouter, Depends, File, status, UploadFile, HTTPException
+from fastapi.encoders import jsonable_encoder
 from pydantic import parse_obj_as
 
 from backend_amirainvest_com.api.backend.platform.model import (
@@ -46,7 +47,7 @@ async def create_platforms_route(platform_data: List[PlatformModel], token=Depen
         error = Http409Enum.platforms_match_claimed_user.value.dict()
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail = {"platforms":models, **error}
+            detail = {"platforms":jsonable_encoder([x.dict() for x in models]), **error}
         )
 
     elif len(unclaimed_platforms)>0:
@@ -56,7 +57,7 @@ async def create_platforms_route(platform_data: List[PlatformModel], token=Depen
             model.is_claimed = False
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail = {"platforms":models, **error}
+            detail = {"platforms":jsonable_encoder([x.dict() for x in models]), **error}
         )
             
     user_id=token["https://amirainvest.com/user_id"]

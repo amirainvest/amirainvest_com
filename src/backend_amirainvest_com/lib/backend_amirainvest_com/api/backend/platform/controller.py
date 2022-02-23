@@ -76,23 +76,23 @@ async def check_platforms(platform_data: t.List[PlatformModel]):
     for p in platform_data:
         count += 1
         if p.platform.value == "twitter":
-            platform, user = await check_twitter_username(p.username)
+            response = await check_twitter_username(p.username)
         elif p.platform.value == "youtube":
-            platform, user = await check_youtube_username(p.username)
+            response= await check_youtube_username(p.username)
         elif p.platform.value == "substack":
-            platform, user = await check_substack_username(p.username)
+            response= await check_substack_username(p.username)
         
-        claimed = user.is_claimed
-        if claimed == True:
-            claimed_platforms.append(platform) # TODO: can just pass p, not remake the platform dict
-        else:
-            unclaimed_platforms.append(platform)
+        if response:
+            # TODO: can just pass p, not remake the platform dict
+            platform, user = response
+            claimed_platforms.append(platform) if user.is_claimed else unclaimed_platforms.append(platform)
+
     return claimed_platforms, unclaimed_platforms
 
 
 @Session
 async def check_twitter_username(session: AsyncSession, username: str):
-    twitter_username, users = (
+    response = (
         await (
             session.execute(
                 select(TwitterUsers.username, Users)
@@ -101,24 +101,30 @@ async def check_twitter_username(session: AsyncSession, username: str):
             )
         )
     ).one_or_none()
-    return ({"platform":"twitter", "username":twitter_username}, users)
+    if response:
+        twitter_username, users = response
+        return ({"platform":"twitter", "username":twitter_username}, users)
+
+    
 
 
 @Session
 async def check_substack_username(session: AsyncSession, username: str):
-    substack_username, users =  (
+    response =  (
         await session.execute(
             select(SubstackUsers.username, Users)
             .join(Users)
             .where(SubstackUsers.username == username)
         )
     ).one_or_none()
-    return ({"platform":"substack","username":substack_username}, users)
+    if response:
+        substack_username, users = response
+        return ({"platform":"substack","username":substack_username}, users)
 
 
 @Session
 async def check_youtube_username(session: AsyncSession, username: str):
-    youtube_channel, users = (
+    response = (
         await (
             session.execute(
                 select(YouTubers.channel_username, Users)
@@ -127,12 +133,14 @@ async def check_youtube_username(session: AsyncSession, username: str):
             )
         )
     ).one_or_none()
-    return ({"platform":"youtube", "username":youtube_channel}, users)
+    if response:
+        youtube_channel, users = response
+        return ({"platform":"youtube", "username":youtube_channel}, users)
 
 
 
 async def create_platforms(user_id: str, platform_data: t.List[PlatformModel]) -> t.List[CreatePlatformModel]:
-    data_import_message = {"creator_id":user_id, "expedited":False}
+    data_import_message = {"creator_id":user_id, "expedited":True}
     for p in platform_data:
         if p.platform == "twitter":
             data_import_message["twitter_username"] = p.platform

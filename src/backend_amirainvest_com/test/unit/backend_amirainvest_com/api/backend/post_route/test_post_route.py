@@ -107,3 +107,59 @@ async def test_update(async_session_maker_test, factory, mock_auth):
     assert result["platform_user_id"] == "updated"
     db_result = (await session_test.execute(select(Posts))).scalars().one()
     assert db_result.platform_user_id == "updated"
+
+
+async def test_list(factory):
+    await factory.gen("posts", {"posts": {"content": "search_result_1"}})
+    await factory.gen("posts", {"posts": {"content": "search_result_2"}})
+
+    async with AsyncClient(app=app, base_url="http://test") as async_client:
+        list_response = await async_client.post(
+            "/post/list",
+            headers=AUTH_HEADERS,
+            data=json.dumps(
+                {
+                    "filters": [
+                        {
+                            "attribute": "content",
+                            "filter_type": "substring_match",
+                            "value": "search_result_1",
+                        }
+                    ]
+                }
+            ),
+        )
+
+    list_response_json = list_response.json()
+    assert list_response_json["result_count"] == 1
+    assert len(list_response_json["results"]) == 1
+
+    post_result = list_response_json["results"][0]
+    assert post_result["content"] == "search_result_1"
+
+
+async def test_list_multiple_matches(factory):
+    await factory.gen("posts", {"posts": {"content": "search_result_1"}})
+    await factory.gen("posts", {"posts": {"content": "search_result_2"}})
+    await factory.gen("posts", {"posts": {"content": "wont_show_up"}})
+
+    async with AsyncClient(app=app, base_url="http://test") as async_client:
+        list_response = await async_client.post(
+            "/post/list",
+            headers=AUTH_HEADERS,
+            data=json.dumps(
+                {
+                    "filters": [
+                        {
+                            "attribute": "content",
+                            "filter_type": "substring_match",
+                            "value": "arch_resu",
+                        }
+                    ]
+                }
+            ),
+        )
+
+    list_response_json = list_response.json()
+    assert list_response_json["result_count"] == 2
+    assert len(list_response_json["results"]) == 2

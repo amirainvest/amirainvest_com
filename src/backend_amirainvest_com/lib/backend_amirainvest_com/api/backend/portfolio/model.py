@@ -79,10 +79,10 @@ class SectionAllocation(BaseModel):
     percentage: Decimal
 
 
-class HistoricalPeriod(BaseModel):
+class HoldingPeriod(BaseModel):
     date: datetime.date
-    mv: Decimal
-    hp: Decimal
+    market_value: Decimal
+    rate: Decimal
 
 
 class PortfolioResponse(BaseModel):

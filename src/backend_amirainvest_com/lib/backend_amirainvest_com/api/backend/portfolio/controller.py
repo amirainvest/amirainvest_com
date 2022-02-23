@@ -4,20 +4,23 @@ from decimal import Decimal
 from typing import Optional
 
 import numpy as np
+from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.sql import func, label
 
 from backend_amirainvest_com.api.backend.portfolio.model import (
-    HistoricalPeriod,
     HistoricalReturn,
     HistoricalTrade,
     Holding,
+    HoldingPeriod,
+    HoldingsResponse,
     MarketValue,
     PortfolioResponse,
     PortfolioType,
     PortfolioValue,
     SectionAllocation,
+    TradingHistoryResponse,
 )
 from common_amirainvest_com.schemas.schema import (
     FinancialAccountHoldingsHistory,
@@ -26,19 +29,15 @@ from common_amirainvest_com.schemas.schema import (
     PlaidSecurities,
     Securities,
     SecurityPrices,
+    Users,
     UserSubscriptions,
 )
 from common_amirainvest_com.utils.decorators import Session
 
 
-async def get_portfolio_trades(user_id: str, is_creator: bool) -> list[HistoricalTrade]:
-    trading_history = await get_trading_history(user_id=user_id)
-    baseline_holdings = await get_user_baseline_holdings(user_id=user_id)
-
-    security_holdings_dict: dict[int, tuple[Decimal, Decimal]] = {}
-    for bh in baseline_holdings:
-        security_holdings_dict[bh.PlaidSecurities.id] = (Decimal(100), bh.FinancialAccountHoldingsHistory.quantity)
-
+async def get_portfolio_trades(user_id: str, creator_id: str) -> TradingHistoryResponse:
+    creator, is_creator = await get_user_and_if_creator(user_id=user_id, creator_id=creator_id)
+    trading_history = await get_trading_history(user_id=creator.id)
     response: list[HistoricalTrade] = []
     for trade in trading_history:
         fat = trade.FinancialAccountTransactions
@@ -50,17 +49,20 @@ async def get_portfolio_trades(user_id: str, is_creator: bool) -> list[Historica
                 transaction_type=fat.type,
                 transaction_price=fat.price,
                 transaction_market_value=is_creator if is_creator else mv,
-                percentage_change_in_position=None,  # TODO ...
+                percentage_change_in_position=None,
             )
         )
-    return response
+    return TradingHistoryResponse(
+        portfolio_type=PortfolioType.Creator if is_creator else PortfolioType.User, trades=response
+    )
 
 
-async def get_portfolio_holdings(user_id: str, is_creator: bool) -> list[Holding]:
-    holdings = await get_user_holdings_with_securities_data(user_id=user_id)
-    portfolio = get_portfolio_value(holdings=holdings, user_id=user_id)
+async def get_portfolio_holdings(user_id: str, creator_id: str) -> HoldingsResponse:
+    creator, is_creator = await get_user_and_if_creator(user_id=user_id, creator_id=creator_id)
+    holdings = await get_user_holdings_with_securities_data(user_id=creator.id)
+    portfolio = get_portfolio_value(holdings=holdings, user_id=creator.id)
 
-    response = []
+    response: list[Holding] = []
     for holding in holdings:
         fa = holding.FinancialAccountCurrentHoldings
         ps = holding.PlaidSecurities
@@ -77,55 +79,60 @@ async def get_portfolio_holdings(user_id: str, is_creator: bool) -> list[Holding
                 market_value=None if is_creator else market_value,
             )
         )
-    return response
+
+    return HoldingsResponse(
+        portfolio_type=PortfolioType.Creator if is_creator else PortfolioType.User, holdings=response
+    )
 
 
-async def get_portfolio_summary(user_id: str, is_creator: bool, start_date: date, end_date: date) -> PortfolioResponse:
+async def get_portfolio_summary(user_id: str, creator_id: str, start_date: date, end_date: date) -> PortfolioResponse:
+    creator, is_creator = await get_user_and_if_creator(user_id=user_id, creator_id=creator_id)
     plaid_cash_security = await get_cash_security_plaid()
-    market_values = await get_market_values(user_id=user_id, start_date=start_date, end_date=end_date)
-    cash_transactions = await get_cash_transactions_by_date(user_id=user_id, start_date=start_date, end_date=end_date)
+    market_values = await get_market_values(user_id=creator.id, start_date=start_date, end_date=end_date)
+    cash_transactions = await get_cash_transactions_by_date(
+        user_id=creator.id, start_date=start_date, end_date=end_date
+    )
 
-    # list of portfolio dates and daily returns
-    portfolio_hprs = await get_portfolio_holding_percentage_rates(
+    # Portfolio Historical Holding Period Rates
+    portfolio_holding_periods = await get_portfolio_holding_percentage_rates(
         market_values=market_values, cash_transactions=cash_transactions
     )
 
-    # Portfolio Return History Finished
-    rate = Decimal(1)
-    return_history_with_dates = []
-    return_history_twrs: list[float] = []
-    return_history_dates: set[date] = set()
-    for hpr in portfolio_hprs:
-        rate = rate * (hpr.hp + Decimal(1))
-        return_history_dates.add(hpr.date)
-        return_history_with_dates.append(
+    # Portfolio Time Weighted Return History
+    twr_rate = Decimal(1)
+    portfolio_historical_time_weighted_returns = []
+    for php in portfolio_holding_periods:
+        twr_rate = twr_rate * (php.rate + Decimal(1))
+        portfolio_historical_time_weighted_returns.append(
             HistoricalReturn(
-                date=hpr.date,
-                daily_return=rate - 1,
+                date=php.date,
+                daily_return=twr_rate - 1,
             )
         )
-        return_history_twrs.append(float(hpr.hp))
 
-    # Benchmark Return History
-    # TODO ....
-    benchmark_return_history = await compute_benchmark(benchmark_id=9876, dates=return_history_dates)
+    # Benchmark Historical Holding Period Rates
+    benchmark_holding_periods = await compute_benchmark(
+        benchmark_id=creator.benchmark, dates=(d.date for d in portfolio_holding_periods)
+    )
 
-    rate = Decimal(1)
-    benchmark_twrs_with_dates = []
-    benchmark_twrs: list[float] = []
-    for brh in benchmark_return_history:
-        rate = rate * (brh.hp + Decimal(1))
-        benchmark_twrs_with_dates.append(HistoricalReturn(date=brh.date, daily_return=rate - 1))
-        benchmark_twrs.append(float(brh.hp))
+    # Benchmark Time Weighted Return History
+    benchmark_twr_rate = Decimal(1)
+    benchmark_historical_time_weighted_returns = []
+    for b_hp in benchmark_holding_periods:
+        benchmark_twr_rate = benchmark_twr_rate * (b_hp.rate + Decimal(1))
+        benchmark_historical_time_weighted_returns.append(
+            HistoricalReturn(date=b_hp.date, daily_return=benchmark_twr_rate - 1)
+        )
 
     # Time Weighted Return Finished
-    time_weighted_return = return_history_with_dates[len(return_history_with_dates) - 1].daily_return
-    covariance = np.cov(return_history_twrs, benchmark_twrs)[0][1]
-    variance = np.var(benchmark_twrs, ddof=1)
+    portfolio_holding_period_rates = [float(php.rate) for php in portfolio_holding_periods]
+    benchmark_holding_period_rates = [float(bhp.rate) for bhp in benchmark_holding_periods]
+    covariance = np.cov(portfolio_holding_period_rates, benchmark_holding_period_rates)[0][1]
+    variance = np.var(benchmark_holding_period_rates, ddof=1)
     beta = covariance / variance
 
-    current_holdings = await get_current_holdings_from_history(user_id=user_id)
-    sharpe_ratio = await compute_sharpe_ratio(portfolio_returns=return_history_with_dates)
+    current_holdings = await get_current_holdings_from_history(user_id=creator.id)
+    sharpe_ratio = await compute_sharpe_ratio(portfolio_returns=portfolio_holding_periods)
 
     cash = Decimal(0)
     mv = Decimal(0)
@@ -145,13 +152,15 @@ async def get_portfolio_summary(user_id: str, is_creator: bool, start_date: date
     gross = (long_pos + abs(short_pos) - cash) / mv
     net = ((long_pos + short_pos) - cash) / mv
 
-    portfolio_allocation = await get_portfolio_allocation(user_id=user_id)
+    portfolio_allocation = await get_portfolio_allocation(user_id=creator.id)
     return PortfolioResponse(
-        user_id=user_id,
+        user_id=creator.id,
         portfolio_allocation=portfolio_allocation,
-        return_history=return_history_with_dates,
-        benchmark_return_history=benchmark_twrs_with_dates,
-        total_return=time_weighted_return,
+        return_history=portfolio_historical_time_weighted_returns,
+        benchmark_return_history=benchmark_historical_time_weighted_returns,
+        total_return=portfolio_historical_time_weighted_returns[
+            len(portfolio_historical_time_weighted_returns) - 1
+        ].daily_return,
         beta=beta,
         sharpe_ratio=sharpe_ratio,
         percentage_long=long,
@@ -162,14 +171,48 @@ async def get_portfolio_summary(user_id: str, is_creator: bool, start_date: date
     )
 
 
-async def compute_sharpe_ratio(portfolio_returns: list[HistoricalReturn]) -> Decimal:
+async def compute_sharpe_ratio(portfolio_returns: list[HoldingPeriod]) -> Decimal:
     portfolio_returns.sort(key=lambda x: x.date)
     vals = []
     for pr in portfolio_returns:
-        vals.append(float(pr.daily_return))
+        vals.append(float(pr.rate))
     mean = np.mean(vals, dtype=np.float64)
     std_dev = np.std(vals, ddof=1, dtype=np.float64)
     return Decimal(mean / std_dev)
+
+
+def get_portfolio_value(holdings: list, user_id: str) -> PortfolioValue:
+    portfolio_value = PortfolioValue(user_id=user_id, value=0)
+    for holding in holdings:
+        fa = holding.FinancialAccountCurrentHoldings
+        value = portfolio_value.value + Decimal(fa.quantity * fa.latest_price)
+        portfolio_value.value = value
+
+    return portfolio_value
+
+
+@Session
+async def get_user_and_if_creator(session: AsyncSession, user_id: str, creator_id: str) -> tuple[Users, bool]:
+    if user_id == creator_id:
+        response = (await session.execute(select(Users).where(Users.id == creator_id))).scalar_one()
+        return response, False
+
+    response = await session.execute(
+        select(Users)
+        .join(UserSubscriptions, UserSubscriptions.subscriber_id == Users.id)
+        .where(UserSubscriptions.subscriber_id == user_id, UserSubscriptions.creator_id == creator_id)
+    )
+
+    user = response.scalar_one_or_none()
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="user is not a subscriber of the creator")
+    return user, True
+
+
+@Session
+async def get_user(session: AsyncSession, user_id: str) -> Users:
+    response = await session.execute(select(Users).where(Users.id == user_id))
+    return response.scalar_one()
 
 
 @Session
@@ -270,20 +313,20 @@ async def get_market_values(session: AsyncSession, user_id: int, start_date: dat
 
 async def get_portfolio_holding_percentage_rates(
     market_values: list[MarketValue], cash_transactions: dict[date, Decimal]
-) -> list[HistoricalPeriod]:
-    yesterday = HistoricalPeriod(
+) -> list[HoldingPeriod]:
+    yesterday = HoldingPeriod(
         date=market_values[0].date,
-        mv=market_values[0].value,
-        hp=0,
+        market_value=market_values[0].value,
+        rate=0,
     )
     hpr_history = [yesterday]
     for mv in market_values[1:]:
         if mv.date in cash_transactions:
             mv.value = mv.value + cash_transactions[mv.date]
-        hpr_today = HistoricalPeriod(
+        hpr_today = HoldingPeriod(
             date=mv.date,
-            mv=mv.value,
-            hp=(mv.value - yesterday.mv) / yesterday.mv,
+            market_value=mv.value,
+            rate=(mv.value - yesterday.market_value) / yesterday.market_value,
         )
         hpr_history.append(hpr_today)
         yesterday = hpr_today
@@ -291,7 +334,14 @@ async def get_portfolio_holding_percentage_rates(
 
 
 @Session
-async def compute_benchmark(session: AsyncSession, benchmark_id: int, dates: set[date]) -> list[HistoricalPeriod]:
+async def compute_benchmark(
+    session: AsyncSession, benchmark_id: Optional[int], dates: set[date]
+) -> list[HoldingPeriod]:
+    if benchmark_id is None:
+        benchmark_id = (
+            (await session.execute(select(Securities).where(Securities.ticker_symbol == "SPY"))).scalar_one()
+        ).id
+
     date_times = []
     for d in dates:
         dt = datetime.datetime.combine(d, datetime.datetime.min.time())
@@ -307,36 +357,25 @@ async def compute_benchmark(session: AsyncSession, benchmark_id: int, dates: set
     all = response.scalars().all()
 
     hpr_history = [
-        HistoricalPeriod(
+        HoldingPeriod(
             date=all[0].price_time,
-            mv=all[0].price,
-            hp=0,
+            market_value=all[0].price,
+            rate=0,
         )
     ]
 
     for r in all[1:]:
         yesterday = hpr_history[len(hpr_history) - 1]
-        hp = (r.price - yesterday.mv) / yesterday.mv
+        hp = (r.price - yesterday.market_value) / yesterday.market_value
         hpr_history.append(
-            HistoricalPeriod(
+            HoldingPeriod(
                 date=r.price_time,
-                mv=r.price,
-                hp=hp,
+                market_value=r.price,
+                rate=hp,
             )
         )
-
     hpr_history.sort(key=lambda x: x.date)
     return hpr_history
-
-
-@Session
-async def get_user_subscription(session: AsyncSession, user_id: str, creator_id: str) -> Optional[UserSubscriptions]:
-    response = await session.execute(
-        select(UserSubscriptions)
-        .where(UserSubscriptions.subscriber_id == user_id)
-        .where(UserSubscriptions.creator_id == creator_id)
-    )
-    return response.scalar()
 
 
 @Session
@@ -371,40 +410,6 @@ async def get_user_holdings_with_securities_data(session: AsyncSession, user_id:
 
 
 @Session
-async def get_user_baseline_holdings(session: AsyncSession, user_id: str) -> list:
-    response = await session.execute(
-        select(FinancialAccountHoldingsHistory, PlaidSecurities)
-        .join(PlaidSecurities)
-        .join(FinancialAccounts)
-        .where(
-            FinancialAccounts.user_id == user_id,
-            FinancialAccountHoldingsHistory.holding_date
-            == select(func.min(FinancialAccountHoldingsHistory.holding_date)),
-        )
-    )
-    return response.all()
-
-
-@Session
-async def get_recent_stock_price(session: AsyncSession, ticker_symbol: str) -> Optional[SecurityPrices]:
-    # We want to do a join and get the price of a security by symbol most recent time
-    return (
-        await session.execute(
-            select(SecurityPrices)
-            .join(Securities.id)
-            .where(Securities.ticker_symbol == ticker_symbol)
-            .order_by(SecurityPrices.price_time.desc())
-            .limit(1)
-        )
-    ).scalar()
-
-
-@Session
-async def get_ticker_symbol_by_plaid_id(session: AsyncSession, plaid_id: int) -> Optional[PlaidSecurities]:
-    return (await session.execute(select(PlaidSecurities).where(PlaidSecurities.id == plaid_id))).scalar()
-
-
-@Session
 async def get_trading_history(session: AsyncSession, user_id: str) -> list:
     response = await session.execute(
         select(FinancialAccountTransactions, PlaidSecurities)
@@ -414,13 +419,3 @@ async def get_trading_history(session: AsyncSession, user_id: str) -> list:
         .order_by(FinancialAccountTransactions.posting_date.desc())
     )
     return response.all()
-
-
-def get_portfolio_value(holdings: list, user_id: str) -> PortfolioValue:
-    portfolio_value = PortfolioValue(user_id=user_id, value=0)
-    for holding in holdings:
-        fa = holding.FinancialAccountCurrentHoldings
-        value = portfolio_value.value + Decimal(fa.quantity * fa.latest_price)
-        portfolio_value.value = value
-
-    return portfolio_value

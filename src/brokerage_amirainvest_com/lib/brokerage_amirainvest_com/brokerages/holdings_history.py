@@ -402,6 +402,6 @@ if __name__ == "__main__":
     starting_date = datetime.now().replace(hour=21, minute=0, second=0, microsecond=0, day=17) + relativedelta(days=1)
     asyncio.run(
         run(
-            user_id="53a7c663-2c10-47d1-afbc-bf3962f0dbd0", start_date=starting_date.date(), end_date=ending_date.date()
+            user_id="caa264fe-2fe9-465c-b23f-69e3a303edfb", start_date=starting_date.date(), end_date=ending_date.date()
         )
     )

@@ -2,6 +2,7 @@ import asyncio
 import csv
 from decimal import Decimal
 
+import pytz
 from dateutil import parser
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine import Row
@@ -121,12 +122,17 @@ async def bootstrap():
         del sec["currency"]
     await add_in_groups(Securities, securities)
 
+    et_tz = pytz.timezone("US/Eastern")
     # Add Security Prices
     for sec_p in securities_prices:
         sec_p["id"] = int(sec_p["id"])
         sec_p["security_id"] = int(sec_p["security_id"])
         sec_p["price"] = Decimal(sec_p["price"])
-        sec_p["price_time"] = parser.parse(sec_p["price_time"]).replace(tzinfo=None)
+        pt = parser.parse(sec_p["price_time"], ignoretz=True)
+        pt = et_tz.localize(pt)
+        pt = pt.astimezone(pytz.utc)
+        pt = pt.replace(hour=21, minute=0, second=0, microsecond=0, tzinfo=None)
+        sec_p["price_time"] = pt
         del sec_p["created_at"]
     await add_in_groups(SecurityPrices, securities_prices)
 
@@ -162,7 +168,11 @@ async def bootstrap():
         tx["id"] = int(tx["id"])
         tx["account_id"] = int(tx["account_id"])
         tx["plaid_security_id"] = int(tx["plaid_security_id"])
-        tx["posting_date"] = parser.parse(tx["posting_date"]).replace(tzinfo=None)
+        pd = parser.parse(tx["posting_date"], ignoretz=True)
+        pd = et_tz.localize(pd)
+        pd = pd.astimezone(pytz.utc)
+        pd = pd.replace(hour=21, minute=0, second=0, microsecond=0, tzinfo=None)
+        tx["posting_date"] = pd
         tx["price"] = Decimal(tx["price"])
         tx["quantity"] = Decimal(tx["quantity"])
         tx["value_amount"] = Decimal(tx["value_amount"])
@@ -178,7 +188,11 @@ async def bootstrap():
         h["latest_price"] = Decimal(h["latest_price"])
         h["quantity"] = Decimal(h["quantity"])
         h["cost_basis"] = Decimal(h["cost_basis"]) if h["cost_basis"] != "" else None
-        h["latest_price_date"] = parser.parse(h["latest_price_date"]).replace(tzinfo=None)
+        lpd = parser.parse(h["latest_price_date"], ignoretz=True)
+        lpd = et_tz.localize(lpd)
+        lpd = lpd.astimezone(pytz.utc)
+        lpd = lpd.replace(hour=21, minute=0, second=0, microsecond=0, tzinfo=None)
+        h["latest_price_date"] = lpd
     await add_in_groups(FinancialAccountCurrentHoldings, holdings)
 
 

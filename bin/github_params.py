@@ -24,7 +24,12 @@ _trigger_type = _github_context["event_name"]
 
 def main():
     # TODO get this list from the OS
-    microservice_list = ["backend_amirainvest_com", "brokerage.lambda", "market_data.lambda"]
+    microservice_list = [
+        "backend_amirainvest_com",
+        "brokerage.lambda",
+        "market_data.lambda",
+        "data_imports.lambda",
+    ]
     environment = "prod" if _branch_name == "main" else "test"
     deploy_tf = "true" if _branch_name == "main" else "false"
     run_deploy = "false"

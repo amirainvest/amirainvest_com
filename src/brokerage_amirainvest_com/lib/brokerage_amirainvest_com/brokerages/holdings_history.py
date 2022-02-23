@@ -130,7 +130,6 @@ async def add_holdings_to_database(
 
         insertable.append(cash_holding)
         for h in historical_account_holding.holdings:
-            print(h.holding_date)
             try:
                 buy_date = buy_date_dict[h.plaid_security_id]
             except KeyError:

@@ -4,7 +4,8 @@ import uuid
 from decimal import Decimal
 from typing import Optional
 
-from pydantic import BaseModel
+from dateutil import parser
+from pydantic import BaseModel, validator
 
 
 class PortfolioRequest(BaseModel):
@@ -15,6 +16,18 @@ class PortfolioSummaryRequest(BaseModel):
     user_id: str
     start_date: datetime.date
     end_date: datetime.date
+
+    @validator("start_date", pre=True)
+    def parse_start_date(cls, value):
+        if isinstance(value, str):
+            return parser.isoparse(value).date()
+        return value
+
+    @validator("end_date", pre=True)
+    def parse_end_date(cls, value):
+        if isinstance(value, str):
+            return parser.isoparse(value).date()
+        return value
 
 
 class Holding(BaseModel):

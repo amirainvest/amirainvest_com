@@ -162,33 +162,14 @@ async def get_portfolio_summary(user_id: str, is_creator: bool, start_date: date
     )
 
 
-@Session
-async def compute_sharpe_ratio(session: AsyncSession, portfolio_returns: list[HistoricalReturn]) -> Decimal:
+async def compute_sharpe_ratio(portfolio_returns: list[HistoricalReturn]) -> Decimal:
     portfolio_returns.sort(key=lambda x: x.date)
-    dates = []
+    vals = []
     for pr in portfolio_returns:
-        dt = datetime.datetime.combine(pr.date, datetime.datetime.min.time())
-        dt = dt.replace(hour=21)
-        dates.append(dt)
-
-    response = await session.execute(
-        select(SecurityPrices)
-        .join(Securities)
-        .where(Securities.ticker_symbol == "US02Y", SecurityPrices.price_time.in_(dates))
-        .order_by(SecurityPrices.price_time.desc())
-    )
-    excess_return = []
-    benchmark_prices = response.scalars().all()
-
-    idx = 0
-    while idx < len(portfolio_returns):
-        daily_return = portfolio_returns[idx].daily_return
-        benchmark_price = benchmark_prices[idx].price
-        excess_return.append(float(daily_return) - float(benchmark_price))
-        idx = idx + 1
-
-    std_dev = float(np.std(excess_return, ddof=1, dtype=np.float64))
-    return Decimal(std_dev)
+        vals.append(float(pr.daily_return))
+    mean = np.mean(vals, dtype=np.float64)
+    std_dev = np.std(vals, ddof=1, dtype=np.float64)
+    return Decimal(mean / std_dev)
 
 
 @Session
@@ -255,6 +236,8 @@ async def get_portfolio_allocation(session: AsyncSession, user_id: int) -> list[
 
     allocations: list[SectionAllocation] = []
     for sector in sector_allocation:
+        if sector is None:
+            continue
         allocation = sector_allocation[sector]
         allocations.append(SectionAllocation(name=sector, percentage=allocation / total_allocation))
     return allocations

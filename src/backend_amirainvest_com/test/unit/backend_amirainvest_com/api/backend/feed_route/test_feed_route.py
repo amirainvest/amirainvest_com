@@ -1,5 +1,7 @@
 import json
+import random
 
+import arrow
 from fastapi import status
 from httpx import AsyncClient
 
@@ -185,3 +187,37 @@ async def test_get_discovery_feed_filter_out_subscribed_posts(factory, mock_auth
     assert len(response_data["posts"]) == page_size - 5
 
     assert all([response["creator"]["id_creator"] == str(creator["users"].id) for response in response_data["posts"]])
+
+
+async def test_get_discovery_feed_date_sorting(factory):
+    creator = await factory.gen("users")
+    utc_now = arrow.utcnow()
+
+    for _ in range(0, PAGE_SIZE + 10):
+        random_days = -random.randrange(1, 20, 1)
+        created_at = utc_now.shift(days=random_days)
+        await factory.gen(
+            "posts",
+            {"posts": {"creator_id": creator["users"].id, "created_at": created_at.datetime.replace(tzinfo=None)}},
+        )
+
+    async with AsyncClient(app=app, base_url="http://test") as async_client:
+        response = await async_client.post(
+            "/feed/get",
+            headers=AUTH_HEADERS,
+            data=json.dumps({"feed_type": FeedType.discovery.value}),
+        )
+
+    response_data = response.json()
+    assert response.status_code == 200
+
+    assert type(response_data) == dict
+    assert type(response_data["posts"]) == list
+
+    assert response_data["feed_type"] == FeedType.discovery.value
+    assert len(response_data["posts"]) == PAGE_SIZE
+
+    assert all([response["creator"]["id_creator"] == str(creator["users"].id) for response in response_data["posts"]])
+
+    sorted_posts = sorted(response_data["posts"], key=lambda post: arrow.get(post["created_at"]).date(), reverse=True)
+    assert sorted_posts == response_data["posts"]

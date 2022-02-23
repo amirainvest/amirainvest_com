@@ -126,6 +126,12 @@ async_engine = create_async_engine(
     POSTGRES_DATABASE_URL,
     future=True,
     echo=True,
+    echo_pool=True,
+    max_overflow=15,
+    pool_pre_ping=True,
+    pool_size=5,
+    pool_recycle=180,
+    pool_timeout=30,
 )
 
 async_session_maker = sessionmaker(

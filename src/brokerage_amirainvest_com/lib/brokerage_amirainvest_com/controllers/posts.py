@@ -1,8 +1,11 @@
 from datetime import datetime
+from decimal import Decimal
+from typing import Tuple
 
 from sqlalchemy import extract, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from common_amirainvest_com.controllers.notifications import create_notification
 from common_amirainvest_com.schemas.schema import (
     FinancialAccountCurrentHoldings,
     FinancialAccounts,
@@ -28,14 +31,17 @@ async def create_trade_post(
     creator_id: str,
     plaid_user_id,
     transaction_id,
-    transaction_value: float,
+    transaction_value: Decimal,
     security_ticker: str,
+    security_purchase_price: Decimal,
+    posting_date: str,
 ) -> Posts:
+    trade_action, content = await generate_content(creator_id, security_ticker, transaction_value)
     post = Posts(
         creator_id=creator_id,
         subscription_level=SubscriptionLevel.standard,
         title=None,
-        content=(await generate_content(creator_id, security_ticker, transaction_value)),
+        content=content,
         photos=[],
         platform=MediaPlatform.brokerage,
         platform_display_name=None,
@@ -47,6 +53,22 @@ async def create_trade_post(
         platform_post_url=None,
     )
     session.add(post)
+    creator = (await session.execute(select(Users).where(Users.id == creator_id))).scalars().one()
+    (
+        await create_notification(
+            creator_id,
+            "trade",
+            {
+                "ticker": security_ticker,
+                "trade_action": trade_action,
+                "amira_username": creator.username,
+                "transaction_date": posting_date,
+                "ticker_purchase_price": security_purchase_price,
+            },
+            creator_id,
+            creator.picture_url,
+        )
+    )
     return post
 
 
@@ -76,6 +98,8 @@ async def create_day_transaction_posts():
             transaction["plaid_investment_transaction_id"],
             transaction["value_amount"],
             security["ticker_symbol"],
+            transaction["price"],
+            transaction["posting_date"],
         )
 
 
@@ -112,10 +136,12 @@ async def get_user_portfolio_value(creator_id: str):
     return portfolio_value
 
 
-async def get_trade_attributes(creator_id: str, security_ticker: str, transaction_value: float):
+async def get_trade_attributes(creator_id: str, security_ticker: str, transaction_value: Decimal):
     previously_owned, holding = await get_existing_holding(creator_id, security_ticker)
     portfolio_value = await get_user_portfolio_value(creator_id)
-    percentage_of_portfolio = round((transaction_value * 100 / portfolio_value), 4)
+    percentage_of_portfolio = 100
+    if portfolio_value > 0:
+        percentage_of_portfolio = round((transaction_value * 100 / portfolio_value), 4)
     if previously_owned:
         if transaction_value > 0:
             start = "increased"
@@ -132,7 +158,7 @@ async def get_trade_attributes(creator_id: str, security_ticker: str, transactio
     return percentage_of_portfolio, f"{start}_{end}"
 
 
-async def generate_content(creator_id: str, security_ticker: str, transaction_value: float):
+async def generate_content(creator_id: str, security_ticker: str, transaction_value: Decimal) -> Tuple[str, str]:
     percentage_of_portfolio, trade_action = await get_trade_attributes(creator_id, security_ticker, transaction_value)
     text = {
         "open_long": f"Opened {percentage_of_portfolio}% position in {security_ticker}",
@@ -144,4 +170,4 @@ async def generate_content(creator_id: str, security_ticker: str, transaction_va
         "decreased_long": f"Decreased position in {security_ticker} by {percentage_of_portfolio}%",
         "decreased_short": f"Decreased short position in {security_ticker} by {percentage_of_portfolio}%",
     }[trade_action]
-    return f"""<p>{text}</p>"""
+    return trade_action, f"""<p>{text}</p>"""

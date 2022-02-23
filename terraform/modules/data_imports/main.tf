@@ -4,7 +4,7 @@ module "lambda_data_loader_producer" {
   environment      = var.environment
   private_subnets  = var.private_subnets
   vpc_id           = var.vpc_id
-  lambda_image_uri = aws_ecr_repository.lambda.repository_url
+  lambda_image_uri = "${aws_ecr_repository.lambda.repository_url}@${data.aws_ecr_image.lambda.id}"
   project          = local.project
 }
 
@@ -15,7 +15,7 @@ module "lambda_data_loader_consumer" {
   environment      = var.environment
   private_subnets  = var.private_subnets
   vpc_id           = var.vpc_id
-  lambda_image_uri = aws_ecr_repository.lambda.repository_url
+  lambda_image_uri = "${aws_ecr_repository.lambda.repository_url}@${data.aws_ecr_image.lambda.id}"
   project          = local.project
   read_sqs_arn     = aws_sqs_queue.data-imports.arn
 }
@@ -27,7 +27,7 @@ module "lambda_data_loader_consumer_expedited" {
   environment      = var.environment
   private_subnets  = var.private_subnets
   vpc_id           = var.vpc_id
-  lambda_image_uri = aws_ecr_repository.lambda.repository_url
+  lambda_image_uri = "${aws_ecr_repository.lambda.repository_url}@${data.aws_ecr_image.lambda.id}"
   project          = local.project
   read_sqs_arn     = aws_sqs_queue.expedited-data-imports.arn
 }

@@ -10,6 +10,7 @@ from backend_amirainvest_com.api.backend.portfolio.model import (
     HoldingsResponse,
     PortfolioRequest,
     PortfolioResponse,
+    PortfolioSummaryRequest,
     PortfolioType,
     TradingHistoryResponse,
 )
@@ -20,10 +21,15 @@ router = APIRouter(prefix="/portfolio", tags=["Portfolio"])
 
 
 @router.post("/summary", status_code=status.HTTP_200_OK, response_model=PortfolioResponse)
-async def route_get_portfolio_summary(portfolio_request: PortfolioRequest, token=Depends(auth_depends_user_id)):
+async def route_get_portfolio_summary(portfolio_request: PortfolioSummaryRequest, token=Depends(auth_depends_user_id)):
     # user_id = token["https://amirainvest.com/user_id"]
     # requesting_creator = await is_requesting_creator(user_id=user_id, requesting_user_id=portfolio_request.user_id)
-    return await get_portfolio_summary(user_id=portfolio_request.user_id, is_creator=False)
+    return await get_portfolio_summary(
+        user_id=portfolio_request.user_id,
+        is_creator=False,
+        start_date=portfolio_request.start_date,
+        end_date=portfolio_request.end_date,
+    )
 
 
 @router.post("/holdings", status_code=status.HTTP_200_OK, response_model=HoldingsResponse, responses={})

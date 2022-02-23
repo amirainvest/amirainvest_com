@@ -54,33 +54,36 @@ async def compute_account_holdings_history(
     )
 
     account_historical_holdings: list = [historical_account]
-    for market_date_idx, market_date in enumerate(market_dates[1 : len(market_dates) - 1]):
-        today_holdings = deepcopy(account_historical_holdings[len(account_historical_holdings) - 1])
 
+    idx = 0
+    while idx < len(market_dates) - 1:
+        market_date = market_dates[idx]
+        holdings_today = deepcopy(account_historical_holdings[len(account_historical_holdings) - 1])
         if market_date in transactions_by_date:
             transactions = transactions_by_date[market_date]
-            for transaction in transactions:
-                today_holdings = await perform_transaction(today_holdings, transaction)
+            # Change this to undo_transactions and loop over them within the function
+            holdings_today = await undo_transactions(holdings_today, transactions)
 
-        next_market_date = market_dates[market_date_idx + 1]
+        # Get "yesterdays" market-date, the day before today(2022-01-15 -> 2022-01-14)
+        prior_market_day = market_dates[idx + 1]
         prior_holdings = HistoricalAccount(
-            id=today_holdings.id,
-            date=next_market_date,
-            user_id=today_holdings.user_id,
+            id=holdings_today.id,
+            date=prior_market_day,
+            user_id=holdings_today.user_id,
             holdings=[],
-            cash=today_holdings.cash,
+            cash=holdings_today.cash,
         )
 
-        for today_holding in today_holdings.holdings:
+        for today_holding in holdings_today.holdings:
             p = today_holding.price
-            sp = await get_closest_price(today_holding.security_id, next_market_date)
+            sp = await get_closest_price(today_holding.security_id, prior_market_day)
             if sp is not None:
                 p = sp.price
             today_holding.price = p
-            today_holding.holding_date = next_market_date
+            today_holding.holding_date = prior_market_day
             prior_holdings.holdings.append(today_holding)
-
         account_historical_holdings.append(prior_holdings)
+        idx = idx + 1
     account_historical_holdings.sort(key=lambda x: x.date)
     return account_historical_holdings
 
@@ -91,6 +94,7 @@ async def run(user_id: str, start_date: date, end_date: date):
     market_dates = await get_market_dates(start_date=start_date, end_date=end_date)
     for account in accounts:
         transactions_by_date = await get_financial_transactions_dict(account_id=account.id)
+
         holdings = await get_current_financial_holdings(account_id=account.id)
 
         account_historical_holdings = await compute_account_holdings_history(
@@ -101,6 +105,7 @@ async def run(user_id: str, start_date: date, end_date: date):
             user_id=user_id,
             account=account,
         )
+
         await add_holdings_to_database(
             end_date=end_date, historical_holdings=account_historical_holdings, plaid_cash_security=plaid_cash_security
         )
@@ -125,6 +130,7 @@ async def add_holdings_to_database(
 
         insertable.append(cash_holding)
         for h in historical_account_holding.holdings:
+            print(h.holding_date)
             try:
                 buy_date = buy_date_dict[h.plaid_security_id]
             except KeyError:
@@ -149,12 +155,14 @@ async def add_holdings_to_database(
             h.buy_date = buy_date
             h.cost_basis = cost_basis
             insertable.append(h)
+
     await insert_historical_holdings(insertable)
 
 
 async def get_market_dates(start_date: date, end_date: date) -> list[date]:
     market_holidays = await get_market_holidays_dict()
     market_dates: list[date] = []
+    end_date = end_date + relativedelta(days=1)
     while start_date >= end_date:
         start_date = start_date - relativedelta(days=1)
         if not is_trading_day(day=start_date, market_holidays=market_holidays):
@@ -281,13 +289,14 @@ rule_set = {
 }
 
 
-async def perform_transaction(
-    account_holdings: HistoricalAccount, transaction: FinancialAccountTransactions
+async def undo_transactions(
+    account_holdings: HistoricalAccount, transactions: list[FinancialAccountTransactions]
 ) -> HistoricalAccount:
-    try:
-        account_holdings = await rule_set[transaction.type][transaction.subtype](account_holdings, transaction)
-    except KeyError:
-        raise Exception(".... we didnt check for this key ....")  # TODO error message...
+    for transaction in transactions:
+        try:
+            account_holdings = await rule_set[transaction.type][transaction.subtype](account_holdings, transaction)
+        except KeyError:
+            raise Exception(".... we didnt check for this key ....")  # TODO error message...
     return account_holdings
 
 
@@ -364,13 +373,12 @@ async def get_financial_transactions_dict(
     response = await session.execute(
         select(FinancialAccountTransactions).where(FinancialAccountTransactions.account_id == account_id)
     )
-
     transaction_history_day_dict: dict[date, list[FinancialAccountTransactions]] = {}
-    for item in response.scalars().all():
+    for tx in response.scalars().all():
         try:
-            transaction_history_day_dict[item.posting_date.date()].append(item)
+            transaction_history_day_dict[tx.posting_date.date()].append(tx)
         except KeyError:
-            transaction_history_day_dict[item.posting_date.date()] = [item]
+            transaction_history_day_dict[tx.posting_date.date()] = [tx]
     return transaction_history_day_dict
 
 
@@ -391,8 +399,8 @@ async def get_financial_accounts(session: AsyncSession, user_id: str) -> list[Fi
 
 
 if __name__ == "__main__":
-    ending_date = datetime.utcnow().replace(month=1, day=1, hour=21, minute=0, second=0, microsecond=0)
-    starting_date = datetime.now().replace(hour=21, minute=0, second=0, microsecond=0) + relativedelta(days=1)
+    ending_date = datetime.utcnow().replace(year=2021, month=12, day=31, hour=21, minute=0, second=0, microsecond=0)
+    starting_date = datetime.now().replace(hour=21, minute=0, second=0, microsecond=0, day=17) + relativedelta(days=1)
     asyncio.run(
         run(
             user_id="53a7c663-2c10-47d1-afbc-bf3962f0dbd0", start_date=starting_date.date(), end_date=ending_date.date()

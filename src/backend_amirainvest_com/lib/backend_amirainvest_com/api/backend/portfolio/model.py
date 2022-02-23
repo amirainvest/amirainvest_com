@@ -11,6 +11,12 @@ class PortfolioRequest(BaseModel):
     user_id: str
 
 
+class PortfolioSummaryRequest(BaseModel):
+    user_id: str
+    start_date: datetime.date
+    end_date: datetime.date
+
+
 class Holding(BaseModel):
     ticker: str
     ticker_price: Decimal
@@ -70,7 +76,7 @@ class PortfolioResponse(BaseModel):
     user_id: str
     return_history: Optional[list[HistoricalReturn]]
     benchmark_return_history: Optional[list[HistoricalReturn]]
-    portfolio_allocation: Optional[list[SectionAllocation]]
+    portfolio_allocation: Optional[list[Optional[SectionAllocation]]]
     total_return: Decimal
     beta: Decimal
     sharpe_ratio: Decimal

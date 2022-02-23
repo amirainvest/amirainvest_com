@@ -140,13 +140,19 @@ async def check_youtube_username(session: AsyncSession, username: str):
 
 
 async def create_platforms(user_id: str, platform_data: t.List[PlatformModel]) -> t.List[CreatePlatformModel]:
-    data_import_message = {"creator_id":user_id, "expedited":True}
+    data_import_message = {
+        "creator_id":user_id, 
+        "expedited":True,
+        "twitter_username":None,
+        "youtube_channel_id":None,
+        "substack_username":None}
+        
     for p in platform_data:
-        if p.platform == "twitter":
+        if p.platform.value == "twitter":
             data_import_message["twitter_username"] = p.platform
-        elif p.platform == "youtube":
+        elif p.platform.value == "youtube":
             data_import_message["youtube_channel_id"] = p.platform
-        elif p.platform == "substack":
+        elif p.platform.value == "substack":
             data_import_message["substack_username"] = p.platform
     handle_data_imports(**data_import_message)
     return parse_obj_as(t.List[CreatePlatformModel], platform_data)

@@ -3,7 +3,7 @@ FROM python@sha256:e3c1da82791d701339381d90ae63843cf078fed94bae6f36f7abe3ed3e339
 
 WORKDIR /function
 
-ENV PROJECT_NAME="data_imports"
+ENV PROJECT_NAME="data_imports_amirainvest_com"
 ENV PROJECT="data_imports"
 ENV AWS_DEFAULT_REGION="us-east-1"
 ENV POETRY_VIRTUALENVS_CREATE="false"

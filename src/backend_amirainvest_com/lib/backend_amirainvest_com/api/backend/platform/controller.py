@@ -6,6 +6,7 @@ from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.dialects.postgresql import insert
 from pydantic import parse_obj_as
+#from fastapi import HTTPException, status
 
 from backend_amirainvest_com.api.backend.user_route.controller import handle_data_imports
 from backend_amirainvest_com.api.backend.platform.model import PlatformModel, CreatePlatformModel

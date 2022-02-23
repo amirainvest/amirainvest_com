@@ -1,9 +1,13 @@
 import typing as t
 from typing import List
-from fastapi import APIRouter, Depends, File, status, UploadFile
+from fastapi import APIRouter, Depends, File, status, UploadFile, HTTPException
 from pydantic import parse_obj_as
 
-from backend_amirainvest_com.api.backend.platform.model import PlatformModel, CreatePlatformModel
+from backend_amirainvest_com.api.backend.platform.model import (
+    PlatformModel,
+    CreatePlatformModel,
+    Http409Enum,
+    Http409Model)
 from backend_amirainvest_com.api.backend.platform.controller import (
     get_controller,
     claim_platforms, 
@@ -24,23 +28,39 @@ async def get_platforms_route(token=Depends(auth_depends_user_id)):
 
 
 @router.post(
-    "/create", status_code=status.HTTP_200_OK, response_model=List[CreatePlatformModel], response_model_exclude_none=True
+    "/create", 
+    status_code=status.HTTP_200_OK, 
+    response_model=List[CreatePlatformModel], 
+    response_model_exclude_none=True,
+    responses={
+        status.HTTP_409_CONFLICT: {
+            "model": Http409Model, 
+            "description": "Collision with platforms being claimed"
+            }
+    }
 )
 async def create_platforms_route(platform_data: List[PlatformModel], token=Depends(auth_depends_user_id)):
     claimed_platforms, unclaimed_platforms = await check_platforms(platform_data)
     if len(claimed_platforms)> 0:
-        #response code 425 return t.List[PlatformModel]. User can't claim. Contact us if in error
-        return parse_obj_as(t.List[CreatePlatformModel], claimed_platforms)
+        models = parse_obj_as(t.List[CreatePlatformModel], claimed_platforms)
+        error = Http409Enum.platforms_match_claimed_user.value.dict()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail = {"platforms":models, **error}
+        )
 
     elif len(unclaimed_platforms)>0:
-        #response code 427 return t.List[PlatformModel]  User can choose to claim
+        error = Http409Enum.platforms_match_unclaimed_husk.value.dict()
         models = parse_obj_as(t.List[CreatePlatformModel], unclaimed_platforms)
         for model in models:
             model.is_claimed = False
-        return models
-    else:
-        user_id=token["https://amirainvest.com/user_id"]
-        return await create_platforms(user_id, platform_data)
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail = {"platforms":models, **error}
+        )
+            
+    user_id=token["https://amirainvest.com/user_id"]
+    return await create_platforms(user_id, platform_data)
 
 
 

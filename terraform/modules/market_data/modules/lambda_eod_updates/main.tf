@@ -1,5 +1,5 @@
 module "market_data_eod_updates_lambda" {
-  source                                = "../lambda_base"
+  source                                = "../../../lambda_base"
   region                                = var.region
   environment                           = var.environment
   private_subnets                       = var.private_subnets

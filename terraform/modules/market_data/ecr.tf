@@ -1,4 +1,4 @@
-resource "aws_ecr_repository" "market_data_lambda" {
+resource "aws_ecr_repository" "lambda" {
   encryption_configuration {
     encryption_type = "KMS"
     kms_key         = "arn:aws:kms:${var.region}:903791206266:key/d1f57297-6d72-455a-8839-ce498e9162db"
@@ -13,6 +13,6 @@ resource "aws_ecr_repository" "market_data_lambda" {
 }
 
 data "aws_ecr_image" "lambda" {
-  repository_name = aws_ecr_repository.market_data_lambda.name
+  repository_name = aws_ecr_repository.lambda.name
   image_tag       = var.environment
 }

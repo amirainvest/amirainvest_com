@@ -30,38 +30,12 @@ module "brokerage_data_lambda" {
   vpc_id = module.networking.aws_vpc_public_private_id
 }
 
-module "market_data_lambda_base" {
-  source      = "./modules/market_data_lambda_base"
-  region      = var.region
-  environment = var.environment
-}
-
-module "market_data_realtime_updates_lambda" {
-  source = "./modules/market_data_realtime_updates_lambda"
-
-  lambda_image_uri = module.market_data_lambda_base.lambda-image-uri
-  region           = var.region
-  environment      = var.environment
-  private_subnets = [
-    module.networking.subnet-private-1-id,
-    module.networking.subnet-private-2-id,
-    module.networking.subnet-private-3-id,
-  ]
-  vpc_id = module.networking.aws_vpc_public_private_id
-}
-
-module "market_data_eod_updates_lambda" {
-  source           = "./modules/market_data_eod_updates_lambda"
-  lambda_image_uri = module.market_data_lambda_base.lambda-image-uri
-
-  region      = var.region
-  environment = var.environment
-  private_subnets = [
-    module.networking.subnet-private-1-id,
-    module.networking.subnet-private-2-id,
-    module.networking.subnet-private-3-id,
-  ]
-  vpc_id = module.networking.aws_vpc_public_private_id
+module "market_data" {
+  source      = "./modules/market_data"
+  region          = var.region
+  environment     = var.environment
+  private_subnets = module.networking.private-subnets
+  vpc_id          = module.networking.aws_vpc_public_private_id
 }
 
 module "data_imports" {

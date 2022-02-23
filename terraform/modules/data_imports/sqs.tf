@@ -33,7 +33,7 @@ POLICY
     }
   )
   sqs_managed_sse_enabled    = "false"
-  visibility_timeout_seconds = "30"
+  visibility_timeout_seconds = "901"
   tags = {
     env = var.environment
   }
@@ -68,7 +68,7 @@ POLICY
 
   receive_wait_time_seconds  = "0"
   sqs_managed_sse_enabled    = "false"
-  visibility_timeout_seconds = "30"
+  visibility_timeout_seconds = "901"
   tags = {
     env = var.environment
   }
@@ -109,7 +109,7 @@ POLICY
     }
   )
   sqs_managed_sse_enabled    = "false"
-  visibility_timeout_seconds = "30"
+  visibility_timeout_seconds = "901"
   tags = {
     env = var.environment
   }
@@ -144,9 +144,8 @@ POLICY
 
   receive_wait_time_seconds  = "0"
   sqs_managed_sse_enabled    = "false"
-  visibility_timeout_seconds = "30"
+  visibility_timeout_seconds = "901"
   tags = {
     env = var.environment
   }
 }
-

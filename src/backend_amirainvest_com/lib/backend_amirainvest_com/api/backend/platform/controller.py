@@ -11,8 +11,16 @@ from pydantic import parse_obj_as
 from backend_amirainvest_com.api.backend.user_route.controller import handle_data_imports
 from backend_amirainvest_com.api.backend.platform.model import PlatformModel, CreatePlatformModel
 from common_amirainvest_com.utils.decorators import Session
-from common_amirainvest_com.schemas.schema import TwitterUsers, YouTubers, SubstackUsers, Users, BroadcastRequests, UserSubscriptions, Posts
-
+from common_amirainvest_com.controllers.notifications import create_notification
+from common_amirainvest_com.schemas.schema import (
+    TwitterUsers,
+    YouTubers,
+    SubstackUsers,
+    Users,
+    BroadcastRequests,
+    UserSubscriptions,
+    Posts
+)
 
 
 async def get_controller(user_id: str) -> t.List[PlatformModel]:
@@ -168,7 +176,7 @@ async def claim_platforms(claimed_platforms: t.List[PlatformModel], user_id: str
     unique_husk_user_ids = await check_husk_user_ids_unique(husk_platform_ids)
     husk_subscribers = await get_husk_broadcast_requests(unique_husk_user_ids)
     await update_husk_subscribers(user_id, husk_subscribers)
-    #await generate_notifications()
+    await generate_notifications(user_id, husk_subscribers)
     claimed = parse_obj_as(t.List[CreatePlatformModel], claimed_platforms)
     for p in claimed:
         p.is_claimed = True
@@ -279,12 +287,32 @@ async def update_husk_subscribers(session: AsyncSession, user_id: str, husk_subs
         await session.execute(stmt)
         
 
+async def generate_notifications(user_id: str, husk_subscribers: t.List):
+    creator = await get_user(user_id)
+    sub_user_ids = []
+    for husk in husk_subscribers:
+        sub_user_ids.extend(husk["unique_requests"])
+    sub_user_ids = list(set(sub_user_ids))
+    for sub in sub_user_ids:
+        create_notification(
+            user_id = sub,
+            notification_type='creator_joined',
+            body= {"text":f"{creator.first_name} {creator.last_name} just claimed their profile!"},
+            redirect=creator.id,
+            picture_url=creator.picture_url
+        )
+
+@Session
+async def get_user(session: AsyncSession, user_id: str) -> Row:
+    return (await session.execute(select(Users).where(Users.id==user_id))).scalars().one()
 
 
 if __name__=="__main__":
-    platform, user = asyncio.run(check_twitter_username('testuser'))
-    print("platform", platform)
-    print("user:", user)
-    print(user.is_claimed)    
+    #platform, user = asyncio.run(check_twitter_username('testuser'))
+    #print("platform", platform)
+    #print("user:", user)
+    #print(user.is_claimed)    
         
         #update_husk_subscribers('8133ef39-5df5-4e35-a127-629309e53828', [{'husk_id': '8133ef39-5df5-4e35-a127-629309e53890', 'unique_requests': ['8133ef39-5df5-4e35-a127-629309e66666', '8133ef39-5df5-4e35-a127-629309e55555']}]))
+    pic= asyncio.run(get_user_profile_pic('8133ef39-5df5-4e35-a127-629309e53828'))
+    print(pic)

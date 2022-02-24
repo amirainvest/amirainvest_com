@@ -1,7 +1,7 @@
 import typing as t
 from typing import List
 
-from fastapi import APIRouter, Depends, File, HTTPException, status, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.encoders import jsonable_encoder
 from pydantic import parse_obj_as
 

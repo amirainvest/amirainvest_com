@@ -47,7 +47,7 @@ async def get_twitter_username(session: AsyncSession, user_id: str):
             session.execute(
                 select(TwitterUsers.username)
                 .where(TwitterUsers.creator_id == user_id)
-                .where(TwitterUsers.is_deleted == False)
+                .where(TwitterUsers.is_deleted.is_(False))
             )
         )
     ).one_or_none()
@@ -60,7 +60,7 @@ async def get_substack_username(session: AsyncSession, user_id: str):
             session.execute(
                 select(SubstackUsers.username)
                 .where(SubstackUsers.creator_id == user_id)
-                .where(SubstackUsers.is_deleted == False)
+                .where(SubstackUsers.is_deleted.is_(False))
             )
         )
     ).one_or_none()
@@ -73,7 +73,7 @@ async def get_youtube_username(session: AsyncSession, user_id: str):
             session.execute(
                 select(YouTubers.channel_username)
                 .where(YouTubers.creator_id == user_id)
-                .where(YouTubers.is_deleted == False)
+                .where(YouTubers.is_deleted.is_(False))
             )
         )
     ).one_or_none()
@@ -142,9 +142,9 @@ async def create_platforms(user_id: str, platform_data: t.List[PlatformModel]) -
     data_import_message = {
         "creator_id": user_id,
         "expedited": True,
-        "twitter_username": None,
-        "youtube_channel_id": None,
-        "substack_username": None,
+        "twitter_username": "",
+        "youtube_channel_id": "",
+        "substack_username": "",
     }
 
     for p in platform_data:
@@ -154,6 +154,7 @@ async def create_platforms(user_id: str, platform_data: t.List[PlatformModel]) -
             data_import_message["youtube_channel_id"] = p.platform
         elif p.platform.value == "substack":
             data_import_message["substack_username"] = p.platform
+    print(f'\n\n{data_import_message}\n\n')
     handle_data_imports(**data_import_message)
     return parse_obj_as(t.List[CreatePlatformModel], platform_data)
 
@@ -253,7 +254,6 @@ async def get_husk_broadcast_requests(session: AsyncSession, husk_unique_ids: t.
 
 @Session
 async def update_husk_subscribers(session: AsyncSession, user_id: str, husk_subscribers: t.List):
-    updated_subscriptions = []
     for husk in husk_subscribers:
         await session.execute(
             update(UserSubscriptions)
@@ -276,7 +276,7 @@ async def generate_notifications(user_id: str, husk_subscribers: t.List):
         sub_user_ids.extend(husk["unique_requests"])
     sub_user_ids = list(set(sub_user_ids))
     for sub in sub_user_ids:
-        create_notification(
+        await create_notification(
             user_id=sub,
             notification_type="creator_joined",
             body={"text": f"{creator.first_name} {creator.last_name} just claimed their profile!"},
@@ -296,6 +296,9 @@ if __name__ == "__main__":
     # print("user:", user)
     # print(user.is_claimed)
 
-    # update_husk_subscribers('8133ef39-5df5-4e35-a127-629309e53828', [{'husk_id': '8133ef39-5df5-4e35-a127-629309e53890', 'unique_requests': ['8133ef39-5df5-4e35-a127-629309e66666', '8133ef39-5df5-4e35-a127-629309e55555']}]))
-    pic = asyncio.run(get_user_profile_pic("8133ef39-5df5-4e35-a127-629309e53828"))
-    print(pic)
+    asyncio.run(update_husk_subscribers(
+    '8133ef39-5df5-4e35-a127-629309e53828',
+    [{'husk_id': '8133ef39-5df5-4e35-a127-629309e53890',
+    'unique_requests': ['8133ef39-5df5-4e35-a127-629309e66666', '8133ef39-5df5-4e35-a127-629309e55555']}]))
+    #pic = asyncio.run(get_user("8133ef39-5df5-4e35-a127-629309e53828"))
+    #print(pic)

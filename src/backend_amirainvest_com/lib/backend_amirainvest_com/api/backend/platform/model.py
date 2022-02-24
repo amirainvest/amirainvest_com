@@ -1,10 +1,9 @@
 from enum import Enum
-from typing import List, Optional
 
 from pydantic import BaseModel
 
 from backend_amirainvest_com.utils.model import ErrorMessageModelBase, StatusDetailModel
-from common_amirainvest_com.schemas.schema import ClaimablePlatform, SubstackUsers, TwitterUsers, YouTubers
+from common_amirainvest_com.schemas.schema import ClaimablePlatform
 
 
 class PlatformModel(BaseModel):
@@ -22,7 +21,8 @@ class Http409Enum(Enum):
     )
     platforms_match_claimed_user = StatusDetailModel(
         sub_status_code=1,
-        message="Platform usernames have been claimed by a user. Contact us if this is an error at contact@amirainvest.com",
+        message="Platform usernames have been claimed by a user. \
+            If you believe this to be an error, please contact us at contact@amirainvest.com",
     )
 
 

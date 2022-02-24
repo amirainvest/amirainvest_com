@@ -13,8 +13,8 @@ from backend_amirainvest_com.api.backend.discovery.router import router as disco
 from backend_amirainvest_com.api.backend.feed_route.router import router as feed_router
 from backend_amirainvest_com.api.backend.husk_request.router import router as hust_request_router
 from backend_amirainvest_com.api.backend.notifications.router import router as notifications_router
-from backend_amirainvest_com.api.backend.platform.router import router as platforms_router
 from backend_amirainvest_com.api.backend.plaid_route.router import router as plaid_router
+from backend_amirainvest_com.api.backend.platform.router import router as platforms_router
 from backend_amirainvest_com.api.backend.portfolio.router import router as portfolio_router
 from backend_amirainvest_com.api.backend.post_route.router import router as post_router
 from backend_amirainvest_com.api.backend.user_feedback.router import router as user_feedback_router

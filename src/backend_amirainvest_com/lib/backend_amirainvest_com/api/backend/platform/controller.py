@@ -370,7 +370,7 @@ async def update_substack_username(session: AsyncSession, username: str, user_id
     return {"platform": "substack", "username": substack_user.username}
 
 
-async def delete_platforms(platform_data: DeletePlatformModel, user_id: str):
+async def delete_platforms(platform_data: t.List[DeletePlatformModel], user_id: str):
     for p in platform_data:
         if p.platform.value == "twitter":
             await delete_twitter_username(user_id)

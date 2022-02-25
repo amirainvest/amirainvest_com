@@ -97,5 +97,4 @@ async def update_platforms_route(platform_data: List[PlatformModel], token=Depen
 async def delete_platforms_route(platform_data: List[DeletePlatformModel], token=Depends(auth_depends_user_id)):
     # will need to check for collisions here too. FE will need to re-verify
     user_id = token["https://amirainvest.com/user_id"]
-    claimed_platforms, unclaimed_platforms, not_exist = await check_platforms(platform_data)
     return delete_platforms(platform_data, user_id)

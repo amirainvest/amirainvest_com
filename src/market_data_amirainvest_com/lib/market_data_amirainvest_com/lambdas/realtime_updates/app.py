@@ -30,17 +30,22 @@ async def _get_security_prices(stock_quotes: List[StockQuote], securities: List[
     for stock_quote in stock_quotes:
         if stock_quote.symbol is None or stock_quote.symbol == "" or stock_quote.latestUpdate is None:
             continue
+
         security_id = get_security_id(securities, stock_quote.symbol)
         if security_id == -1:
             continue
+
         stock_price_time = round_time_to_minute_floor(datetime.datetime.fromtimestamp(stock_quote.latestUpdate / 1000))
 
         # TODO should be one query to check...., or we should should get a bulk load of all stocks
         #   with their price times available.
+        # TODO lets do a bulk insert here... and see which ones failed, then re-try with their other minute time
+        #   tbh... is this even needed..?
         if await _security_price_time_exists(security_id, stock_price_time):
             if await _security_price_time_exists(security_id, current_minute):
                 continue
             stock_price_time = current_minute
+
         securities_prices.append(
             SecurityPrices(security_id=security_id, price=stock_quote.latestPrice, price_time=stock_price_time)
         )
@@ -48,7 +53,7 @@ async def _get_security_prices(stock_quotes: List[StockQuote], securities: List[
 
 
 def round_time_to_minute_floor(tm: datetime.datetime) -> datetime.datetime:
-    return (tm - datetime.timedelta(minutes=tm.minute % 1, seconds=tm.second, microseconds=tm.microsecond)).astimezone(
+    return (tm - datetime.timedelta(minutes=tm.minute % 1, seconds=0, microseconds=0)).astimezone(
         pytz.utc
     )
 

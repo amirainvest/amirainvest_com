@@ -59,10 +59,10 @@ async def update_controller(session, user_id: str, user_data: model.UserUpdate) 
 
 def handle_data_imports(
     creator_id: str,
+    expedited: bool,
     substack_username: str = "",
     youtube_channel_id: str = "",
     twitter_username: str = "",
-    expedited: bool = True,
 ):
     sqs_digestible_platform_data = []
     if substack_username != "":

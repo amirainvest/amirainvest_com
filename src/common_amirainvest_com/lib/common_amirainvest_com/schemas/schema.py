@@ -983,3 +983,20 @@ class ChipLabels(Base, ToDict):
     __tablename__ = "chip_labels"
     id = Column(Integer, primary_key=True, unique=True, autoincrement=True)
     name = Column(String, nullable=False)
+
+
+class StripeIdentifiers(Base, ToDict):
+    __tablename__ = "stripe_identifiers"
+    __table_args__ = (UniqueConstraint("user_id", "stripe_id"),)
+    id = Column(Integer, primary_key=True, unique=True, autoincrement=True)
+    user_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    stripe_id = Column(String, nullable=False)
+    created_at = Column(DateTime, server_default=UTCNow())
+
+
+class PostReports(Base, ToDict):
+    __tablename__ = "post_content_reports"
+    id = Column(Integer, primary_key=True, unique=True, autoincrement=True)
+    user_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"), nullable=False )
+    created_at = Column(DateTime, server_default=UTCNow())

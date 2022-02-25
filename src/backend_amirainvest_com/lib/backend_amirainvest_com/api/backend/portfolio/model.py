@@ -1,20 +1,42 @@
+import datetime
 import enum
 import uuid
-from datetime import datetime
 from decimal import Decimal
+from typing import Optional
 
-from pydantic import BaseModel
+from dateutil import parser
+from pydantic import BaseModel, validator
+
+
+class PortfolioRequest(BaseModel):
+    user_id: str
+
+
+class PortfolioSummaryRequest(BaseModel):
+    user_id: str
+    start_date: datetime.date
+    end_date: datetime.date
+
+    @validator("start_date", pre=True)
+    def parse_start_date(cls, value):
+        if isinstance(value, str):
+            return parser.isoparse(value).date()
+        return value
+
+    @validator("end_date", pre=True)
+    def parse_end_date(cls, value):
+        if isinstance(value, str):
+            return parser.isoparse(value).date()
+        return value
 
 
 class Holding(BaseModel):
     ticker: str
     ticker_price: Decimal
-    ticker_price_time: datetime
-    # market value / portfolio value
+    ticker_price_time: datetime.datetime
     percentage_of_portfolio: Decimal
-    # Use this to calculate holding period
-    buy_date: datetime
-    # Market value of the position num shares * market price
+    buy_date: datetime.datetime
+    return_percentage: Decimal
     market_value: Decimal
 
 
@@ -24,7 +46,7 @@ class PortfolioValue(BaseModel):
 
 
 class HistoricalTrade(BaseModel):
-    trade_date: datetime
+    trade_date: datetime.datetime
     ticker: str
     transaction_type: str
     transaction_price: Decimal
@@ -45,3 +67,39 @@ class TradingHistoryResponse(BaseModel):
 class HoldingsResponse(BaseModel):
     holdings: list[Holding]
     portfolio_type: PortfolioType
+
+
+class HistoricalReturn(BaseModel):
+    date: datetime.date
+    daily_return: Decimal
+
+
+class SectionAllocation(BaseModel):
+    name: str
+    percentage: Decimal
+
+
+class HoldingPeriod(BaseModel):
+    date: datetime.date
+    market_value: Decimal
+    rate: Decimal
+
+
+class PortfolioResponse(BaseModel):
+    user_id: str
+    return_history: Optional[list[HistoricalReturn]]
+    benchmark_return_history: Optional[list[HistoricalReturn]]
+    portfolio_allocation: Optional[list[Optional[SectionAllocation]]]
+    total_return: Decimal
+    beta: Decimal
+    sharpe_ratio: Decimal
+    percentage_long: Decimal
+    percentage_short: Decimal
+    percentage_gross: Decimal
+    percentage_net: Decimal
+    portfolio_type: PortfolioType
+
+
+class MarketValue(BaseModel):
+    value: Decimal
+    date: datetime.date

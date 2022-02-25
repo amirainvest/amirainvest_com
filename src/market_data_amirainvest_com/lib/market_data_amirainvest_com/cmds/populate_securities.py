@@ -34,12 +34,9 @@ async def insert_securities(
             grouping.append(sub_group)
             sub_group = []
 
-    total_groups = len(grouping)
     counter = 1
     for group in grouping:
-        print(f"Processing {counter}/{total_groups}")
         await asyncio.gather(*(work(params) for params in group))
-        print(f"Finished Processing {counter}/{total_groups}")
         await asyncio.sleep(2)
         counter = counter + 1
         await session.commit()

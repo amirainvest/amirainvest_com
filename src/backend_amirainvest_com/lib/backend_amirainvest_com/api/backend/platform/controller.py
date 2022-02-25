@@ -149,12 +149,12 @@ async def create_platforms(user_id: str, platform_data: t.List[PlatformModel]) -
 
     for p in platform_data:
         if p.platform.value == "twitter":
-            data_import_message["twitter_username"] = p.platform
+            data_import_message["twitter_username"] = p.platform.value
         elif p.platform.value == "youtube":
-            data_import_message["youtube_channel_id"] = p.platform
+            data_import_message["youtube_channel_id"] = p.platform.value
         elif p.platform.value == "substack":
-            data_import_message["substack_username"] = p.platform
-    print(f'\n\n{data_import_message}\n\n')
+            data_import_message["substack_username"] = p.platform.value
+    print(f"\n\n{data_import_message}\n\n")
     handle_data_imports(**data_import_message)
     return parse_obj_as(t.List[CreatePlatformModel], platform_data)
 
@@ -296,9 +296,16 @@ if __name__ == "__main__":
     # print("user:", user)
     # print(user.is_claimed)
 
-    asyncio.run(update_husk_subscribers(
-    '8133ef39-5df5-4e35-a127-629309e53828',
-    [{'husk_id': '8133ef39-5df5-4e35-a127-629309e53890',
-    'unique_requests': ['8133ef39-5df5-4e35-a127-629309e66666', '8133ef39-5df5-4e35-a127-629309e55555']}]))
-    #pic = asyncio.run(get_user("8133ef39-5df5-4e35-a127-629309e53828"))
-    #print(pic)
+    asyncio.run(
+        update_husk_subscribers(
+            "8133ef39-5df5-4e35-a127-629309e53828",
+            [
+                {
+                    "husk_id": "8133ef39-5df5-4e35-a127-629309e53890",
+                    "unique_requests": ["8133ef39-5df5-4e35-a127-629309e66666", "8133ef39-5df5-4e35-a127-629309e55555"],
+                }
+            ],
+        )
+    )
+    # pic = asyncio.run(get_user("8133ef39-5df5-4e35-a127-629309e53828"))
+    # print(pic)

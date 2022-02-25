@@ -58,18 +58,22 @@ async def update_controller(session, user_id: str, user_data: model.UserUpdate) 
 
 
 def handle_data_imports(
-    creator_id: str, substack_username: str, youtube_channel_id: str, twitter_username: str, expedited: bool = True
+    creator_id: str,
+    substack_username: str = "",
+    youtube_channel_id: str = "",
+    twitter_username: str = "",
+    expedited: bool = True,
 ):
     sqs_digestible_platform_data = []
-    if substack_username:
+    if substack_username != "":
         sqs_digestible_platform_data.append(
             {"platform": "substack", "unique_platform_id": substack_username, "creator_id": creator_id}
         )
-    if youtube_channel_id:
+    if youtube_channel_id != "":
         sqs_digestible_platform_data.append(
             {"platform": "youtube", "unique_platform_id": youtube_channel_id, "creator_id": creator_id}
         )
-    if twitter_username:
+    if twitter_username != "":
         sqs_digestible_platform_data.append(
             {"platform": "twitter", "unique_platform_id": twitter_username, "creator_id": creator_id}
         )

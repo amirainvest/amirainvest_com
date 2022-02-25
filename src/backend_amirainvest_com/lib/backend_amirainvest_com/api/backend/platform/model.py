@@ -15,6 +15,10 @@ class CreatePlatformModel(PlatformModel):
     is_claimed: bool = True
 
 
+class UpdatePlatformModel(PlatformModel):
+    is_deleted: bool = True
+
+
 class Http409Enum(Enum):
     platforms_match_unclaimed_husk = StatusDetailModel(
         sub_status_code=0, message="Platform usernames match unclaimed husk platforms"

@@ -16,6 +16,7 @@ from backend_amirainvest_com.api.backend.platform.model import (
     Http409Enum,
     Http409Model,
     PlatformModel,
+    UpdatePlatformModel,
 )
 from backend_amirainvest_com.controllers.auth import auth_depends_user_id
 
@@ -74,7 +75,7 @@ async def claim_platforms_route(platform_data: List[PlatformModel], token=Depend
 @router.post(
     "/update",
     status_code=status.HTTP_200_OK,
-    response_model=List[CreatePlatformModel],
+    response_model=List[UpdatePlatformModel],
     response_model_exclude_none=True,
 )
 async def update_platforms_route():

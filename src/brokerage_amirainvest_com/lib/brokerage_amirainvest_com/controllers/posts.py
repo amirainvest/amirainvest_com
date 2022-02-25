@@ -11,6 +11,7 @@ from common_amirainvest_com.schemas.schema import (
     FinancialAccounts,
     FinancialAccountTransactions,
     MediaPlatform,
+    PlaidSecurities,
     Posts,
     Securities,
     SubscriptionLevel,
@@ -77,7 +78,8 @@ async def get_day_transactions(session: AsyncSession):
         await session.execute(
             select(FinancialAccounts, FinancialAccountTransactions, Securities)
             .join(FinancialAccounts)
-            .join(Securities, Securities.id == FinancialAccountTransactions.security_id)
+            .join(PlaidSecurities.id == FinancialAccountTransactions.plaid_security_id)
+            .join(Securities, Securities.ticker_symbol == PlaidSecurities.ticker_symbol)
             .where(extract("day", FinancialAccountTransactions.created_at) == datetime.today().day)
         )
     ).all()
@@ -106,8 +108,10 @@ async def get_current_holdings(session: AsyncSession, user_id: str):
     return (
         await session.execute(
             select(FinancialAccountCurrentHoldings, Securities)
-            .join(Securities, Securities.id == FinancialAccountCurrentHoldings.plaid_security_id)
-            .where(FinancialAccountCurrentHoldings.user_id == user_id)
+            .join(PlaidSecurities, PlaidSecurities.id == FinancialAccountCurrentHoldings.plaid_security_id)
+            .join(Securities, Securities.id == PlaidSecurities.security_id)
+            .join(FinancialAccounts)
+            .where(FinancialAccounts.user_id == user_id)
         )
     ).all()
 

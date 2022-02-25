@@ -4,6 +4,7 @@ from decimal import Decimal
 
 import arrow
 import plaid  # type: ignore
+from dateutil import relativedelta
 from plaid.api import plaid_api  # type: ignore
 from plaid.model.account_base import AccountBase as PlaidAccount  # type: ignore
 from plaid.model.country_code import CountryCode  # type: ignore
@@ -21,6 +22,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
+from brokerage_amirainvest_com.brokerages import holdings_history
 from brokerage_amirainvest_com.brokerages.interfaces import BrokerageInterface, TokenRepositoryInterface
 from brokerage_amirainvest_com.models import (
     Account,
@@ -268,7 +270,7 @@ class PlaidRepository:
             insertable_investment_transactions.append(
                 FinancialAccountTransactions(
                     account_id=account_id,
-                    security_id=security_id,
+                    plaid_security_id=security_id,
                     type=it.type.value,
                     subtype=it.subtype,
                     plaid_investment_transaction_id=it.investment_transaction_id,
@@ -315,7 +317,6 @@ class PlaidRepository:
 
             insertable_holdings.append(
                 FinancialAccountCurrentHoldings(
-                    user_id=user_id,
                     account_id=account_id,
                     plaid_security_id=security_id,
                     latest_price=h.institution_price,
@@ -328,7 +329,9 @@ class PlaidRepository:
                 )
             )
         await session.execute(
-            delete(FinancialAccountCurrentHoldings).where(FinancialAccountCurrentHoldings.user_id == user_id)
+            delete(FinancialAccountCurrentHoldings).where(
+                FinancialAccountCurrentHoldings.account_id.in_(plaid_account_ids)
+            )
         )
         session.add_all(insertable_holdings)
         await session.commit()
@@ -490,6 +493,13 @@ class PlaidProvider(BrokerageInterface):
             count += len(institution_response)
             # API would time out when we successively hit api -- hacky back-off
             time.sleep(5)
+
+    async def compute_holdings_history(self, user_id: str, item_id: str):
+        # TODO... instead of just arbitrarily adding in date... maybe we find the oldest transaction and compute
+        #   from there...? if oldest transaction is < 2 years, then adjust to two years
+        start_date = datetime.datetime.utcnow().date()
+        end_date = (datetime.datetime.utcnow() - relativedelta.relativedelta(years=2)).date()
+        await holdings_history.run(user_id=user_id, start_date=start_date, end_date=end_date)
 
 
 def plaid_account_to_account(pa: PlaidAccount, item_id: str) -> Account:

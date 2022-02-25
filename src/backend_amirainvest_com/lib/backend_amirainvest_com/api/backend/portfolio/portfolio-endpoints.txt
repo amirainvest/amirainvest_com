@@ -1,20 +1,20 @@
 Summary Portfolio Information
 {
     "portfolio": {
-        "id": 0,
-        "portfolio_return_hist":[   # list of dates and the return of the portfolio on that date
+        x "id": 0,
+        x "portfolio_return_hist":[   # list of dates and the return of the portfolio on that date
             {
                 "date": "",                 # DJ Question: Do we want this as a timestamp string, or epoch integer in milliseconds
                 "daily_return": "decimal"
             }
         ],
-        "benchmark_return_hist": [ # User will select benchmark in the account and we can pre-compute based on that
+        x "benchmark_return_hist": [ # User will select benchmark in the account and we can pre-compute based on that
             {
                 "date": "",                 # DJ Question: Do we want this as a timestamp string, or epoch integer in milliseconds
                 "daily_return": "decimal"
             }
         ],
-        "total_return": "decimal",  # Whatever timeframe the graph is over, its the cumlative return up to point in time
+        x "total_return": "decimal",  # Whatever timeframe the graph is over, its the cumlative return up to point in time
         "beta": "decimal",          # beta value in a linear regression: "portfolio_return_hist" = "benchmark_return" * beta + alpha
         "sharpe_ratio": "decimal",  # (total return of portfolio - total return of the benchmark) / standard deviation of return of: (portfolio return - benchmark return) done elementwise
         "% long": "decimal",        # sum of all the positions with market value > 0 (not including cash) divided by sum of total portfolio market value(including cash)
@@ -120,3 +120,6 @@ Shared Watchlists (Watchlists that a user follows)
     ],
     "watchlist_type": (user or creator)
 }
+
+Ending Value - Starting Value / Starting Value
+(Ending Value - (Starting Value + Inflow)) / (Starting Value + Inflow)

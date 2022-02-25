@@ -6,8 +6,8 @@ from common_amirainvest_com.utils.consts import PLAID_CLIENT_ID, PLAID_SECRET
 
 
 user_id = "f6b8bdfc-5a9d-11ec-bc23-0242ac1a0002"
-brokerage_item_id = "xbP3YOwYVYS8RjYBevk3uo8jZE5q0LhMQga16"
-action = "COLLECT_INVESTMENT_HISTORY"
+brokerage_item_id = "8rVvO9V7w3FmXMyN4AkeUdzg9yDZqNfyoooLL"
+action = "INSTITUTIONS_COLLECTION"
 if __name__ == "__main__":
     token_repository = TokenProvider()
 
@@ -21,7 +21,13 @@ if __name__ == "__main__":
     provider_service = Providers({"plaid": plaid_service})
 
     if action == "INSTITUTIONS_COLLECTION":
-        run_async_function_synchronously(plaid_service.collect_institutions)
+        run_async_function_synchronously(
+            provider_service.collect_institutions,
+            provider_key="plaid",
+            user_id=user_id,
+            item_id=brokerage_item_id,
+            job_id=None,
+        )
     elif action == "COLLECT_INVESTMENT_HISTORY":
         run_async_function_synchronously(
             provider_service.collect_investment_history,
@@ -34,6 +40,14 @@ if __name__ == "__main__":
         run_async_function_synchronously(
             provider_service.collect_current_holdings,
             provider_key="plaid",
+            user_id=user_id,
+            item_id=brokerage_item_id,
+            job_id=None,
+        )
+    elif action == "COMPUTE_HOLDINGS_HISTORY":
+        run_async_function_synchronously(
+            provider_service.compute_holdings_history,
+            provider_service="plaid",
             user_id=user_id,
             item_id=brokerage_item_id,
             job_id=None,

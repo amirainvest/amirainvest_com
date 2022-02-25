@@ -670,8 +670,8 @@ class FinancialAccounts(Base, ToDict):
     limit = Column(DECIMAL(19, 4))
     mask = Column(String)
     official_account_name = Column(String)
-    sub_type = Column(String)
     type = Column(String)
+    sub_type = Column(String)
     unofficial_currency_code = Column(String)
     user_assigned_account_name = Column(String)
 
@@ -681,20 +681,20 @@ class FinancialAccounts(Base, ToDict):
 
 class FinancialAccountTransactions(Base, ToDict):
     __tablename__ = "financial_account_transactions"
-    id = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
+    id: int = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
 
-    account_id = Column(Integer, ForeignKey("financial_accounts.id"), nullable=False)
-    security_id = Column(Integer, ForeignKey("plaid_securities.id"))
+    account_id: int = Column(Integer, ForeignKey("financial_accounts.id"), nullable=False)
+    plaid_security_id: int = Column(Integer, ForeignKey("plaid_securities.id"))
 
     plaid_investment_transaction_id = Column(String, unique=True, nullable=False)
 
     name = Column(String, nullable=False)
     posting_date = Column(TIMESTAMP(timezone=True), nullable=False)
-    price = Column(DECIMAL(19, 4), nullable=False)
+    price: decimal.Decimal = Column(DECIMAL(19, 4), nullable=False)
     quantity: Decimal = Column(DECIMAL, nullable=False)
-    subtype = Column(String, nullable=False)
-    type = Column(String, nullable=False)
-    value_amount = Column(DECIMAL(19, 4), nullable=False)
+    type: str = Column(String, nullable=False)
+    subtype: str = Column(String, nullable=False)
+    value_amount: decimal.Decimal = Column(DECIMAL(19, 4), nullable=False)
 
     fees = Column(DECIMAL(19, 4))
     iso_currency_code = Column(String)
@@ -708,13 +708,12 @@ class FinancialAccountCurrentHoldings(Base, ToDict):
     __table_args__ = (UniqueConstraint("account_id", "plaid_security_id"),)
     id = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
 
-    account_id = Column(Integer, ForeignKey("financial_accounts.id"), nullable=False)
-    plaid_security_id = Column(Integer, ForeignKey("plaid_securities.id"), nullable=False)
-    user_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    account_id: int = Column(Integer, ForeignKey("financial_accounts.id"), nullable=False)
+    plaid_security_id: int = Column(Integer, ForeignKey("plaid_securities.id"), nullable=False)
 
     institution_value = Column(DECIMAL(19, 4), nullable=False)
-    latest_price = Column(DECIMAL(19, 4), nullable=False)
-    quantity = Column(DECIMAL(19, 4), nullable=False)
+    latest_price: decimal.Decimal = Column(DECIMAL(19, 4), nullable=False)
+    quantity: decimal.Decimal = Column(DECIMAL(19, 4), nullable=False)
 
     cost_basis = Column(DECIMAL(19, 4))
     iso_currency_code = Column(String)
@@ -725,13 +724,34 @@ class FinancialAccountCurrentHoldings(Base, ToDict):
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
 
+class FinancialAccountHoldingsHistory(Base, ToDict):
+    __tablename__ = "financial_account_holdings_history"
+    __table_args__ = (UniqueConstraint("account_id", "security_id", "holding_date"),)
+
+    id = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
+
+    account_id: int = Column(Integer, ForeignKey("financial_accounts.id"), nullable=False)
+    plaid_security_id: int = Column(Integer, ForeignKey("plaid_securities.id"), nullable=False)
+    security_id: Optional[int] = Column(Integer, ForeignKey("securities.id"))
+
+    price: Decimal = Column(DECIMAL(19, 4), nullable=False)
+    quantity: Decimal = Column(DECIMAL(19, 4), nullable=False)
+    holding_date = Column(Date, nullable=False)
+    cost_basis = Column(DECIMAL(19, 4))
+
+    buy_date = Column(Date, nullable=False)
+
+
 class PlaidSecurities(Base, ToDict):
     __tablename__ = "plaid_securities"
-    id = Column(Integer, primary_key=True, unique=True, nullable=False, autoincrement=True)
+    id: int = Column(Integer, primary_key=True, unique=True, nullable=False, autoincrement=True)
 
-    financial_institution_id = Column(Integer, ForeignKey("financial_institutions.id"))
+    financial_institution_id: Optional[int] = Column(Integer, ForeignKey("financial_institutions.id"))
 
-    plaid_security_id = Column(String, unique=True)
+    plaid_security_id: Optional[str] = Column(String, unique=True)
+
+    security_id: Optional[int] = Column(Integer, ForeignKey("securities.id"))
+
     ticker_symbol = Column(
         String, unique=True, info={"factory": FactoryInfo(default="", generator=(fake.unique.name, None)).dict()}
     )
@@ -904,7 +924,7 @@ class SecurityPrices(Base, ToDict):
 class MarketHolidays(Base, ToDict):
     __tablename__ = "market_holidays"
     id = Column(Integer, primary_key=True, unique=True, nullable=False, autoincrement=True)
-    date: datetime.datetime = Column(DateTime, unique=True, nullable=False)
+    date: datetime.date = Column(Date, unique=True, nullable=False)
     settlement_date: datetime.datetime = Column(DateTime, nullable=False)
     created_at = Column(DateTime, server_default=UTCNow())
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)

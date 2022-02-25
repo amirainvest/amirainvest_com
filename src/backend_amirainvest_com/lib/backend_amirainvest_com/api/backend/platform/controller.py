@@ -104,9 +104,9 @@ async def check_platforms(platform_data: t.List[PlatformModel]):
             platform, user = response
             claimed_platforms.append(platform) if user.is_claimed else unclaimed_platforms.append(platform)
         else:
-            not_exist.append(platform)
+            not_exist.append(p)
 
-    return claimed_platforms, unclaimed_platforms
+    return claimed_platforms, unclaimed_platforms, not_exist
 
 async def error_if_collision(claimed_platforms: t.List, unclaimed_platforms: t.List, platform_data: t.List[PlatformModel]):
     if len(claimed_platforms) > 0:
@@ -171,11 +171,11 @@ async def create_platforms(user_id: str, platform_data: t.List[PlatformModel]) -
 
     for p in platform_data:
         if p.platform.value == "twitter":
-            data_import_message["twitter_username"] = p.platform.value
+            data_import_message["twitter_username"] = p.username
         elif p.platform.value == "youtube":
-            data_import_message["youtube_channel_id"] = p.platform.value
+            data_import_message["youtube_channel_id"] = p.username
         elif p.platform.value == "substack":
-            data_import_message["substack_username"] = p.platform.value
+            data_import_message["substack_username"] = p.username
     handle_data_imports(creator_id=user_id, expedited=True, **data_import_message)
     return parse_obj_as(t.List[CreatePlatformModel], platform_data)
 
@@ -215,6 +215,7 @@ async def get_husk_platform_user_id(claimed_platforms: t.List[PlatformModel]) ->
                 platform, user = await check_youtube_username(p.username)
             elif p.platform.value == "substack":
                 platform, user = await check_substack_username(p.username)
+            husk_user_ids.append({"platform": platform["platform"], "user_id": user.id})
     except TypeError:
         error = Http409Enum.platform_claim_not_exist.value.dict()
         raise HTTPException(
@@ -222,11 +223,12 @@ async def get_husk_platform_user_id(claimed_platforms: t.List[PlatformModel]) ->
             detail={"platforms": jsonable_encoder(p.dict()), **error},
         )
     
-    husk_user_ids.append({"platform": platform["platform"], "user_id": user.id})
     return husk_user_ids
+    
 
 
 async def update_husk_platforms(user_id: str, husk_platform_ids: t.List):
+    print(f'\n\n THESE ARE THE HUSK IDS BEING CLAIMED: \n {husk_platform_ids} \n\n')
     for h in husk_platform_ids:
         if h["platform"] == "twitter":
             await update_twitter_user_id(h["user_id"], user_id)
@@ -340,34 +342,34 @@ async def update_platform_usernames(user_id: str, platform_data: t.List[Platform
 
 @Session
 async def update_twitter_username(session: AsyncSession, username: str, user_id: str):
-    twitter_user =await session.execute(
+    twitter_user = (await session.execute(
         update(TwitterUsers)
         .where(TwitterUsers.creator_id == user_id)
         .values({"username": username})
         .returning(TwitterUsers)
-    ).one()
+    )).one()
 
     return {"platform": "twitter", "username":twitter_user.username}
 
 
 @Session
 async def update_youtube_username(session: AsyncSession, username: str, user_id: str):
-    youtuber = await session.execute(
+    youtuber = (await session.execute(
         update(YouTubers)
         .where(YouTubers.creator_id == user_id)
         .values({"channel_username": username})
         .returning(YouTubers)
-    ).one()
+    )).one()
     return {"platform": "youtube", "username":youtuber.channel_username}
 
 @Session
 async def update_substack_username(session: AsyncSession, username: str, user_id: str):
-    substack_user = await session.execute(
+    substack_user = (await session.execute(
         update(SubstackUsers)
         .where(SubstackUsers.creator_id == user_id)
         .values({"username": username})
         .returning(SubstackUsers)
-    ).one()
+    )).one()
     return {"platform": "substack", "username":substack_user.username}
 
 

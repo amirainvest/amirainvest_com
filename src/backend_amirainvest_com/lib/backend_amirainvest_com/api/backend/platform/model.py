@@ -26,7 +26,7 @@ class Http409Enum(Enum):
     platforms_match_claimed_user = StatusDetailModel(
         sub_status_code=1,
         message="Platform usernames have been claimed by a user. \
-            If you believe this to be an error, please contact us at contact@amirainvest.com",
+If you believe this to be an error, please contact us at contact@amirainvest.com",
     )
     platform_claim_not_exist = StatusDetailModel(
         sub_status_code=2,

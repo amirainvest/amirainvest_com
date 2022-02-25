@@ -48,7 +48,7 @@ async def get_portfolio_trades(user_id: str, creator_id: str) -> TradingHistoryR
                 ticker=trade.PlaidSecurities.ticker_symbol,
                 transaction_type=fat.type,
                 transaction_price=fat.price,
-                transaction_market_value=is_creator if is_creator else mv,
+                transaction_market_value=None if is_creator else mv,
                 percentage_change_in_position=None,
             )
         )

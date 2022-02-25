@@ -1,2 +1,0 @@
-id,user_id,plaid_item_id,plaid_id,available_to_withdraw,current_funds,iso_currency_code,limit,mask,official_account_name,type,sub_type,unofficial_currency_code,user_assigned_account_name
-10,1,1,1,N/A,497094,USD,,5555,Joshua Lancaster,investment,brokerage,,U*5555

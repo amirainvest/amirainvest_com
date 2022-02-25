@@ -18,7 +18,6 @@ class CreatePlatformModel(PlatformModel):
     is_claimed: bool = True
 
 
-
 class Http409Enum(Enum):
     platforms_match_unclaimed_husk = StatusDetailModel(
         sub_status_code=0, message="Platform usernames match unclaimed husk platforms"
@@ -29,8 +28,7 @@ class Http409Enum(Enum):
 If you believe this to be an error, please contact us at contact@amirainvest.com",
     )
     platform_claim_not_exist = StatusDetailModel(
-        sub_status_code=2,
-        message="Trying to claim a platform user that does not exist. Please create platform user"
+        sub_status_code=2, message="Trying to claim a platform user that does not exist. Please create platform user"
     )
 
 

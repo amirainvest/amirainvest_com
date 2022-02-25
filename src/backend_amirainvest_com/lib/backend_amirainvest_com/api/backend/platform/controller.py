@@ -1,20 +1,19 @@
 import asyncio
 import typing as t
 
+from fastapi import HTTPException, status
+from fastapi.encoders import jsonable_encoder
 from pydantic import parse_obj_as
 from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import HTTPException, status
-from fastapi.encoders import jsonable_encoder
 
 from backend_amirainvest_com.api.backend.platform.model import (
     CreatePlatformModel,
     DeletePlatformModel,
     Http409Enum,
-    Http409Model,
-    PlatformModel
+    PlatformModel,
 )
 from backend_amirainvest_com.api.backend.user_route.controller import handle_data_imports
 from common_amirainvest_com.controllers.notifications import create_notification
@@ -108,7 +107,10 @@ async def check_platforms(platform_data: t.List[PlatformModel]):
 
     return claimed_platforms, unclaimed_platforms, not_exist
 
-async def error_if_collision(claimed_platforms: t.List, unclaimed_platforms: t.List, platform_data: t.List[PlatformModel]):
+
+async def error_if_collision(
+    claimed_platforms: t.List, unclaimed_platforms: t.List, platform_data: t.List[PlatformModel]
+):
     if len(claimed_platforms) > 0:
         models = parse_obj_as(t.List[CreatePlatformModel], claimed_platforms)
         error = Http409Enum.platforms_match_claimed_user.value.dict()
@@ -180,10 +182,6 @@ async def create_platforms(user_id: str, platform_data: t.List[PlatformModel]) -
     return parse_obj_as(t.List[CreatePlatformModel], platform_data)
 
 
-# update husk info
-# update subscribers
-# update posts
-# generate notifications here, in the controller functions
 async def claim_platforms(claimed_platforms: t.List[PlatformModel], user_id: str):
     husk_platform_ids = await get_husk_platform_user_id(claimed_platforms)
     await update_husk_platforms(user_id, husk_platform_ids)
@@ -222,13 +220,12 @@ async def get_husk_platform_user_id(claimed_platforms: t.List[PlatformModel]) ->
             status_code=status.HTTP_409_CONFLICT,
             detail={"platforms": jsonable_encoder(p.dict()), **error},
         )
-    
+
     return husk_user_ids
-    
 
 
 async def update_husk_platforms(user_id: str, husk_platform_ids: t.List):
-    print(f'\n\n THESE ARE THE HUSK IDS BEING CLAIMED: \n {husk_platform_ids} \n\n')
+    print(f"\n\n THESE ARE THE HUSK IDS BEING CLAIMED: \n {husk_platform_ids} \n\n")
     for h in husk_platform_ids:
         if h["platform"] == "twitter":
             await update_twitter_user_id(h["user_id"], user_id)
@@ -241,26 +238,19 @@ async def update_husk_platforms(user_id: str, husk_platform_ids: t.List):
 @Session
 async def update_twitter_user_id(session: AsyncSession, husk_user_id: str, user_id: str):
     await session.execute(
-        update(TwitterUsers)
-        .where(TwitterUsers.creator_id == husk_user_id)
-        .values({"creator_id": user_id})
+        update(TwitterUsers).where(TwitterUsers.creator_id == husk_user_id).values({"creator_id": user_id})
     )
 
 
 @Session
 async def update_youtuber_id(session: AsyncSession, husk_user_id: str, user_id: str):
-    await session.execute(
-        update(YouTubers)
-        .where(YouTubers.creator_id == husk_user_id)
-        .values({"creator_id": user_id}))
+    await session.execute(update(YouTubers).where(YouTubers.creator_id == husk_user_id).values({"creator_id": user_id}))
 
 
 @Session
 async def update_substack_user_id(session: AsyncSession, husk_user_id: str, user_id: str):
     await session.execute(
-        update(SubstackUsers)
-        .where(SubstackUsers.creator_id == husk_user_id)
-        .values({"creator_id": user_id})
+        update(SubstackUsers).where(SubstackUsers.creator_id == husk_user_id).values({"creator_id": user_id})
     )
 
 
@@ -342,70 +332,72 @@ async def update_platform_usernames(user_id: str, platform_data: t.List[Platform
 
 @Session
 async def update_twitter_username(session: AsyncSession, username: str, user_id: str):
-    twitter_user = (await session.execute(
-        update(TwitterUsers)
-        .where(TwitterUsers.creator_id == user_id)
-        .values({"username": username})
-        .returning(TwitterUsers)
-    )).one()
+    twitter_user = (
+        await session.execute(
+            update(TwitterUsers)
+            .where(TwitterUsers.creator_id == user_id)
+            .values({"username": username})
+            .returning(TwitterUsers)
+        )
+    ).one()
 
-    return {"platform": "twitter", "username":twitter_user.username}
+    return {"platform": "twitter", "username": twitter_user.username}
 
 
 @Session
 async def update_youtube_username(session: AsyncSession, username: str, user_id: str):
-    youtuber = (await session.execute(
-        update(YouTubers)
-        .where(YouTubers.creator_id == user_id)
-        .values({"channel_username": username})
-        .returning(YouTubers)
-    )).one()
-    return {"platform": "youtube", "username":youtuber.channel_username}
+    youtuber = (
+        await session.execute(
+            update(YouTubers)
+            .where(YouTubers.creator_id == user_id)
+            .values({"channel_username": username})
+            .returning(YouTubers)
+        )
+    ).one()
+    return {"platform": "youtube", "username": youtuber.channel_username}
+
 
 @Session
 async def update_substack_username(session: AsyncSession, username: str, user_id: str):
-    substack_user = (await session.execute(
-        update(SubstackUsers)
-        .where(SubstackUsers.creator_id == user_id)
-        .values({"username": username})
-        .returning(SubstackUsers)
-    )).one()
-    return {"platform": "substack", "username":substack_user.username}
+    substack_user = (
+        await session.execute(
+            update(SubstackUsers)
+            .where(SubstackUsers.creator_id == user_id)
+            .values({"username": username})
+            .returning(SubstackUsers)
+        )
+    ).one()
+    return {"platform": "substack", "username": substack_user.username}
 
 
 async def delete_platforms(platform_data: DeletePlatformModel, user_id: str):
     for p in platform_data:
         if p.platform.value == "twitter":
-            response = await delete_twitter_username(user_id)
+            await delete_twitter_username(user_id)
         elif p.platform.value == "youtube":
-            response = await delete_youtube_username(user_id)
+            await delete_youtube_username(user_id)
         elif p.platform.value == "substack":
-            response = await delete_substack_username(user_id)
+            await delete_substack_username(user_id)
 
 
 @Session
 async def delete_twitter_username(session: AsyncSession, user_id: str):
     return await session.execute(
-        update(TwitterUsers)
-        .where(TwitterUsers.creator_id == user_id)
-        .values({"is_deleted": True})
+        update(TwitterUsers).where(TwitterUsers.creator_id == user_id).values({"is_deleted": True})
     )
+
 
 @Session
 async def delete_youtube_username(session: AsyncSession, user_id: str):
-    return await session.execute(
-        update(YouTubers)
-        .where(YouTubers.creator_id == user_id)
-        .values({"is_deleted": True})
-    )
+    return await session.execute(update(YouTubers).where(YouTubers.creator_id == user_id).values({"is_deleted": True}))
+
 
 @Session
 async def delete_substack_username(session: AsyncSession, user_id: str):
     return await session.execute(
-        update(SubstackUsers)
-        .where(SubstackUsers.creator_id == user_id)
-        .values({"is_deleted": True})
+        update(SubstackUsers).where(SubstackUsers.creator_id == user_id).values({"is_deleted": True})
     )
+
 
 if __name__ == "__main__":
     asyncio.run(
@@ -420,4 +412,3 @@ if __name__ == "__main__":
         )
     )
     # user = asyncio.run(get_user("8133ef39-5df5-4e35-a127-629309e53828"))
-

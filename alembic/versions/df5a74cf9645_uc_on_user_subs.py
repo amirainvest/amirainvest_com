@@ -1,7 +1,7 @@
 """uc on user subs
 
 Revision ID: df5a74cf9645
-Revises: a65d664c3658
+Revises: 22c52c7ac8d8
 Create Date: 2022-02-21 20:50:20.597040
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'df5a74cf9645'
-down_revision = 'a65d664c3658'
+down_revision = '22c52c7ac8d8'
 branch_labels = None
 depends_on = None
 

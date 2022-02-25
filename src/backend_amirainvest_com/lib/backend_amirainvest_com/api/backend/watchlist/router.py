@@ -7,8 +7,9 @@ from backend_amirainvest_com.api.backend.watchlist.controller import (
     list_controller,
     update_controller,
 )
-from backend_amirainvest_com.api.backend.watchlist.model import CreateModel, GetModel, ListModel, UpdateModel, WatchlistsModel
+from backend_amirainvest_com.api.backend.watchlist.model import CreateModel, GetModel, ListModel, UpdateModel
 from backend_amirainvest_com.controllers.auth import auth_depends_user_id
+from common_amirainvest_com.schemas.schema import WatchlistsModel
 
 
 router = APIRouter(prefix="/watchlist", tags=["Watchlist"])

@@ -1,7 +1,9 @@
 import typing as t
+from datetime import datetime
 from decimal import Decimal
 
 import sqlalchemy as sa
+from sqlalchemy.dialects.postgresql.base import TIMESTAMP
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeMeta, sessionmaker
 
@@ -12,6 +14,7 @@ column_type_default = {
     sa.Boolean: bool,
     sa.DECIMAL: Decimal,
     sa.ARRAY: list,
+    TIMESTAMP: datetime,
 }
 
 
@@ -86,6 +89,8 @@ class Factories:
             ):
                 if type(column.type) == sa.Enum:
                     value = column.type.enums[0]  # type: ignore
+                elif type(column.type) == TIMESTAMP:
+                    value = datetime.now()
                 else:
                     value = column_type_default[type(column.type)]()  # type: ignore
 

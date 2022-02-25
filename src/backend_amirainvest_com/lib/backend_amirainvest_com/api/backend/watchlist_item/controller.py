@@ -11,7 +11,7 @@ from common_amirainvest_com.utils.decorators import Session
 
 @Session
 async def create_controller(session: AsyncSession, watchlist_item_data: CreateModel, creator_id: str):
-    assert get_watchlist_creator(creator_id=creator_id) == creator_id
+    assert (await get_watchlist_creator(creator_id=creator_id)) == creator_id
     watchlist_item_data_dict = watchlist_item_data.dict(exclude_none=True)
     return (
         await session.execute(insert(WatchlistItems).values(**watchlist_item_data_dict).returning(WatchlistItems))
@@ -40,7 +40,7 @@ async def list_controller(session: AsyncSession, watchlist_id: int) -> List[Watc
 
 @Session
 async def update_controller(session: AsyncSession, watchlist_data: UpdateModel, creator_id: str):
-    assert get_watchlist_creator(creator_id=creator_id) == creator_id
+    assert (await get_watchlist_creator(creator_id=creator_id)) == creator_id
     return (
         await (
             session.execute(
@@ -55,5 +55,5 @@ async def update_controller(session: AsyncSession, watchlist_data: UpdateModel, 
 
 @Session
 async def delete_controller(session: AsyncSession, watchlist_item_id: int, creator_id: str) -> None:
-    assert get_watchlist_creator(creator_id=creator_id) == creator_id
+    assert (await get_watchlist_creator(creator_id=creator_id)) == creator_id
     await (session.execute(delete(WatchlistItems).where(WatchlistItems.id == watchlist_item_id)))

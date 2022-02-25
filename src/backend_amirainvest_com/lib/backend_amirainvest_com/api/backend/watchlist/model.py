@@ -1,11 +1,10 @@
 import datetime
-from typing import List, Optional
 from decimal import Decimal
+from typing import List, Optional
 
 from pydantic import BaseModel
 
 from common_amirainvest_com.models.creator import CreatorModel
-from common_amirainvest_com.schemas.schema import WatchlistsModel
 
 
 class WatchlistItemsReturnModel(BaseModel):
@@ -17,14 +16,20 @@ class WatchlistItemsReturnModel(BaseModel):
 
 
 class GetModel(BaseModel):
-    watchlist: Optional[WatchlistsModel]
-    items: Optional[List[WatchlistItemsReturnModel]]
+    id: int
+    name: str
     creator: CreatorModel
+    items: Optional[List[WatchlistItemsReturnModel]]
+    created_at: Optional[datetime.datetime]
+    updated_at: Optional[datetime.datetime]
 
 
 class WatchlistAttributesModel(BaseModel):
-    watchlist: Optional[WatchlistsModel]
+    id: int
+    name: str
     items: Optional[List[WatchlistItemsReturnModel]]
+    created_at: Optional[datetime.datetime]
+    updated_at: Optional[datetime.datetime]
 
 
 class ListModel(BaseModel):

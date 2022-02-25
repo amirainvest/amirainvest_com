@@ -53,9 +53,7 @@ async def _get_security_prices(stock_quotes: List[StockQuote], securities: List[
 
 
 def round_time_to_minute_floor(tm: datetime.datetime) -> datetime.datetime:
-    return (tm - datetime.timedelta(minutes=tm.minute % 1, seconds=0, microseconds=0)).astimezone(
-        pytz.utc
-    )
+    return (tm - datetime.timedelta(minutes=tm.minute % 1, seconds=0, microseconds=0)).astimezone(pytz.utc)
 
 
 def get_security_id(securities: list[Securities], symbol: str) -> int:

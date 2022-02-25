@@ -23,7 +23,6 @@ async def test_create_watchlist(async_session_maker_test, mock_auth, factory):
                 {
                     "creator_id": str(user["users"].id),
                     "name": "Stocks I should have bought when I was 6",
-                    "tickers": ["APPL", "MSFT"],
                 }
             ),
         )
@@ -34,9 +33,12 @@ async def test_create_watchlist(async_session_maker_test, mock_auth, factory):
         .scalars()
         .one()
     )
+    print("^^^^^^^^^^^^^^^")
+    from pprint import pprint
+    pprint(response_data)
+    print("^^^^^^^^^^^^^^^")
     assert str(watchlist.creator_id) == str(response_data["creator_id"])
     assert watchlist.name == "Stocks I should have bought when I was 6"
-    assert all([x in watchlist.tickers for x in ["APPL", "MSFT"]])
     db_watchlist = (await session_test.execute(select(Watchlists).where(Watchlists.id == watchlist.id))).scalars().one()
     assert db_watchlist
     assert db_watchlist.id == watchlist.id
@@ -46,7 +48,7 @@ async def test_get_watchlist(mock_auth, factory):
     user = await factory.gen("users")
     await mock_auth(user["users"].id)
     watchlist = await factory.gen(
-        "watchlists", {"watchlists": {"creator_id": user["users"].id, "tickers": ["AAPL", "MSFT"]}}
+        "watchlists", {"watchlists": {"creator_id": user["users"].id}}
     )
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(
@@ -57,9 +59,8 @@ async def test_get_watchlist(mock_auth, factory):
     response_data = response.json()
     assert response.status_code == status.HTTP_200_OK
     assert response_data
-    assert str(response_data["creator_id"]) == str(user["users"].id)
-    assert response_data["name"] == watchlist["watchlists"].name
-    assert response_data["tickers"] == watchlist["watchlists"].tickers
+    assert str(response_data["creator"]["id"]) == str(user["users"].id)
+    assert response_data["watchlist"]["name"] == watchlist["watchlists"].name
 
 
 async def test_list_watchlist(async_session_maker_test, mock_auth, factory):
@@ -75,8 +76,9 @@ async def test_list_watchlist(async_session_maker_test, mock_auth, factory):
     response_data = response.json()
     assert response.status_code == status.HTTP_200_OK
     assert response_data
-    assert len(response_data) == 5
-    assert type(response_data) == list
+    session_test: AsyncSession = async_session_maker_test()
+    assert len(response_data["watchlists"]) == 5
+    assert type(response_data["watchlists"]) == list
 
 
 async def test_update_watchlist(async_session_maker_test, mock_auth, factory):
@@ -87,8 +89,6 @@ async def test_update_watchlist(async_session_maker_test, mock_auth, factory):
     watchlist_update_dict = {
         "id": watchlist["watchlists"].id,
         "name": "Updated Name",
-        "tickers": ["SPY", "VOO"],
-        "note": "Updated String",
     }
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(
@@ -108,8 +108,6 @@ async def test_update_watchlist(async_session_maker_test, mock_auth, factory):
     )
     assert db_watchlist.id == watchlist["watchlists"].id
     assert db_watchlist.name == watchlist_update_dict["name"]
-    assert db_watchlist.tickers == watchlist_update_dict["tickers"]
-    assert db_watchlist.note == watchlist_update_dict["note"]
 
 
 async def test_delete_watchlist(async_session_maker_test, mock_auth, factory):

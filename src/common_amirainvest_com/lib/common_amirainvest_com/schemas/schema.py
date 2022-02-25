@@ -591,8 +591,6 @@ class Watchlists(Base, ToDict):
     id = Column(Integer, primary_key=True, unique=True, autoincrement=True)
     creator_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     name = Column(String, nullable=False)
-    tickers = Column(ARRAY(String), nullable=False)
-    note = Column(String)
     created_at = Column(DateTime, server_default=UTCNow())
     updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
@@ -601,10 +599,25 @@ class WatchlistsModel(BaseModel):
     id: int
     creator_id: str
     name: str
-    tickers: List[str]
-    note: Optional[str]
     created_at: Optional[datetime.datetime]
     updated_at: Optional[datetime.datetime]
+
+
+class WatchlistItems(Base, ToDict):
+    __tablename__ = "watchlist_items"
+    id = Column(Integer, primary_key=True, unique=True, autoincrement=True)
+    watchlist_id = Column(Integer, ForeignKey("watchlists.id", ondelete="CASCADE"), nullable=False)
+    ticker = Column(String, nullable=False)
+    note = Column(String)
+    created_at = Column(DateTime, server_default=UTCNow())
+
+
+class WatchlistItemsModel(BaseModel):
+    id: int
+    watchlist_id: int
+    ticker: str
+    note: Optional[str]
+    created_at: Optional[datetime.datetime]
 
 
 class WatchlistFollows(Base, ToDict):

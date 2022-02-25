@@ -4,7 +4,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel, root_validator
 
-from common_amirainvest_com.models.creator import Creator
+from common_amirainvest_com.models.creator import PostCreatorModel
 from common_amirainvest_com.schemas.schema import MediaPlatform, SubscriptionLevel
 
 
@@ -14,7 +14,7 @@ class GetResponseModel(BaseModel):
 
     id: int
 
-    creator: Creator
+    creator: PostCreatorModel
     is_bookmarked: bool
     subscription_level: SubscriptionLevel = SubscriptionLevel.standard
 

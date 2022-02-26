@@ -27,12 +27,14 @@ def subscriber_posts(
             schema.UserSubscriptions.subscriber_id == subscriber_id,
         ),
     )
+    """
     query = latest_posts(
         query,
         page_size=page_size,
         last_loaded_date=subscriber_feed_last_loaded_date,
         hours_ago=hours_ago,
     )
+    """
     return query
 
 
@@ -42,7 +44,7 @@ def latest_posts(
     page_size: int = PAGE_SIZE,
     hours_ago: int = MAX_HOURS_AGO,
 ) -> Select:
-    query = query.where(schema.Posts.created_at > get_past_datetime(hours=hours_ago)).order_by(schema.Posts.id.desc())
+    query = query.where(schema.Posts.created_at > get_past_datetime(hours=hours_ago)).order_by(schema.Posts.created_at.desc())
     if page_size != -1:
         query = query.limit(page_size)
     if last_loaded_date is not None:

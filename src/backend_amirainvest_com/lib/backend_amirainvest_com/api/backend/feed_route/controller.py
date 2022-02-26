@@ -58,6 +58,13 @@ async def get_subscriber_feed(
         subscriber_feed_last_loaded_date=feed_info.subscriber_feed_last_loaded_date,
         hours_ago=hours_ago,
     )
+
+    query = query.order_by(schema.Posts.created_at.desc())
+
+    if feed_info.subscriber_feed_last_loaded_date is not None:
+        query = query.where(schema.Posts.created_at < feed_info.subscriber_feed_last_loaded_date)
+
+    query = query.limit(page_size)
     data = await session.execute(query)
     posts = [GetResponseModel.from_orm(post) for post in data]
     return posts
@@ -72,14 +79,18 @@ async def get_creator_feed(
     hours_ago: int = qf.MAX_HOURS_AGO,
 ) -> List[GetResponseModel]:
     query = qf.feed_select(subscriber_id=subscriber_id).where(schema.Posts.creator_id == feed_info.creator_id)
-    
+    query = query.order_by(schema.Posts.created_at.desc())
+    """
     query = qf.latest_posts(
         query,
         page_size=page_size,
         last_loaded_date=feed_info.creator_feed_last_loaded_date,
         hours_ago=hours_ago,
     )
-    
+    """
+    if feed_info.creator_feed_last_loaded_date is not None:
+        query = query.where(schema.Posts.created_at < feed_info.creator_feed_last_loaded_date)
+    query = query.limit(page_size)
     data = await session.execute(query)
     posts = [GetResponseModel.from_orm(post) for post in data]
     return posts
@@ -112,15 +123,12 @@ async def get_discovery_feed(
             subscriber_count_cte,
             subscriber_count_cte.c.creator_id == schema.Posts.creator_id,
         )
-        .order_by(sa.cast(schema.Posts.created_at, Date).desc())
-        .order_by(schema.Posts.platform.asc())
-        .order_by(sa.sql.extract("hour", schema.Posts.created_at).desc())
-        .order_by(subscriber_count_cte.c.subscriber_count.desc())
     )
     
     if feed_info.discovery_feed_last_loaded_date is not None:
         query = query.where(schema.Posts.created_at < feed_info.discovery_feed_last_loaded_date)
     
+    query = query.order_by(sa.cast(schema.Posts.created_at, Date).desc()).order_by(schema.Posts.platform.asc()).order_by(sa.sql.extract("hour", schema.Posts.created_at).desc()).order_by(subscriber_count_cte.c.subscriber_count.desc())
     query = query.limit(page_size)
     
     data = (await session.execute(query)).all()

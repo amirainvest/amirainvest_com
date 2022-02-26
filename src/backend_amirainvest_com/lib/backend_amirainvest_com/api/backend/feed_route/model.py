@@ -15,7 +15,7 @@ class GetResponseModel(BaseModel):
     id: int
 
     creator: Creator
-    is_bookmarked: bool
+    bookmark_id: Optional[int]
     subscription_level: SubscriptionLevel = SubscriptionLevel.standard
 
     title: Optional[str]

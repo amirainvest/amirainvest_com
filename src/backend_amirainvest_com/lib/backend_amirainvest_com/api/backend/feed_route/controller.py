@@ -1,4 +1,5 @@
 from typing import List, Tuple
+from xmlrpc.client import DateTime
 
 import sqlalchemy as sa
 from sqlalchemy import Date
@@ -54,7 +55,7 @@ async def get_subscriber_feed(
     query = qf.subscriber_posts(
         subscriber_id=subscriber_id,
         page_size=page_size,
-        subscriber_feed_last_loaded_post_id=feed_info.subscriber_feed_last_loaded_post_id,
+        subscriber_feed_last_loaded_date=feed_info.subscriber_feed_last_loaded_date,
         hours_ago=hours_ago,
     )
     data = await session.execute(query)
@@ -71,12 +72,14 @@ async def get_creator_feed(
     hours_ago: int = qf.MAX_HOURS_AGO,
 ) -> List[GetResponseModel]:
     query = qf.feed_select(subscriber_id=subscriber_id).where(schema.Posts.creator_id == feed_info.creator_id)
+    
     query = qf.latest_posts(
         query,
         page_size=page_size,
-        last_loaded_post_id=feed_info.creator_feed_last_loaded_post_id,
+        last_loaded_date=feed_info.creator_feed_last_loaded_date,
         hours_ago=hours_ago,
     )
+    
     data = await session.execute(query)
     posts = [GetResponseModel.from_orm(post) for post in data]
     return posts
@@ -93,7 +96,7 @@ async def get_discovery_feed(
     subscriber_posts_cte = qf.subscriber_posts(
         subscriber_id=subscriber_id,
         page_size=-1,
-        subscriber_feed_last_loaded_post_id=feed_info.subscriber_feed_last_loaded_post_id,
+        subscriber_feed_last_loaded_date=feed_info.subscriber_feed_last_loaded_date,
         hours_ago=hours_ago,
     ).cte()
     subscriber_count_cte = qf.subscriber_count().cte()
@@ -111,13 +114,15 @@ async def get_discovery_feed(
         )
         .order_by(sa.cast(schema.Posts.created_at, Date).desc())
         .order_by(schema.Posts.platform.asc())
+        .order_by(sa.sql.extract("hour", schema.Posts.created_at).desc())
         .order_by(subscriber_count_cte.c.subscriber_count.desc())
     )
-
-    if feed_info.discovery_feed_last_loaded_post_id > 0:
-        query = query.where(schema.Posts.id < feed_info.discovery_feed_last_loaded_post_id)
+    
+    if feed_info.discovery_feed_last_loaded_date is not None:
+        query = query.where(schema.Posts.created_at < feed_info.discovery_feed_last_loaded_date)
+    
     query = query.limit(page_size)
-
+    
     data = (await session.execute(query)).all()
     posts = [GetResponseModel.from_orm(post) for post in data]
     return posts

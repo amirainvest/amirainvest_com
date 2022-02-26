@@ -1,8 +1,8 @@
 """watchlist items
 
-Revision ID: e2f2b1d760d9
-Revises: 22c52c7ac8d8
-Create Date: 2022-02-25 04:11:26.572661
+Revision ID: e92e709aaab3
+Revises: df5a74cf9645
+Create Date: 2022-02-26 04:04:30.600778
 
 """
 from alembic import op
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = 'e2f2b1d760d9'
-down_revision = '22c52c7ac8d8'
+revision = 'e92e709aaab3'
+down_revision = 'df5a74cf9645'
 branch_labels = None
 depends_on = None
 

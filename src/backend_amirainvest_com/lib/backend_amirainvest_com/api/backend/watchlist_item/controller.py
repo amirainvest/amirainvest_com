@@ -4,14 +4,12 @@ from sqlalchemy import delete, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend_amirainvest_com.api.backend.watchlist_item.model import CreateModel, UpdateModel
-from common_amirainvest_com.controllers.watchlist import get_watchlist_creator
 from common_amirainvest_com.schemas.schema import WatchlistItems
 from common_amirainvest_com.utils.decorators import Session
 
 
 @Session
-async def create_controller(session: AsyncSession, watchlist_item_data: CreateModel, creator_id: str):
-    assert (await get_watchlist_creator(creator_id=creator_id)) == creator_id
+async def create_controller(session: AsyncSession, watchlist_item_data: CreateModel):
     watchlist_item_data_dict = watchlist_item_data.dict(exclude_none=True)
     return (
         await session.execute(insert(WatchlistItems).values(**watchlist_item_data_dict).returning(WatchlistItems))
@@ -39,8 +37,7 @@ async def list_controller(session: AsyncSession, watchlist_id: int) -> List[Watc
 
 
 @Session
-async def update_controller(session: AsyncSession, watchlist_data: UpdateModel, creator_id: str):
-    assert (await get_watchlist_creator(creator_id=creator_id)) == creator_id
+async def update_controller(session: AsyncSession, watchlist_data: UpdateModel):
     return (
         await (
             session.execute(
@@ -54,6 +51,5 @@ async def update_controller(session: AsyncSession, watchlist_data: UpdateModel, 
 
 
 @Session
-async def delete_controller(session: AsyncSession, watchlist_item_id: int, creator_id: str) -> None:
-    assert (await get_watchlist_creator(creator_id=creator_id)) == creator_id
+async def delete_controller(session: AsyncSession, watchlist_item_id: int) -> None:
     await (session.execute(delete(WatchlistItems).where(WatchlistItems.id == watchlist_item_id)))

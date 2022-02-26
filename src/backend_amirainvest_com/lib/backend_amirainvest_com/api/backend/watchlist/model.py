@@ -38,7 +38,6 @@ class ListModel(BaseModel):
 
 
 class CreateModel(BaseModel):
-    creator_id: str
     name: str
     created_at: Optional[datetime.datetime]
     updated_at: Optional[datetime.datetime]

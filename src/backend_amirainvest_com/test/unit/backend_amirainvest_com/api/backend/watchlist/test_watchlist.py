@@ -21,7 +21,6 @@ async def test_create_watchlist(async_session_maker_test, mock_auth, factory):
             headers=AUTH_HEADERS,
             data=json.dumps(
                 {
-                    "creator_id": str(user["users"].id),
                     "name": "Stocks I should have bought when I was 6",
                 }
             ),

@@ -57,24 +57,30 @@ async def update_controller(session, user_id: str, user_data: model.UserUpdate) 
     ).one()
 
 
-def handle_data_imports(creator_id: str, substack_username: str, youtube_channel_id: str, twitter_username: str):
+def handle_data_imports(
+    creator_id: str,
+    expedited: bool,
+    substack_username: str = "",
+    youtube_channel_id: str = "",
+    twitter_username: str = "",
+):
     sqs_digestible_platform_data = []
-    if substack_username:
+    if substack_username != "":
         sqs_digestible_platform_data.append(
             {"platform": "substack", "unique_platform_id": substack_username, "creator_id": creator_id}
         )
-    if youtube_channel_id:
+    if youtube_channel_id != "":
         sqs_digestible_platform_data.append(
             {"platform": "youtube", "unique_platform_id": youtube_channel_id, "creator_id": creator_id}
         )
-    if twitter_username:
+    if twitter_username != "":
         sqs_digestible_platform_data.append(
             {"platform": "twitter", "unique_platform_id": twitter_username, "creator_id": creator_id}
         )
     if sqs_digestible_platform_data:
         add_data_import_data_to_sqs_queue(
             sqs_digestible_platform_data,
-            expedited=True,
+            expedited=expedited,
         )
 
 
@@ -85,7 +91,7 @@ async def create_user_no_sub(session, user_data: dict) -> Users:
     return user
 
 
-async def handle_user_create(user_data: dict):
+async def handle_user_create(user_data: dict):  # depricated
     user = await create_user_no_sub(
         user_data,
     )

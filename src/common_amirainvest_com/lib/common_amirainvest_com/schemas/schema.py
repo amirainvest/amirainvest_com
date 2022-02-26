@@ -72,6 +72,12 @@ class SubscriptionLevel(enum.Enum):
     premium = "premium"
 
 
+class ClaimablePlatform(enum.Enum):
+    youtube = "youtube"
+    substack = "substack"
+    twitter = "twitter"
+
+
 class MediaPlatform(enum.Enum):
     youtube = "youtube"
     substack = "substack"
@@ -214,6 +220,7 @@ class BroadcastRequestsModel(BaseModel):
 
 class UserSubscriptions(Base, ToDict):
     __tablename__ = "user_subscriptions"
+    __table_args__ = (UniqueConstraint("subscriber_id", "creator_id", name="uq_user_sub"),)
     id = Column(Integer, primary_key=True, unique=True, autoincrement=True)
 
     subscriber_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)

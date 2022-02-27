@@ -14,7 +14,7 @@ class GetResponseModel(BaseModel):
 
     id: int
 
-    creator: Creator
+    creator: PostCreatorModel
     bookmark_id: Optional[int]
     subscription_level: SubscriptionLevel = SubscriptionLevel.standard
 

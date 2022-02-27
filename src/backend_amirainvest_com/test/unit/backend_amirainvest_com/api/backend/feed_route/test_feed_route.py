@@ -34,7 +34,8 @@ async def test_list_subscriber_feed(mock_auth, factory):
     await mock_auth(subscriber["users"].id)
 
     for _ in range(0, PAGE_SIZE):
-        await factory.gen("posts", {"posts": {"creator_id": creator["users"].id}})
+        post = await factory.gen("posts", {"posts": {"creator_id": creator["users"].id}})
+        await factory.gen("bookmarks", {"bookmarks": {"post_id": post["posts"].id, "user_id": subscriber["users"].id}})
 
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(

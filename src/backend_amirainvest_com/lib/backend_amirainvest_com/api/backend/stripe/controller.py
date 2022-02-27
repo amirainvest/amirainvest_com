@@ -1,9 +1,8 @@
-from sqlalchemy import delete, insert
+from sqlalchemy import insert
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from backend_amirainvest_com.api.backend.stripe.model import StripeModel
 from common_amirainvest_com.schemas.schema import StripeIdentifiers
 from common_amirainvest_com.utils.decorators import Session
 

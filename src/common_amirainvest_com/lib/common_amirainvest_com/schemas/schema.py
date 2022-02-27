@@ -1018,5 +1018,5 @@ class PostReports(Base, ToDict):
     __tablename__ = "post_content_reports"
     id = Column(Integer, primary_key=True, unique=True, autoincrement=True)
     user_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"), nullable=False )
+    post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(DateTime, server_default=UTCNow())

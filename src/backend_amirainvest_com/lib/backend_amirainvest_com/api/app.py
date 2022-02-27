@@ -21,6 +21,7 @@ from backend_amirainvest_com.api.backend.user_feedback.router import router as u
 from backend_amirainvest_com.api.backend.user_route.router import router as user_router
 from backend_amirainvest_com.api.backend.watchlist.router import router as watchlist_router
 from backend_amirainvest_com.api.backend.watchlist_follow.router import router as watchlist_follow_router
+from backend_amirainvest_com.api.backend.watchlist_item.router import router as watchlist_item_router
 from backend_amirainvest_com.api.routers import search, user_subscriptions
 from backend_amirainvest_com.api.backend.report_content.router import router as report_router
 from backend_amirainvest_com.api.backend.stripe.router import router as stripe_router
@@ -52,6 +53,7 @@ app.include_router(feed_router)
 app.include_router(discovery_router)
 app.include_router(stripe_router)
 app.include_router(report_router)
+app.include_router(watchlist_item_router)
 
 app.mount("/webhooks", webhooks_app)
 

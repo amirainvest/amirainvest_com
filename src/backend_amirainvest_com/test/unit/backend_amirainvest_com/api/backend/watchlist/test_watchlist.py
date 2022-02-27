@@ -21,9 +21,7 @@ async def test_create_watchlist(async_session_maker_test, mock_auth, factory):
             headers=AUTH_HEADERS,
             data=json.dumps(
                 {
-                    "creator_id": str(user["users"].id),
                     "name": "Stocks I should have bought when I was 6",
-                    "tickers": ["APPL", "MSFT"],
                 }
             ),
         )
@@ -36,7 +34,6 @@ async def test_create_watchlist(async_session_maker_test, mock_auth, factory):
     )
     assert str(watchlist.creator_id) == str(response_data["creator_id"])
     assert watchlist.name == "Stocks I should have bought when I was 6"
-    assert all([x in watchlist.tickers for x in ["APPL", "MSFT"]])
     db_watchlist = (await session_test.execute(select(Watchlists).where(Watchlists.id == watchlist.id))).scalars().one()
     assert db_watchlist
     assert db_watchlist.id == watchlist.id
@@ -45,8 +42,11 @@ async def test_create_watchlist(async_session_maker_test, mock_auth, factory):
 async def test_get_watchlist(mock_auth, factory):
     user = await factory.gen("users")
     await mock_auth(user["users"].id)
-    watchlist = await factory.gen(
-        "watchlists", {"watchlists": {"creator_id": user["users"].id, "tickers": ["AAPL", "MSFT"]}}
+    watchlist = await factory.gen("watchlists", {"watchlists": {"creator_id": user["users"].id}})
+    await factory.gen("securities", {"securities": {"id": 1, "ticker_symbol": "APPL", "close_price": 200}})
+    await factory.gen("security_prices", {"security_prices": {"security_id": 1, "price": 250}})
+    await factory.gen(
+        "watchlist_items", {"watchlist_items": {"watchlist_id": watchlist["watchlists"].id, "ticker": "APPL"}}
     )
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(
@@ -57,17 +57,25 @@ async def test_get_watchlist(mock_auth, factory):
     response_data = response.json()
     assert response.status_code == status.HTTP_200_OK
     assert response_data
-    assert str(response_data["creator_id"]) == str(user["users"].id)
+    assert str(response_data["creator"]["id"]) == str(user["users"].id)
     assert response_data["name"] == watchlist["watchlists"].name
-    assert response_data["tickers"] == watchlist["watchlists"].tickers
+    assert response_data["items"][0]["percent_change"] == 25
+    assert response_data["items"][0]["ticker"] == "APPL"
+    assert response_data["items"][0]["close_price"] == 200
+    assert response_data["items"][0]["note"] is None
+    assert response_data["items"][0]["current_price"] == 250
 
 
 async def test_list_watchlist(async_session_maker_test, mock_auth, factory):
     user = await factory.gen("users")
     await mock_auth(user["users"].id)
-
+    await factory.gen("securities", {"securities": {"id": 1, "ticker_symbol": "APPL", "close_price": 200}})
+    await factory.gen("security_prices", {"security_prices": {"security_id": 1, "price": 250}})
     for x in range(5):
-        await factory.gen("watchlists", {"watchlists": {"creator_id": user["users"].id}})
+        watchlist = await factory.gen("watchlists", {"watchlists": {"creator_id": user["users"].id}})
+        await factory.gen(
+            "watchlist_items", {"watchlist_items": {"watchlist_id": watchlist["watchlists"].id, "ticker": "APPL"}}
+        )
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(
             "/watchlist/list", headers=AUTH_HEADERS, params={"creator_id": str(user["users"].id)}
@@ -75,8 +83,14 @@ async def test_list_watchlist(async_session_maker_test, mock_auth, factory):
     response_data = response.json()
     assert response.status_code == status.HTTP_200_OK
     assert response_data
-    assert len(response_data) == 5
-    assert type(response_data) == list
+    assert len(response_data["watchlists"]) == 5
+    assert type(response_data["watchlists"]) == list
+    for watchlist in response_data["watchlists"]:
+        assert watchlist["items"][0]["percent_change"] == 25
+        assert watchlist["items"][0]["ticker"] == "APPL"
+        assert watchlist["items"][0]["close_price"] == 200
+        assert watchlist["items"][0]["note"] is None
+        assert watchlist["items"][0]["current_price"] == 250
 
 
 async def test_update_watchlist(async_session_maker_test, mock_auth, factory):
@@ -87,8 +101,6 @@ async def test_update_watchlist(async_session_maker_test, mock_auth, factory):
     watchlist_update_dict = {
         "id": watchlist["watchlists"].id,
         "name": "Updated Name",
-        "tickers": ["SPY", "VOO"],
-        "note": "Updated String",
     }
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(
@@ -108,8 +120,6 @@ async def test_update_watchlist(async_session_maker_test, mock_auth, factory):
     )
     assert db_watchlist.id == watchlist["watchlists"].id
     assert db_watchlist.name == watchlist_update_dict["name"]
-    assert db_watchlist.tickers == watchlist_update_dict["tickers"]
-    assert db_watchlist.note == watchlist_update_dict["note"]
 
 
 async def test_delete_watchlist(async_session_maker_test, mock_auth, factory):

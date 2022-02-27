@@ -1,18 +1,44 @@
 import datetime
+from decimal import Decimal
 from typing import List, Optional
 
 from pydantic import BaseModel
 
-from common_amirainvest_com.schemas.schema import WatchlistsModel as GetModel
+from common_amirainvest_com.models.creator import CreatorModel
 
 
-assert GetModel
+class WatchlistItemsReturnModel(BaseModel):
+    close_price: int
+    current_price: int
+    ticker: str
+    note: Optional[str]
+    percent_change: Decimal
+
+
+class GetModel(BaseModel):
+    id: int
+    name: str
+    creator: CreatorModel
+    items: Optional[List[WatchlistItemsReturnModel]]
+    created_at: Optional[datetime.datetime]
+    updated_at: Optional[datetime.datetime]
+
+
+class WatchlistAttributesModel(BaseModel):
+    id: int
+    name: str
+    items: Optional[List[WatchlistItemsReturnModel]]
+    created_at: Optional[datetime.datetime]
+    updated_at: Optional[datetime.datetime]
+
+
+class ListModel(BaseModel):
+    creator: CreatorModel
+    watchlists: List[WatchlistAttributesModel]
 
 
 class CreateModel(BaseModel):
     name: str
-    tickers: List[str]
-    note: Optional[str]
     created_at: Optional[datetime.datetime]
     updated_at: Optional[datetime.datetime]
 
@@ -26,12 +52,3 @@ class UpdateModel(BaseModel):
 
 class DeleteModel(BaseModel):
     id: int
-
-
-# class Http409Enum(Enum):
-#     creator_user_missmatch = StatusDetailModel(
-#         sub_status_code = 0, message="Can not create a watchlist for another user"
-#     )
-
-# class Http409Model(ErrorMessageModelBase[Http409Enum]):
-#     pass

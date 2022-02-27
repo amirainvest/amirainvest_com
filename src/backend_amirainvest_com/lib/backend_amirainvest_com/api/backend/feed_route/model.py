@@ -14,8 +14,8 @@ class GetResponseModel(BaseModel):
 
     id: int
 
-    creator: PostCreatorModel
-    is_bookmarked: bool
+    creator: Creator
+    bookmark_id: Optional[int]
     subscription_level: SubscriptionLevel = SubscriptionLevel.standard
 
     title: Optional[str]

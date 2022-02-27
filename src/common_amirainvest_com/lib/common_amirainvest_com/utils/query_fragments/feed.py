@@ -73,10 +73,10 @@ def feed_select(subscriber_id: str) -> Select:
             ),
             sa.case(
                 [
-                    (schema.Bookmarks.post_id.isnot(None), True),
-                    (schema.Bookmarks.post_id.is_(None), False),
+                    (schema.Bookmarks.post_id.isnot(None), schema.Bookmarks.post_id),
+                    (schema.Bookmarks.post_id.is_(None), None),
                 ]
-            ).label("is_bookmarked"),
+            ).label("bookmark_id"),
         )
         .outerjoin(
             schema.Bookmarks,

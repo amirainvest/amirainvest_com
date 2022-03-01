@@ -37,9 +37,10 @@ async def _get_auth0_management_api_token() -> str:
     return token
 
 
-async def update_user_app_metadata(sub: str, app_metadata: dict):
+async def update_user_app_metadata(sub: str, token: dict):
     bearer_token = await _get_auth0_management_api_token()
-
+    app_metadata={"UserId":token["https://amirainvest.com/user_id"]}
+    token["https://amirainvest.com/user_id"]=None
     async with httpx.AsyncClient() as client:
         result = await client.patch(
             url=f"https://{AUTH0_MANAGEMENT_DOMAIN}/api/v2/users/{sub}",

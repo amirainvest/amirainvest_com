@@ -117,7 +117,7 @@ async def create_controller(session: AsyncSession, user_data: model.InitPostMode
         created_user = (await session.execute(insert(Users).values(**user).returning(Users))).one()
 
         await session.commit()
-        user_id = created_user.id
+        user_id = str(created_user.id)
     else:
         user_id, email = result
         if email != user_data.email:

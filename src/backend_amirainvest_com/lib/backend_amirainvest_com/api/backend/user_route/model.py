@@ -49,7 +49,6 @@ class ListReturnModel(ListModelBase[GetReturnModel]):
 
 
 class UserUpdate(BaseModel):
-    email: t.Optional[str]
     first_name: t.Optional[str]
     last_name: t.Optional[str]
     bio: t.Optional[str]
@@ -72,7 +71,7 @@ class DeleteActions(Enum):
 
 class DeleteUserModel(BaseModel):
     delete_action: DeleteActions
-    
+
 
 class InitReturnModel(BaseModel):
     id: str

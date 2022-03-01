@@ -28,6 +28,8 @@ router = APIRouter(prefix="/user", tags=["User"])
 
 @router.post("/get", status_code=status.HTTP_200_OK, response_model=GetReturnModel)
 async def get_route(user_id: str, token=Depends(auth_depends_user_id)):
+    #TODO: add a function here that will switch is_deleted/is_deactivated to False if previously true after new login
+    
     return (
         await get_controller(
             user_id,
@@ -89,7 +91,7 @@ async def create_route(user_data: InitPostModel, token=Depends(auth_depends)):
 
 
 @router.post("/delete", status_code=status.HTTP_200_OK, response_model=GetReturnModel)
-async def delete_route(token=Depends(auth_depends_user_id), action = DeleteUserModel):
+async def delete_route(action: DeleteUserModel, token=Depends(auth_depends_user_id)):
     user_id = token["https://amirainvest.com/user_id"]
     sub = token["sub"]
     if action.delete_action == "deactivate":

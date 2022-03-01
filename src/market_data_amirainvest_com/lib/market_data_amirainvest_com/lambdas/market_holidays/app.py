@@ -3,9 +3,9 @@ import asyncio
 from common_amirainvest_com.iex.client import get_market_holidays
 from common_amirainvest_com.iex.model import MarketHolidayDirection
 from common_amirainvest_com.schemas.schema import MarketHolidays
-from market_data_amirainvest_com.repository import add_market_holidays
 from common_amirainvest_com.utils.consts import async_engine
 from common_amirainvest_com.utils.logger import log
+from market_data_amirainvest_com.repository import add_market_holidays
 
 
 async def run():

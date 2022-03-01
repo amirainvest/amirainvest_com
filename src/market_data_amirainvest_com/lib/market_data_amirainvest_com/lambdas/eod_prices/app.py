@@ -3,14 +3,14 @@ import datetime
 
 from common_amirainvest_com.iex.client import get_stock_quote_prices
 from common_amirainvest_com.schemas.schema import Securities, SecurityInformation, SecurityPrices
+from common_amirainvest_com.utils.consts import async_engine
+from common_amirainvest_com.utils.logger import log
 from market_data_amirainvest_com.repository import (
     bulk_upsert_security_information,
     bulk_upsert_security_prices,
     get_securities,
     group_securities,
 )
-from common_amirainvest_com.utils.consts import async_engine
-from common_amirainvest_com.utils.logger import log
 
 
 async def run():

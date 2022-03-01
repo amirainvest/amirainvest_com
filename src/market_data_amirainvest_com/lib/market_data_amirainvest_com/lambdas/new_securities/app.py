@@ -1,8 +1,8 @@
 import asyncio
 
-from market_data_amirainvest_com.cmds import populate_securities
 from common_amirainvest_com.utils.consts import async_engine
 from common_amirainvest_com.utils.logger import log
+from market_data_amirainvest_com.cmds import populate_securities
 
 
 async def run():

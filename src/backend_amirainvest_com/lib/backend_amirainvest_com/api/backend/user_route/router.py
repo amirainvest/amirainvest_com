@@ -75,7 +75,6 @@ async def upload_profile_picture_route(image: UploadFile = File(...), token=Depe
     },
 )
 async def create_route(user_data: InitPostModel, token=Depends(auth_depends)):
-    print(f"\n\n this is the token: {token} \n\n")
     sub = token["sub"]
     user_id = str(token.get("https://amirainvest.com/user_id"))
     if user_id is not None:

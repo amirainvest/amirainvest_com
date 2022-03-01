@@ -12,9 +12,7 @@ from common_amirainvest_com.utils.decorators import Session
 @Session
 async def list_controller(session: AsyncSession, user_id: str) -> t.List[Bookmarks]:
     data = await session.execute(
-        select(Bookmarks)
-        .where(Bookmarks.user_id == user_id)
-        .where(Bookmarks.is_deleted.is_(False))
+        select(Bookmarks).where(Bookmarks.user_id == user_id).where(Bookmarks.is_deleted.is_(False))
     )
     return data.scalars().all()
 
@@ -32,12 +30,12 @@ async def create_controller(session: AsyncSession, user_id: str, bookmark_data: 
 
 
 @Session
-async def recreate_bookmark(session: AsyncSession, user_id: str, bookmark_data: CreateModel)-> Bookmarks:
+async def recreate_bookmark(session: AsyncSession, user_id: str, bookmark_data: CreateModel) -> Bookmarks:
     session.execute(
         update(Bookmarks)
         .where(Bookmarks.user_id == user_id)
         .where(Bookmarks.post_id == bookmark_data.post_id)
-        .values({"is_deleted":False})
+        .values({"is_deleted": False})
         .returning(Bookmarks)
     ).one_or_none()
 
@@ -45,7 +43,5 @@ async def recreate_bookmark(session: AsyncSession, user_id: str, bookmark_data: 
 @Session
 async def delete_controller(session: AsyncSession, user_id: str, bookmark_id: int):
     await session.execute(
-        update(Bookmarks)
-        .where(Bookmarks.id == bookmark_id, Bookmarks.user_id == user_id)
-        .values({"is_deleted":True})
+        update(Bookmarks).where(Bookmarks.id == bookmark_id, Bookmarks.user_id == user_id).values({"is_deleted": True})
     )

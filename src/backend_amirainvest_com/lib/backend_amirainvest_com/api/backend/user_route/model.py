@@ -89,7 +89,7 @@ class Http409Enum(Enum):
         sub_status_code=0, message="User with sub exists, and does not match email passed"
     )
     app_metadata_includes_user_id = StatusDetailModel(
-        sub_status_code=1, message="Token already includes app_metadata.user_id"
+        sub_status_code=1, message="Token already includes UserID"
     )
 
 

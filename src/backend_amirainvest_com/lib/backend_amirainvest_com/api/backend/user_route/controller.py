@@ -128,6 +128,7 @@ async def create_controller(session: AsyncSession, user_data: model.InitPostMode
 
     metadata = {"UserId": str(user_id)}
     try:
+        # NOTE: Will this run even when a returning user is logging in? 
         await auth0_utils.update_user_app_metadata(sub, metadata)
     except HTTPException:
         raise
@@ -139,6 +140,15 @@ async def create_controller(session: AsyncSession, user_data: model.InitPostMode
 
     return user_id
 
+
+@Session
+async def reactivate_controller(session: AsyncSession, user_id:str, sub: str):
+    await session.execute(
+        update(Users)
+        .where(Users.id == user_id)
+        .where(Users.sub == sub)
+        .values({"is_deactivated": False, "is_deleted": False})
+    )
 
 @Session
 async def deactivate_controller(session: AsyncSession, user_id: str, sub: str):

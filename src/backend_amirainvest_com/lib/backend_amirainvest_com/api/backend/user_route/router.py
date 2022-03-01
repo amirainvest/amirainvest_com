@@ -74,10 +74,13 @@ async def upload_profile_picture_route(image: UploadFile = File(...), token=Depe
     },
 )
 async def create_route(user_data: InitPostModel, token=Depends(auth_depends)):
+    print('\n\n', token, '\n\n')
     sub = token["sub"]
     app_metadata = token.get("app_metadata", {})
     if app_metadata.get("user_id") is not None:
-        # TODO: add a function here that will switch is_deleted/is_deactivated to False if previously true after new login
+        # TODO: is this where reactivating an account ought to happen? 
+        # It seems like app_metadata is updated everytime a repeat user logs in 
+        # await reactivate_controller(user_id=app_metadata.get("user_id"), sub=sub)
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=Http409Enum.app_metadata_includes_user_id.value.dict(),

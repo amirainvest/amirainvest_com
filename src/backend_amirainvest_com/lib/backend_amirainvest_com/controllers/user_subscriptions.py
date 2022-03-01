@@ -39,7 +39,7 @@ async def create_user_subscription(session, subscriber_id: str, creator_id: str)
 async def get_subscriptions_for_subscriber(session, subscriber_id: str):
     data = await session.execute(
         select(UserSubscriptions)
-        .join(Users)
+        .join(Users, onclause= Users.id==UserSubscriptions.creator_id)
         .where(UserSubscriptions.subscriber_id == subscriber_id)
         .where(Users.is_deleted.is_(False))
         .where(Users.is_deactivated.is_(False))
@@ -51,7 +51,7 @@ async def get_subscriptions_for_subscriber(session, subscriber_id: str):
 async def get_subscriptions_for_creator(session, creator_id):
     data = await session.execute(
         select(UserSubscriptions)
-        .join(Users)
+        .join(Users, onclause= Users.id==UserSubscriptions.subscriber_id)
         .where(UserSubscriptions.creator_id == creator_id)
         .where(Users.is_deleted.is_(False))
         .where(Users.is_deactivated.is_(False))

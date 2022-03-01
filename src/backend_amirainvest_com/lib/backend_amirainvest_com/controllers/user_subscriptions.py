@@ -3,7 +3,7 @@ import datetime
 from sqlalchemy import delete, update
 from sqlalchemy.future import select
 
-from common_amirainvest_com.schemas.schema import SubscriptionLevel, UserSubscriptions, Users
+from common_amirainvest_com.schemas.schema import SubscriptionLevel, Users, UserSubscriptions
 from common_amirainvest_com.utils.decorators import Session
 
 

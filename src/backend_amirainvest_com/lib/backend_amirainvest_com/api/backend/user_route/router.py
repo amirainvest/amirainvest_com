@@ -77,7 +77,7 @@ async def create_route(user_data: InitPostModel, token=Depends(auth_depends)):
     sub = token["sub"]
     app_metadata = token.get("app_metadata", {})
     if app_metadata.get("user_id") is not None:
-            # TODO: add a function here that will switch is_deleted/is_deactivated to False if previously true after new login
+        # TODO: add a function here that will switch is_deleted/is_deactivated to False if previously true after new login
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=Http409Enum.app_metadata_includes_user_id.value.dict(),

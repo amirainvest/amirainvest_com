@@ -1,4 +1,4 @@
-from sqlalchemy import insert, delete
+from sqlalchemy import delete, insert
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -28,4 +28,8 @@ async def create_controller(session: AsyncSession, user_id: str, create_data: Cr
 
 @Session
 async def delete_post_notifications(session: AsyncSession, post_id: int):
-    return await session.execute(delete(Notifications).where(Notifications.notification_type=='amira_post').where(Notifications.redirect == str(post_id)))
+    return await session.execute(
+        delete(Notifications)
+        .where(Notifications.notification_type == "amira_post")
+        .where(Notifications.redirect == str(post_id))
+    )

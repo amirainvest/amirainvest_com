@@ -8,6 +8,7 @@ from backend_amirainvest_com.api.backend.user_route.controller import (
     update_controller,
 )
 from backend_amirainvest_com.api.backend.user_route.model import (
+    DeleteUserModel,
     GetReturnModel,
     Http400Model,
     Http409Enum,
@@ -17,7 +18,6 @@ from backend_amirainvest_com.api.backend.user_route.model import (
     ListInputModel,
     ListReturnModel,
     UserUpdate,
-    DeleteUserModel
 )
 from backend_amirainvest_com.controllers import uploads
 from backend_amirainvest_com.controllers.auth import auth_depends, auth_depends_user_id
@@ -28,8 +28,8 @@ router = APIRouter(prefix="/user", tags=["User"])
 
 @router.post("/get", status_code=status.HTTP_200_OK, response_model=GetReturnModel)
 async def get_route(user_id: str, token=Depends(auth_depends_user_id)):
-    #TODO: add a function here that will switch is_deleted/is_deactivated to False if previously true after new login
-    
+    # TODO: add a function here that will switch is_deleted/is_deactivated to False if previously true after new login
+
     return (
         await get_controller(
             user_id,

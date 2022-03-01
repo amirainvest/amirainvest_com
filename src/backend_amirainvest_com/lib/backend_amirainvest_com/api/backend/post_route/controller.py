@@ -1,7 +1,7 @@
 import typing as t
 from time import time
 
-from sqlalchemy import insert, update, delete
+from sqlalchemy import delete, insert, update
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -44,7 +44,9 @@ async def list_controller(
 
 
 @Session
-async def update_controller(session: AsyncSession, user_id: str, post_id: int, update_data: model.AmiraPostModel) -> Row:
+async def update_controller(
+    session: AsyncSession, user_id: str, post_id: int, update_data: model.AmiraPostModel
+) -> Row:
     return (
         await (
             session.execute(
@@ -61,13 +63,13 @@ async def update_controller(session: AsyncSession, user_id: str, post_id: int, u
 @Session
 async def create_controller(session: AsyncSession, user_id: str, create_data: model.AmiraPostModel) -> Row:
     creator = (await session.execute(select(schema.Users).where(schema.Users.id == user_id))).scalars().one()
-    
+
     create_data_dict = create_data.dict(exclude_none=True)
     create_data_dict["creator_id"] = user_id
-    create_data_dict["platform"] = 'amira'
-    
+    create_data_dict["platform"] = "amira"
+
     post = (await session.execute(insert(schema.Posts).values(**create_data_dict).returning(schema.Posts))).one()
-    
+
     (
         await create_notification(
             user_id,
@@ -89,5 +91,7 @@ def upload_post_photo_controller(file_bytes: bytes, filename: str, user_id: str)
 
 @Session
 async def delete_controller(session: AsyncSession, user_id: str, post_id: int):
-    await session.execute(delete(schema.Posts).where(schema.Posts.id == post_id).where(schema.Posts.creator_id == user_id))
-    await delete_post_notifications(post_id = post_id)
+    await session.execute(
+        delete(schema.Posts).where(schema.Posts.id == post_id).where(schema.Posts.creator_id == user_id)
+    )
+    await delete_post_notifications(post_id=post_id)

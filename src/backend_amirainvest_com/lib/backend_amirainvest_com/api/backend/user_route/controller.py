@@ -136,7 +136,7 @@ async def deactivate_controller(session: AsyncSession, user_id: str, sub: str):
             update(Users)
             .where(Users.id == user_id)
             .where(Users.sub == sub)
-            .values({"is_deactivated":True})
+            .values({"is_deactivated": True})
             .returning(Users)
         )
     ).one()
@@ -149,11 +149,10 @@ async def delete_controller(session: AsyncSession, user_id: str, sub: str):
             update(Users)
             .where(Users.id == user_id)
             .where(Users.sub == sub)
-            .values({"is_deleted":True, "deleted_at":datetime.datetime.utcnow()})
+            .values({"is_deleted": True, "deleted_at": datetime.datetime.utcnow()})
             .returning(Users)
         )
     ).one()
-
 
 
 @Session

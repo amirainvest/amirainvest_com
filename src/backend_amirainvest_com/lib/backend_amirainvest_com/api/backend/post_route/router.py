@@ -12,16 +12,15 @@ from backend_amirainvest_com.api.backend.post_route.controller import (
     upload_post_photo_controller,
 )
 from backend_amirainvest_com.api.backend.post_route.model import (
+    AmiraPostModel,
     GetInputModel,
     GetResponseModel,
     ListInputModel,
     ListReturnModel,
-    AmiraPostModel,
     UploadPhotosModel,
 )
 from backend_amirainvest_com.controllers.auth import auth_depends_user_id
 from common_amirainvest_com.schemas.schema import PostsModel
-
 
 
 router = APIRouter(prefix="/post", tags=["Post"])
@@ -74,7 +73,7 @@ async def update_route(
     return (
         await update_controller(
             user_id=token["https://amirainvest.com/user_id"],
-            post_id = post_id,
+            post_id=post_id,
             update_data=post_data,
         )
     )._asdict()
@@ -100,9 +99,7 @@ async def delete_route(
     post_id: int,
     token=Depends(auth_depends_user_id),
 ):
-    return (
-        await delete_controller(
-            user_id=token["https://amirainvest.com/user_id"],
-            post_id=post_id,
-        )
+    return await delete_controller(
+        user_id=token["https://amirainvest.com/user_id"],
+        post_id=post_id,
     )

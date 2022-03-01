@@ -69,6 +69,7 @@ class DeleteActions(Enum):
     deactivate = "deactivate"
     delete = "delete"
 
+
 class DeleteUserModel(BaseModel):
     delete_action: DeleteActions
 

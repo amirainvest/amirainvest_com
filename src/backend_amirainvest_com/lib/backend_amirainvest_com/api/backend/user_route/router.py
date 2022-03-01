@@ -17,6 +17,7 @@ from backend_amirainvest_com.api.backend.user_route.model import (
     ListInputModel,
     ListReturnModel,
     UserUpdate,
+    DeleteUserModel
 )
 from backend_amirainvest_com.controllers import uploads
 from backend_amirainvest_com.controllers.auth import auth_depends, auth_depends_user_id
@@ -87,8 +88,12 @@ async def create_route(user_data: InitPostModel, token=Depends(auth_depends)):
     return InitReturnModel(id=user_id)
 
 
-@router.post("/delete", status_code=status.HTTP_200_OK)
-async def delete_route(token=Depends(auth_depends_user_id)):
+@router.post("/delete", status_code=status.HTTP_200_OK, response_model=GetReturnModel)
+async def delete_route(token=Depends(auth_depends_user_id), action = DeleteUserModel):
     user_id = token["https://amirainvest.com/user_id"]
     sub = token["sub"]
-    await delete_controller(user_id, sub)
+    if action.delete_action == "deactivate":
+        response = await deactivate_controller(user_id, sub)
+    elif action.delete_action == "delete":
+        response = await delete_controller(user_id, sub)
+    return response

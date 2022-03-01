@@ -47,11 +47,6 @@ async def list_controller(session, list_request: model.ListInputModel):
 @Session
 async def update_controller(session, user_id: str, user_data: model.UserUpdate) -> Users:
     user_data_dict = user_data.dict(exclude_none=True)
-    if user_data.is_deleted is True:
-        user_data_dict["deleted_at"] = datetime.datetime.utcnow()
-    elif user_data.is_deleted is False:
-        user_data_dict["deleted_at"] = None
-
     return (
         await (session.execute(update(Users).where(Users.id == user_id).values(**user_data_dict).returning(Users)))
     ).one()
@@ -135,5 +130,32 @@ async def create_controller(session: AsyncSession, user_data: model.InitPostMode
 
 
 @Session
+async def deactivate_controller(session: AsyncSession, user_id: str, sub: str):
+    return (
+        await session.execute(
+            update(Users)
+            .where(Users.id == user_id)
+            .where(Users.sub == sub)
+            .values({"is_deactivated":True})
+            .returning(Users)
+        )
+    ).one()
+
+
+@Session
 async def delete_controller(session: AsyncSession, user_id: str, sub: str):
+    return (
+        await session.execute(
+            update(Users)
+            .where(Users.id == user_id)
+            .where(Users.sub == sub)
+            .values({"is_deleted":True, "deleted_at":datetime.datetime.utcnow()})
+            .returning(Users)
+        )
+    ).one()
+
+
+
+@Session
+async def remove_controller(session: AsyncSession, user_id: str, sub: str):
     await session.execute(delete(Users).where(Users.id == user_id).where(Users.sub == sub))

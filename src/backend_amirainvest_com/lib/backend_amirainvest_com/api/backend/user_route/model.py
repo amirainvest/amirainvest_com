@@ -55,7 +55,6 @@ class UserUpdate(BaseModel):
     bio: t.Optional[str]
     benchmark: t.Optional[int]
     chip_labels: t.Optional[list[str]]
-    deleted_at: t.Optional[datetime.datetime]
     interests_diversification_rating: t.Optional[int]
     linkedin_profile: t.Optional[str]
     personal_site_url: t.Optional[str]
@@ -65,12 +64,15 @@ class UserUpdate(BaseModel):
     public_profile_deactivate: t.Optional[bool]
     public_trades_activate: t.Optional[bool]
     trading_strategies: t.Optional[list[str]]
-    created_at: t.Optional[datetime.datetime]
-    email_verified: t.Optional[bool]
-    is_claimed: t.Optional[bool]
-    is_deactivated: t.Optional[bool]
-    is_deleted: t.Optional[bool]
 
+
+class DeleteActions(Enum):
+    deactivate = "deactivate"
+    delete = "delete"
+
+class DeleteUserModel(BaseModel):
+    delete_action: DeleteActions
+    
 
 class InitReturnModel(BaseModel):
     id: str

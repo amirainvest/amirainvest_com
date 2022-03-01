@@ -5,22 +5,23 @@ from fastapi import APIRouter, Depends, File, status, UploadFile
 
 from backend_amirainvest_com.api.backend.post_route.controller import (
     create_controller,
+    delete_controller,
     get_controller,
     list_controller,
     update_controller,
     upload_post_photo_controller,
 )
 from backend_amirainvest_com.api.backend.post_route.model import (
-    CreateModel,
     GetInputModel,
     GetResponseModel,
     ListInputModel,
     ListReturnModel,
-    UpdateModel,
+    AmiraPostModel,
     UploadPhotosModel,
 )
 from backend_amirainvest_com.controllers.auth import auth_depends_user_id
 from common_amirainvest_com.schemas.schema import PostsModel
+
 
 
 router = APIRouter(prefix="/post", tags=["Post"])
@@ -53,7 +54,7 @@ async def list_route(list_request: ListInputModel, token=Depends(auth_depends_us
 
 @router.post("/create", status_code=status.HTTP_200_OK, response_model=PostsModel)
 async def create_route(
-    post_data: CreateModel,
+    post_data: AmiraPostModel,
     token=Depends(auth_depends_user_id),
 ):
     return (
@@ -66,12 +67,14 @@ async def create_route(
 
 @router.post("/update", status_code=status.HTTP_200_OK, response_model=PostsModel)
 async def update_route(
-    post_data: UpdateModel,
+    post_id: int,
+    post_data: AmiraPostModel,
     token=Depends(auth_depends_user_id),
 ):
     return (
         await update_controller(
             user_id=token["https://amirainvest.com/user_id"],
+            post_id = post_id,
             update_data=post_data,
         )
     )._asdict()
@@ -90,3 +93,16 @@ async def upload_post_photos_route(
     ]
 
     return UploadPhotosModel(photos=photo_urls)
+
+
+@router.post("/delete", status_code=status.HTTP_200_OK)
+async def delete_route(
+    post_id: int,
+    token=Depends(auth_depends_user_id),
+):
+    return (
+        await delete_controller(
+            user_id=token["https://amirainvest.com/user_id"],
+            post_id=post_id,
+        )
+    )

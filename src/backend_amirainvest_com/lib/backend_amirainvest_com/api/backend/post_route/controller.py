@@ -1,7 +1,7 @@
 import typing as t
 from time import time
 
-from sqlalchemy import insert, update
+from sqlalchemy import insert, update, delete
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -9,7 +9,7 @@ from sqlalchemy.future import select
 import common_amirainvest_com.utils.query_fragments.feed as qf
 from backend_amirainvest_com.api.backend.post_route import model
 from backend_amirainvest_com.utils.s3 import S3
-from common_amirainvest_com.controllers.notifications import create_notification
+from common_amirainvest_com.controllers.notifications import create_notification, delete_post_notifications
 from common_amirainvest_com.s3.consts import AMIRA_POST_PHOTOS_S3_BUCKET
 from common_amirainvest_com.schemas import schema
 from common_amirainvest_com.utils.decorators import Session
@@ -44,13 +44,13 @@ async def list_controller(
 
 
 @Session
-async def update_controller(session: AsyncSession, user_id: str, update_data: model.UpdateModel) -> Row:
+async def update_controller(session: AsyncSession, user_id: str, post_id: int, update_data: model.AmiraPostModel) -> Row:
     return (
         await (
             session.execute(
                 update(schema.Posts)
                 .where(schema.Posts.creator_id == user_id)
-                .where(schema.Posts.id == update_data.id)
+                .where(schema.Posts.id == post_id)
                 .values(**update_data.dict(exclude_none=True))
                 .returning(schema.Posts)
             )
@@ -59,23 +59,35 @@ async def update_controller(session: AsyncSession, user_id: str, update_data: mo
 
 
 @Session
-async def create_controller(session: AsyncSession, user_id: str, create_data: model.CreateModel) -> Row:
+async def create_controller(session: AsyncSession, user_id: str, create_data: model.AmiraPostModel) -> Row:
+    creator = (await session.execute(select(schema.Users).where(schema.Users.id == user_id))).scalars().one()
+    
     create_data_dict = create_data.dict(exclude_none=True)
     create_data_dict["creator_id"] = user_id
-    creator = (await session.execute(select(schema.Users).where(schema.Users.id == user_id))).scalars().one()
+    create_data_dict["platform"] = 'amira'
+    
+    post = (await session.execute(insert(schema.Posts).values(**create_data_dict).returning(schema.Posts))).one()
+    
     (
         await create_notification(
             user_id,
             "amira_post",
             {"text": f"New Post From {creator.first_name} {creator.last_name}"},
-            user_id,
+            str(post.id),
             creator.picture_url,
         )
     )
-    return (await session.execute(insert(schema.Posts).values(**create_data_dict).returning(schema.Posts))).one()
+
+    return post
 
 
 def upload_post_photo_controller(file_bytes: bytes, filename: str, user_id: str):
     ext = int(time())
     new_filename = str(ext) + filename
     return S3().upload_file_by_bytes(file_bytes, f"{user_id}/{new_filename}", AMIRA_POST_PHOTOS_S3_BUCKET)
+
+
+@Session
+async def delete_controller(session: AsyncSession, user_id: str, post_id: int):
+    await session.execute(delete(schema.Posts).where(schema.Posts.id == post_id).where(schema.Posts.creator_id == user_id))
+    await delete_post_notifications(post_id = post_id)

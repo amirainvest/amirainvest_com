@@ -8,7 +8,7 @@ from common_amirainvest_com.utils.generic_utils import get_past_datetime
 from common_amirainvest_com.utils.sqlalchemy_helpers import DictBundle
 
 
-PAGE_SIZE = 500
+PAGE_SIZE = 30
 MAX_HOURS_AGO = 168  # NUMBER OF HOURS TO QUERY POSTGRES : 168H = 1W
 MAX_FEED_SIZE = 200
 

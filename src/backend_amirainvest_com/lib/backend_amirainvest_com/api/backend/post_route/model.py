@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 from backend_amirainvest_com.api.backend.feed_route.model import GetResponseModel
 from backend_amirainvest_com.utils.model import ListModelBase
-from common_amirainvest_com.schemas.schema import MediaPlatform, SubscriptionLevel
+from common_amirainvest_com.schemas.schema import SubscriptionLevel
 
 
 assert GetResponseModel

@@ -17,12 +17,18 @@ from common_amirainvest_com.utils.generic_utils import get_class_attrs
 
 @Session
 async def get_controller(session, user_id: str) -> Users:
-    return (await session.execute(select(Users).where(Users.id == user_id))).scalars().first()
+    return (await session.execute(
+        select(Users)
+        .where(Users.id == user_id)
+        .where(Users.is_deleted.is_(False))
+        .where(Users.is_deactivated.is_(False))
+    )
+).scalars().first()
 
 
 @Session
 async def list_controller(session, list_request: model.ListInputModel):
-    query = select(Users)
+    query = select(Users).where(Users.is_deleted.is_(False)).where(Users.is_deactivated.is_(False))
 
     for filter_ in list_request.filters:
         if filter_.attribute == SearchableAttributes.full_name:

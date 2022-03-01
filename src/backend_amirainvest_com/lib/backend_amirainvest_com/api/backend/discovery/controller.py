@@ -19,6 +19,8 @@ async def get_controller(session: AsyncSession) -> List[GetModel]:
                 select(Users, func.count(schema.UserSubscriptions.creator_id).label("subscription_count"))
                 .where(Users.trading_strategies.isnot(None))  # type: ignore
                 .where(Users.public_profile_deactivate != True)  # noqa
+                .where(Users.is_deleted.is_(False))
+                .where(Users.is_deactivated.is_(False))
                 .outerjoin(UserSubscriptions, UserSubscriptions.creator_id == Users.id)
                 .group_by(UserSubscriptions.id, Users.id)
                 .order_by("subscription_count")

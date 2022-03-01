@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, status, UploadFile
 
 from backend_amirainvest_com.api.backend.user_route.controller import (
     create_controller,
+    deactivate_controller,
     delete_controller,
     get_controller,
     list_controller,
@@ -28,8 +29,6 @@ router = APIRouter(prefix="/user", tags=["User"])
 
 @router.post("/get", status_code=status.HTTP_200_OK, response_model=GetReturnModel)
 async def get_route(user_id: str, token=Depends(auth_depends_user_id)):
-    # TODO: add a function here that will switch is_deleted/is_deactivated to False if previously true after new login
-
     return (
         await get_controller(
             user_id,
@@ -78,6 +77,7 @@ async def create_route(user_data: InitPostModel, token=Depends(auth_depends)):
     sub = token["sub"]
     app_metadata = token.get("app_metadata", {})
     if app_metadata.get("user_id") is not None:
+            # TODO: add a function here that will switch is_deleted/is_deactivated to False if previously true after new login
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=Http409Enum.app_metadata_includes_user_id.value.dict(),
@@ -94,8 +94,8 @@ async def create_route(user_data: InitPostModel, token=Depends(auth_depends)):
 async def delete_route(action: DeleteUserModel, token=Depends(auth_depends_user_id)):
     user_id = token["https://amirainvest.com/user_id"]
     sub = token["sub"]
-    if action.delete_action == "deactivate":
+    if action.delete_action.value == "deactivate":
         response = await deactivate_controller(user_id, sub)
-    elif action.delete_action == "delete":
+    elif action.delete_action.value == "delete":
         response = await delete_controller(user_id, sub)
     return response

@@ -1,6 +1,19 @@
-from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
-from market_data_amirainvest_com.cmds.populate_securities import run
+import asyncio
+
+from market_data_amirainvest_com.cmds import populate_securities
+from common_amirainvest_com.utils.consts import async_engine
+from common_amirainvest_com.utils.logger import log
 
 
-def handler():
-    run_async_function_synchronously(run)
+async def run():
+    try:
+        await populate_securities.run()
+    except Exception as err:
+        log.exception(err)
+        raise err
+    finally:
+        await async_engine.dispose()
+
+
+def handler(event, context):
+    asyncio.run(run())

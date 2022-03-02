@@ -109,11 +109,13 @@ async def handle_user_create(user_data: dict):  # depricated
 
 @Session
 async def create_controller(session: AsyncSession, user_data: model.InitPostModel, sub: str) -> str:
+    print(f"\n\n this is the user{user}\n\n")
     result = (await session.execute(select(Users.id, Users.email).where(Users.sub == sub))).one_or_none()
 
     if result is None:
         user = user_data.dict(exclude_none=True)
         user["sub"] = sub
+        
         created_user = (await session.execute(insert(Users).values(**user).returning(Users))).one()
 
         await session.commit()

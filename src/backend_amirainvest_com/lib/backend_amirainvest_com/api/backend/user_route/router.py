@@ -76,7 +76,7 @@ async def upload_profile_picture_route(image: UploadFile = File(...), token=Depe
 )
 async def create_route(user_data: InitPostModel, token=Depends(auth_depends)):
     sub = token["sub"]
-    user_id = str(token.get("https://amirainvest.com/user_id"))
+    user_id = token.get("https://amirainvest.com/user_id")
     if user_id is not None:
         await reactivate_controller(user_id=user_id, sub=sub)
         raise HTTPException(

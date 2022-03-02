@@ -225,7 +225,6 @@ async def get_husk_platform_user_id(claimed_platforms: t.List[PlatformModel]) ->
 
 
 async def update_husk_platforms(user_id: str, husk_platform_ids: t.List):
-    print(f"\n\n THESE ARE THE HUSK IDS BEING CLAIMED: \n {husk_platform_ids} \n\n")
     for h in husk_platform_ids:
         if h["platform"] == "twitter":
             await update_twitter_user_id(h["user_id"], user_id)

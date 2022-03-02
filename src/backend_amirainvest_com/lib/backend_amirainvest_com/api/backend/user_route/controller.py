@@ -17,12 +17,23 @@ from common_amirainvest_com.utils.generic_utils import get_class_attrs
 
 @Session
 async def get_controller(session, user_id: str) -> Users:
-    return (await session.execute(select(Users).where(Users.id == user_id))).scalars().first()
+    return (
+        (
+            await session.execute(
+                select(Users)
+                .where(Users.id == user_id)
+                .where(Users.is_deleted.is_(False))
+                .where(Users.is_deactivated.is_(False))
+            )
+        )
+        .scalars()
+        .first()
+    )
 
 
 @Session
 async def list_controller(session, list_request: model.ListInputModel):
-    query = select(Users)
+    query = select(Users).where(Users.is_deleted.is_(False)).where(Users.is_deactivated.is_(False))
 
     for filter_ in list_request.filters:
         if filter_.attribute == SearchableAttributes.full_name:
@@ -47,11 +58,6 @@ async def list_controller(session, list_request: model.ListInputModel):
 @Session
 async def update_controller(session, user_id: str, user_data: model.UserUpdate) -> Users:
     user_data_dict = user_data.dict(exclude_none=True)
-    if user_data.is_deleted is True:
-        user_data_dict["deleted_at"] = datetime.datetime.utcnow()
-    elif user_data.is_deleted is False:
-        user_data_dict["deleted_at"] = None
-
     return (
         await (session.execute(update(Users).where(Users.id == user_id).values(**user_data_dict).returning(Users)))
     ).one()
@@ -108,10 +114,11 @@ async def create_controller(session: AsyncSession, user_data: model.InitPostMode
     if result is None:
         user = user_data.dict(exclude_none=True)
         user["sub"] = sub
+
         created_user = (await session.execute(insert(Users).values(**user).returning(Users))).one()
 
         await session.commit()
-        user_id = created_user.id
+        user_id = str(created_user.id)
     else:
         user_id, email = result
         if email != user_data.email:
@@ -135,5 +142,41 @@ async def create_controller(session: AsyncSession, user_data: model.InitPostMode
 
 
 @Session
+async def reactivate_controller(session: AsyncSession, user_id: str, sub: str):
+    await session.execute(
+        update(Users)
+        .where(Users.id == user_id)
+        .where(Users.sub == sub)
+        .values({"is_deactivated": False, "is_deleted": False})
+    )
+
+
+@Session
+async def deactivate_controller(session: AsyncSession, user_id: str, sub: str):
+    return (
+        await session.execute(
+            update(Users)
+            .where(Users.id == user_id)
+            .where(Users.sub == sub)
+            .values({"is_deactivated": True})
+            .returning(Users)
+        )
+    ).one()
+
+
+@Session
 async def delete_controller(session: AsyncSession, user_id: str, sub: str):
+    return (
+        await session.execute(
+            update(Users)
+            .where(Users.id == user_id)
+            .where(Users.sub == sub)
+            .values({"is_deleted": True, "deleted_at": datetime.datetime.utcnow()})
+            .returning(Users)
+        )
+    ).one()
+
+
+@Session
+async def remove_controller(session: AsyncSession, user_id: str, sub: str):
     await session.execute(delete(Users).where(Users.id == user_id).where(Users.sub == sub))

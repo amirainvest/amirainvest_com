@@ -1,4 +1,4 @@
-from sqlalchemy import insert
+from sqlalchemy import delete, insert
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -24,3 +24,12 @@ async def create_controller(session: AsyncSession, user_id: str, create_data: Cr
     create_data_dict = create_data.dict(exclude_none=True)
     create_data_dict["user_id"] = user_id
     return (await session.execute(insert(Notifications).values(**create_data_dict).returning(Notifications))).one()
+
+
+@Session
+async def delete_post_notifications(session: AsyncSession, post_id: int):
+    return await session.execute(
+        delete(Notifications)
+        .where(Notifications.notification_type == "amira_post")
+        .where(Notifications.redirect == str(post_id))
+    )

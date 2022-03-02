@@ -3,7 +3,7 @@ import datetime
 from sqlalchemy import delete, update
 from sqlalchemy.future import select
 
-from common_amirainvest_com.schemas.schema import SubscriptionLevel, UserSubscriptions
+from common_amirainvest_com.schemas.schema import SubscriptionLevel, Users, UserSubscriptions
 from common_amirainvest_com.utils.decorators import Session
 
 
@@ -37,13 +37,25 @@ async def create_user_subscription(session, subscriber_id: str, creator_id: str)
 
 @Session
 async def get_subscriptions_for_subscriber(session, subscriber_id: str):
-    data = await session.execute(select(UserSubscriptions).where(UserSubscriptions.subscriber_id == subscriber_id))
+    data = await session.execute(
+        select(UserSubscriptions)
+        .join(Users, onclause=Users.id == UserSubscriptions.creator_id)
+        .where(UserSubscriptions.subscriber_id == subscriber_id)
+        .where(Users.is_deleted.is_(False))
+        .where(Users.is_deactivated.is_(False))
+    )
     return data.scalars().all()
 
 
 @Session
 async def get_subscriptions_for_creator(session, creator_id):
-    data = await session.execute(select(UserSubscriptions).where(UserSubscriptions.creator_id == creator_id))
+    data = await session.execute(
+        select(UserSubscriptions)
+        .join(Users, onclause=Users.id == UserSubscriptions.subscriber_id)
+        .where(UserSubscriptions.creator_id == creator_id)
+        .where(Users.is_deleted.is_(False))
+        .where(Users.is_deactivated.is_(False))
+    )
     return data.scalars().all()
 
 

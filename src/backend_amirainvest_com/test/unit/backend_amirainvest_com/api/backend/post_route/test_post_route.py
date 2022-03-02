@@ -45,23 +45,7 @@ async def test_create(async_session_maker_test, factory, mock_auth):
         response = await async_client.post(
             "/post/create",
             headers=AUTH_HEADERS,
-            data=json.dumps(
-                {
-                    "title": "",
-                    "content": "test",
-                    "photos": [],
-                    "subscription_level": "standard",
-                    "platform": "twitter",
-                    "creator_id": user_id,
-                    "platform_display_name": "",
-                    "platform_user_id": "test",
-                    "platform_img_url": "",
-                    "platform_profile_url": "",
-                    "twitter_handle": "",
-                    "platform_post_id": "",
-                    "platform_post_url": "",
-                }
-            ),
+            data=json.dumps({"title": "", "content": "test", "photos": [], "subscription_level": "standard"}),
         )
     assert response.status_code == 200
     result = response.json()
@@ -70,43 +54,29 @@ async def test_create(async_session_maker_test, factory, mock_auth):
 
     db_result = (await session_test.execute(select(Posts))).scalars().one()
 
-    assert db_result.platform_user_id == "test"
+    assert db_result.platform.value == "amira"
+    assert db_result.creator_id == user_id
 
 
 async def test_update(async_session_maker_test, factory, mock_auth):
     session_test: AsyncSession = async_session_maker_test()
 
     post = await factory.gen("posts")
+    post_id = post["posts"].id
     creator_id = post["users"].id
     await mock_auth(creator_id)
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(
-            "/post/update",
+            f"/post/update?post_id={post_id}",
             headers=AUTH_HEADERS,
-            data=json.dumps(
-                {
-                    "id": post["posts"].id,
-                    "creator_id": creator_id,
-                    "subscription_level": "standard",
-                    "title": "",
-                    "content": "",
-                    "photos": [],
-                    "platform": "twitter",
-                    "platform_display_name": "",
-                    "platform_user_id": "updated",
-                    "platform_img_url": "",
-                    "platform_profile_url": "",
-                    "twitter_handle": "",
-                    "platform_post_id": "",
-                    "platform_post_url": "",
-                }
-            ),
+            data=json.dumps({"subscription_level": "standard", "title": "new title", "content": "", "photos": []}),
         )
     assert response.status_code == 200
     result = response.json()
-    assert result["platform_user_id"] == "updated"
-    db_result = (await session_test.execute(select(Posts))).scalars().one()
-    assert db_result.platform_user_id == "updated"
+    assert result["title"] == "new title"
+    db_result = (await session_test.execute(select(Posts).where(Posts.id == post_id))).scalars().one()
+    assert db_result.title == "new title"
+    assert db_result.creator_id == creator_id
 
 
 async def test_list(factory):

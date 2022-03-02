@@ -2,12 +2,15 @@ from fastapi import APIRouter, Depends, File, HTTPException, status, UploadFile
 
 from backend_amirainvest_com.api.backend.user_route.controller import (
     create_controller,
+    deactivate_controller,
     delete_controller,
     get_controller,
     list_controller,
+    reactivate_controller,
     update_controller,
 )
 from backend_amirainvest_com.api.backend.user_route.model import (
+    DeleteUserModel,
     GetReturnModel,
     Http400Model,
     Http409Enum,
@@ -73,8 +76,9 @@ async def upload_profile_picture_route(image: UploadFile = File(...), token=Depe
 )
 async def create_route(user_data: InitPostModel, token=Depends(auth_depends)):
     sub = token["sub"]
-    app_metadata = token.get("app_metadata", {})
-    if app_metadata.get("user_id") is not None:
+    user_id = token.get("https://amirainvest.com/user_id")
+    if user_id is not None:
+        await reactivate_controller(user_id=user_id, sub=sub)
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=Http409Enum.app_metadata_includes_user_id.value.dict(),
@@ -87,8 +91,12 @@ async def create_route(user_data: InitPostModel, token=Depends(auth_depends)):
     return InitReturnModel(id=user_id)
 
 
-@router.post("/delete", status_code=status.HTTP_200_OK)
-async def delete_route(token=Depends(auth_depends_user_id)):
+@router.post("/delete", status_code=status.HTTP_200_OK, response_model=GetReturnModel)
+async def delete_route(action: DeleteUserModel, token=Depends(auth_depends_user_id)):
     user_id = token["https://amirainvest.com/user_id"]
     sub = token["sub"]
-    await delete_controller(user_id, sub)
+    if action.delete_action.value == "deactivate":
+        response = await deactivate_controller(user_id, sub)
+    elif action.delete_action.value == "delete":
+        response = await delete_controller(user_id, sub)
+    return response

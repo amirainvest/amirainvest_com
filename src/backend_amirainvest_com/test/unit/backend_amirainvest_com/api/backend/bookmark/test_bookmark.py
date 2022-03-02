@@ -94,7 +94,7 @@ async def test_delete(async_session_maker_test, factory, mock_auth):
 
     assert response.status_code == status.HTTP_200_OK
     user_bookmarks = await session_test.execute(
-        select(Bookmarks).where(Bookmarks.user_id == post_bookmarker["users"].id)
+        select(Bookmarks).where(Bookmarks.user_id == post_bookmarker["users"].id).where(Bookmarks.is_deleted.is_(False))
     )
     assert bookmark["bookmarks"].id not in [x.id for x in user_bookmarks]
     assert len(list(user_bookmarks)) == 0

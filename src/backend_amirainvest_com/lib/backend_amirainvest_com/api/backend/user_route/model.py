@@ -1,4 +1,3 @@
-import datetime
 import typing as t
 from enum import Enum
 
@@ -49,13 +48,11 @@ class ListReturnModel(ListModelBase[GetReturnModel]):
 
 
 class UserUpdate(BaseModel):
-    email: t.Optional[str]
     first_name: t.Optional[str]
     last_name: t.Optional[str]
     bio: t.Optional[str]
     benchmark: t.Optional[int]
     chip_labels: t.Optional[list[str]]
-    deleted_at: t.Optional[datetime.datetime]
     interests_diversification_rating: t.Optional[int]
     linkedin_profile: t.Optional[str]
     personal_site_url: t.Optional[str]
@@ -65,11 +62,15 @@ class UserUpdate(BaseModel):
     public_profile_deactivate: t.Optional[bool]
     public_trades_activate: t.Optional[bool]
     trading_strategies: t.Optional[list[str]]
-    created_at: t.Optional[datetime.datetime]
-    email_verified: t.Optional[bool]
-    is_claimed: t.Optional[bool]
-    is_deactivated: t.Optional[bool]
-    is_deleted: t.Optional[bool]
+
+
+class DeleteActions(Enum):
+    deactivate = "deactivate"
+    delete = "delete"
+
+
+class DeleteUserModel(BaseModel):
+    delete_action: DeleteActions
 
 
 class InitReturnModel(BaseModel):
@@ -87,9 +88,7 @@ class Http409Enum(Enum):
     user_sub_missmatch = StatusDetailModel(
         sub_status_code=0, message="User with sub exists, and does not match email passed"
     )
-    app_metadata_includes_user_id = StatusDetailModel(
-        sub_status_code=1, message="Token already includes app_metadata.user_id"
-    )
+    app_metadata_includes_user_id = StatusDetailModel(sub_status_code=1, message="Token already includes UserID")
 
 
 class Http409Model(ErrorMessageModelBase[Http409Enum]):

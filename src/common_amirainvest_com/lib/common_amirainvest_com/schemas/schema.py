@@ -101,7 +101,7 @@ class NotificationTypes(enum.Enum):
     upvote = "upvote"
     watchlist_price = "watchlist_price_movement"
     shared_change = "shared_watchlist_change"
-    shared_price = "watchlist_price_movement"
+    shared_price = "shared_watchlist_price_movement"
 
 
 class Users(Base, ToDict):

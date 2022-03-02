@@ -1,8 +1,11 @@
+from cgitb import text
+from operator import or_
 from typing import List, Tuple
 from xmlrpc.client import DateTime
-
+import datetime
 import sqlalchemy as sa
 from sqlalchemy import Date
+from sqlalchemy.sql import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import common_amirainvest_com.utils.query_fragments.feed as qf
@@ -126,11 +129,40 @@ async def get_discovery_feed(
     )
     
     if feed_info.discovery_feed_last_loaded_date is not None:
-        query = query.where(schema.Posts.created_at < feed_info.discovery_feed_last_loaded_date)
-    
-    query = query.order_by(sa.cast(schema.Posts.created_at, Date).desc()).order_by(schema.Posts.platform.asc()).order_by(sa.sql.extract("hour", schema.Posts.created_at).desc()).order_by(subscriber_count_cte.c.subscriber_count.desc())
-    query = query.limit(page_size)
-    
+        query = query.where(
+            schema.Posts.created_at < feed_info.discovery_feed_last_loaded_date
+        )
+
+
+    # Need to add in logic for when a ticker is at the beginning of the text or
+    # if there is a punctuation after it. 
+    if feed_info.company_search is not None:
+        company_name = (await session.execute(text(f"SELECT name FROM securities WHERE securities.ticker_symbol = '{feed_info.company_search.upper()}'"))).one()[0]
+        query = query.filter(
+            or_(
+                or_(
+                    or_(schema.Posts.content.like(f"%>${feed_info.company_search.upper()}<%"), 
+                        schema.Posts.title.like(f"% ${feed_info.company_search.upper()} %")),
+                    or_(schema.Posts.content.like(f"% {feed_info.company_search.upper()} %"),
+                        schema.Posts.title.like(f"% {feed_info.company_search.upper()} %"))
+                ),
+                or_(
+                    schema.Posts.content.like(f"% ${feed_info.company_search.upper()} %"),
+                    or_(
+                        schema.Posts.content.match(company_name),
+                        schema.Posts.title.match(company_name)
+                    )
+                )
+            )
+        )
+        
+        
+
+    query = query.order_by(
+        sa.cast(schema.Posts.created_at, Date).desc()).order_by(schema.Posts.platform.asc()).order_by(sa.sql.extract("hour", schema.Posts.created_at).desc()).order_by(subscriber_count_cte.c.subscriber_count.desc()
+    )
+
+    #query = query.limit(page_size)
     data = (await session.execute(query)).all()
     posts = [GetResponseModel.from_orm(post) for post in data]
     return posts

@@ -49,10 +49,11 @@ def latest_posts(
         query = query.where(schema.Posts.created_at > get_past_datetime(hours=hours_ago)).order_by(
             schema.Posts.created_at.desc()
         )
-    if page_size != -1:
-        query = query.limit(page_size)
     if last_loaded_date is not None:
         query = query.where(schema.Posts.created_at < last_loaded_date)
+    if page_size != -1:
+        query = query.limit(page_size)
+
     return query
 
 

@@ -88,9 +88,7 @@ class Http409Enum(Enum):
     user_sub_missmatch = StatusDetailModel(
         sub_status_code=0, message="User with sub exists, and does not match email passed"
     )
-    app_metadata_includes_user_id = StatusDetailModel(
-        sub_status_code=1, message="Token already includes UserID"
-    )
+    app_metadata_includes_user_id = StatusDetailModel(sub_status_code=1, message="Token already includes UserID")
 
 
 class Http409Model(ErrorMessageModelBase[Http409Enum]):

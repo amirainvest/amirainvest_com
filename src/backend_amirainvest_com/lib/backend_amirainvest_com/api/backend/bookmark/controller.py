@@ -21,7 +21,7 @@ async def list_controller(session: AsyncSession, user_id: str) -> t.List[Bookmar
 async def create_controller(session: AsyncSession, user_id: str, bookmark_data: CreateModel) -> Bookmarks:
     response = await recreate_bookmark(user_id, bookmark_data)
     if response:
-        return response
+        return response.dict()
     bookmark_data_dict = bookmark_data.dict(exclude_none=True)
     bookmark_data_dict["user_id"] = user_id
     bookmark = Bookmarks(**bookmark_data_dict)
@@ -30,13 +30,15 @@ async def create_controller(session: AsyncSession, user_id: str, bookmark_data: 
 
 
 @Session
-async def recreate_bookmark(session: AsyncSession, user_id: str, bookmark_data: CreateModel) -> Bookmarks:
-    session.execute(
-        update(Bookmarks)
-        .where(Bookmarks.user_id == user_id)
-        .where(Bookmarks.post_id == bookmark_data.post_id)
-        .values({"is_deleted": False})
-        .returning(Bookmarks)
+async def recreate_bookmark(session: AsyncSession, user_id: str, bookmark_data: CreateModel):
+    return (
+        await session.execute(
+            update(Bookmarks)
+            .where(Bookmarks.user_id == user_id)
+            .where(Bookmarks.post_id == bookmark_data.post_id)
+            .values({"is_deleted": False})
+            .returning(Bookmarks)
+        )
     ).one_or_none()
 
 

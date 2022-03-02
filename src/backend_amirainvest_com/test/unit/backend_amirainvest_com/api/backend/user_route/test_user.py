@@ -39,7 +39,7 @@ async def test_update(async_session_maker_test, mock_auth, factory):
             headers=AUTH_HEADERS,
             data=json.dumps(
                 {
-                    "is_deleted": True, 
+                    "is_deleted": True,
                     "first_name": "FirstTest",
                     "last_name": "LastTest",
                     "username": "TestUser",
@@ -52,8 +52,8 @@ async def test_update(async_session_maker_test, mock_auth, factory):
         response_data = response.json()
         data = (await session_test.execute(select(Users).where(Users.id == user_id))).scalars().first()
         assert data is not None
-    
-        assert response_data["is_deleted"] is False #is_deleted not passed in this model
+
+        assert response_data["is_deleted"] is False  # is_deleted not passed in this model
         assert data.is_deleted is False
 
         assert response_data["first_name"] == "FirstTest"
@@ -101,7 +101,9 @@ async def test_create(async_session_maker_test, monkeypatch, mock_auth_no_user_i
         assert (await session_test.execute(select(Users).where(Users.id == user_id))).one()
 
 
-async def test_create_multiple(async_session_maker_test, monkeypatch: pytest.MonkeyPatch, factory, mock_auth_no_user_id):
+async def test_create_multiple(
+    async_session_maker_test, monkeypatch: pytest.MonkeyPatch, factory, mock_auth_no_user_id
+):
     from backend_amirainvest_com.utils import auth0_utils
 
     async def update_user_app_metadata_mock(*args, **kwargs):
@@ -120,7 +122,7 @@ async def test_create_multiple(async_session_maker_test, monkeypatch: pytest.Mon
                     "first_name": "test_first",
                     "last_name": "test_last",
                     "username": "test_username",
-                    "email": "test@gmail.com"
+                    "email": "test@gmail.com",
                 }
             ),  # type: ignore
         )
@@ -133,7 +135,7 @@ async def test_create_multiple(async_session_maker_test, monkeypatch: pytest.Mon
                     "first_name": "test_first",
                     "last_name": "test_last",
                     "username": "test_username",
-                    "email": "test@gmail.com"
+                    "email": "test@gmail.com",
                 }
             ),  # type: ignore
         )
@@ -169,7 +171,7 @@ async def test_create_multiple_missmatch_email(monkeypatch, factory, mock_auth_n
                     "first_name": "test_first",
                     "last_name": "test_last",
                     "username": "test_username",
-                    "email": "test@gmail.com"
+                    "email": "test@gmail.com",
                 }
             ),
         )
@@ -182,7 +184,7 @@ async def test_create_multiple_missmatch_email(monkeypatch, factory, mock_auth_n
                     "first_name": "test_name",
                     "last_name": "test_last_name",
                     "username": "test_username",
-                    "email": "test_bad@gmail.com"
+                    "email": "test_bad@gmail.com",
                 }
             ),
         )
@@ -191,7 +193,7 @@ async def test_create_multiple_missmatch_email(monkeypatch, factory, mock_auth_n
     assert response_2.status_code == status.HTTP_409_CONFLICT
 
 
-async def test_delete(async_session_maker_test, monkeypatch, factory, mock_auth):
+async def test_delete(async_session_maker_test, monkeypatch, factory, mock_auth, mock_auth_no_user_id):
     from backend_amirainvest_com.utils import auth0_utils
 
     async def update_user_app_metadata_mock(*args, **kwargs):
@@ -200,7 +202,7 @@ async def test_delete(async_session_maker_test, monkeypatch, factory, mock_auth)
     monkeypatch.setattr(auth0_utils, "update_user_app_metadata", update_user_app_metadata_mock)
 
     session_test: AsyncSession = async_session_maker_test()
-
+    await mock_auth_no_user_id()
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response_1 = await async_client.post(
             "/user/create",
@@ -216,12 +218,11 @@ async def test_delete(async_session_maker_test, monkeypatch, factory, mock_auth)
         )
         user_id = response_1.json()["id"]
         await mock_auth(user_id)
-        await async_client.post(
-            "/user/delete",
-            headers=AUTH_HEADERS,
-        )
+        await async_client.post("/user/delete", headers=AUTH_HEADERS, data=json.dumps({"delete_action": "deactivate"}))
 
-    assert len((await session_test.execute(select(Users))).all()) == 0
+    assert len((await session_test.execute(select(Users).where(Users.is_deactivated.is_(True)))).all()) == 1
+
+    assert len((await session_test.execute(select(Users).where(Users.is_deactivated.is_(False)))).all()) == 0
 
 
 async def test_list(factory):

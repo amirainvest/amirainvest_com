@@ -86,6 +86,7 @@ myself
 no
 nor
 not
+now
 of
 off
 on

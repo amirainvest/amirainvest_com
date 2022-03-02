@@ -1,4 +1,5 @@
-from xmlrpc.client import DateTime
+import datetime
+
 import sqlalchemy as sa
 from sqlalchemy import and_, func
 from sqlalchemy.future import select
@@ -16,7 +17,7 @@ MAX_FEED_SIZE = 200
 
 def subscriber_posts(
     subscriber_id: str,
-    subscriber_feed_last_loaded_date: DateTime,
+    subscriber_feed_last_loaded_date: datetime.datetime = None,
     page_size: int = PAGE_SIZE,
     hours_ago: int = MAX_HOURS_AGO,
 ) -> Select:
@@ -27,24 +28,27 @@ def subscriber_posts(
             schema.UserSubscriptions.subscriber_id == subscriber_id,
         ),
     )
-    """
+
     query = latest_posts(
         query,
         page_size=page_size,
         last_loaded_date=subscriber_feed_last_loaded_date,
         hours_ago=hours_ago,
     )
-    """
+
     return query
 
 
 def latest_posts(
     query: Select,
-    last_loaded_date: DateTime,
+    last_loaded_date: datetime.datetime = None,
     page_size: int = PAGE_SIZE,
     hours_ago: int = MAX_HOURS_AGO,
 ) -> Select:
-    query = query.where(schema.Posts.created_at > get_past_datetime(hours=hours_ago)).order_by(schema.Posts.created_at.desc())
+    if hours_ago != -1:
+        query = query.where(schema.Posts.created_at > get_past_datetime(hours=hours_ago)).order_by(
+            schema.Posts.created_at.desc()
+        )
     if page_size != -1:
         query = query.limit(page_size)
     if last_loaded_date is not None:

@@ -45,7 +45,7 @@ class FeedType(str, enum.Enum):
 class ListInputModel(BaseModel):
     feed_type: FeedType
     creator_id: Optional[str]
-    company_search: Optional[str]
+    company_ticker: Optional[str]
     subscriber_feed_last_loaded_date: Optional[datetime.datetime]
     creator_feed_last_loaded_date: Optional[datetime.datetime]
     discovery_feed_last_loaded_date: Optional[datetime.datetime]

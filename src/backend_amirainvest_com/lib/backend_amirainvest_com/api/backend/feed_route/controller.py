@@ -1,10 +1,12 @@
 from cgitb import text
 from operator import or_
+from tracemalloc import stop
 from typing import List, Tuple
 from xmlrpc.client import DateTime
 import datetime
 import sqlalchemy as sa
 from sqlalchemy import Date
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -68,6 +70,7 @@ async def get_subscriber_feed(
         query = query.where(schema.Posts.created_at < feed_info.subscriber_feed_last_loaded_date)
 
     query = query.limit(page_size)
+
     data = await session.execute(query)
     posts = [GetResponseModel.from_orm(post) for post in data]
     return posts
@@ -93,6 +96,7 @@ async def get_creator_feed(
     """
     if feed_info.creator_feed_last_loaded_date is not None:
         query = query.where(schema.Posts.created_at < feed_info.creator_feed_last_loaded_date)
+
     query = query.limit(page_size)
     data = await session.execute(query)
     posts = [GetResponseModel.from_orm(post) for post in data]
@@ -134,35 +138,68 @@ async def get_discovery_feed(
         )
 
 
-    # Need to add in logic for when a ticker is at the beginning of the text or
-    # if there is a punctuation after it. 
-    if feed_info.company_search is not None:
-        company_name = (await session.execute(text(f"SELECT name FROM securities WHERE securities.ticker_symbol = '{feed_info.company_search.upper()}'"))).one()[0]
-        query = query.filter(
-            or_(
+    # TODO: Need to add in logic for when a ticker is at the beginning of the text or
+    #       if there is a punctuation after it. 
+    
+    if feed_info.company_ticker is not None:
+        # This should probably be a table, not a text file.. but I don't really know how to create a new table in our dev framework and this was faster. 
+        f = open("/opt/english_stopwords.txt", 'r')
+        stopwords = f.read()
+
+        # Checks to see if a ticker entered exists in our securities table. If it doesn't assume the ticker is invalid and return null (I would return an error, but I'm unsure 
+        # how to return errors)
+        try:
+            company_name = (await session.execute(text(f"SELECT name FROM securities WHERE securities.ticker_symbol = '{feed_info.company_ticker.upper()}'"))).one()[0]
+        except SQLAlchemyError as e:
+            return []
+        
+        # Logic here is that if a company's ticker is is also a commonly found english stop word, we should only search on the company name and the ticker with the cashtag symbol
+        # in front of it. Example of it being an issue, "BE" or "U". Both can commonly appear and not be references to tickers. Where as if you see UPST without a cashtag
+        # its still most likely that the person is talking about the company Upstart. 
+        # This is imperfect, but I think will do a decent enough job for the time being. 
+        if feed_info.company_ticker.lower() in stopwords:
+            query = query.filter(
                 or_(
-                    or_(schema.Posts.content.like(f"%>${feed_info.company_search.upper()}<%"), 
-                        schema.Posts.title.like(f"% ${feed_info.company_search.upper()} %")),
-                    or_(schema.Posts.content.like(f"% {feed_info.company_search.upper()} %"),
-                        schema.Posts.title.like(f"% {feed_info.company_search.upper()} %"))
-                ),
-                or_(
-                    schema.Posts.content.like(f"% ${feed_info.company_search.upper()} %"),
                     or_(
-                        schema.Posts.content.match(company_name),
-                        schema.Posts.title.match(company_name)
+                        or_(schema.Posts.content.ilike(f"%>${feed_info.company_ticker}<%"), 
+                            schema.Posts.title.ilike(f"% ${feed_info.company_ticker} %")
+                        ),
+                            schema.Posts.content.ilike(f"% ${feed_info.company_ticker} %")
+                    ),
+                    or_(
+                        schema.Posts.content.ilike(f"%{company_name}%"),
+                        schema.Posts.title.ilike(f"%{company_name}%")
+                        )
+                    )
+                )
+            
+        else:
+            query = query.filter(
+                or_(
+                    or_(
+                        or_(schema.Posts.content.ilike(f"%>${feed_info.company_ticker}<%"), 
+                            schema.Posts.title.ilike(f"% ${feed_info.company_ticker} %")
+                        ),
+                            schema.Posts.content.ilike(f"% ${feed_info.company_ticker} %")
+                    ),
+                    or_(
+                        or_(
+                            schema.Posts.content.ilike(f"% {feed_info.company_ticker} %"),
+                            schema.Posts.title.ilike(f"% {feed_info.company_ticker} %")
+                        ),
+                        or_(
+                            schema.Posts.content.ilike(f"%{company_name}%"),
+                            schema.Posts.title.ilike(f"%{company_name}%")
+                        )
                     )
                 )
             )
-        )
         
-        
-
     query = query.order_by(
         sa.cast(schema.Posts.created_at, Date).desc()).order_by(schema.Posts.platform.asc()).order_by(sa.sql.extract("hour", schema.Posts.created_at).desc()).order_by(subscriber_count_cte.c.subscriber_count.desc()
     )
 
-    #query = query.limit(page_size)
+    query = query.limit(page_size)
     data = (await session.execute(query)).all()
     posts = [GetResponseModel.from_orm(post) for post in data]
     return posts

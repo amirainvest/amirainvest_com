@@ -21,9 +21,7 @@ if __name__ == "__main__":
     provider_service = Providers({"plaid": plaid_service})
 
     if action == "INSTITUTIONS_COLLECTION":
-        run_async_function_synchronously(
-            plaid_service.collect_institutions
-        )
+        run_async_function_synchronously(plaid_service.collect_institutions)
     elif action == "COLLECT_INVESTMENT_HISTORY":
         run_async_function_synchronously(
             provider_service.collect_investment_history,

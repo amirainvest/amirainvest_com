@@ -1,16 +1,15 @@
-from typing import Optional
-
 from fastapi import APIRouter, Depends, Request, status
 from fastapi.templating import Jinja2Templates
 
+from backend_amirainvest_com.api.backend.plaid_route.controller import get_and_set_access_token, get_bad_items
 from backend_amirainvest_com.api.backend.plaid_route.models import (
-    PlaidTokenRequest, UpdatePlaidTokenRequest,
-    LinkTokenResponse, BadItem,
+    BadItem,
+    LinkTokenResponse,
+    PlaidTokenRequest,
+    UpdatePlaidTokenRequest,
 )
 from backend_amirainvest_com.controllers.auth import auth_depends_user_id
 from backend_amirainvest_com.controllers.plaid_controller import generate_link_token
-
-from backend_amirainvest_com.api.backend.plaid_route.controller import get_and_set_access_token, get_bad_items
 
 
 router = APIRouter(prefix="/plaid", tags=["Plaid"])
@@ -22,7 +21,7 @@ async def get_plaid(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
 
-@router.get("/issues", status_code=status.HTTP_200_OK, response_model=Optional[list[BadItem]])
+@router.get("/issues", status_code=status.HTTP_200_OK, response_model=list[BadItem])
 async def get_plaid_account_issues(token=Depends(auth_depends_user_id)):
     user_id = token["https://amirainvest.com/user_id"]
     return await get_bad_items(user_id=user_id)

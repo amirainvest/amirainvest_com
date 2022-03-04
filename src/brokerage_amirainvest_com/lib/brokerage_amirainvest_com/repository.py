@@ -1,16 +1,16 @@
 from typing import Optional
 
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy.dialects.postgresql import insert
 
 from common_amirainvest_com.schemas.schema import (
+    BadPlaidItems,
     FinancialAccounts,
     FinancialAccountTransactions,
     FinancialInstitutions,
     PlaidItems,
     PlaidSecurities,
-    BadPlaidItems,
 )
 from common_amirainvest_com.utils.decorators import Session
 

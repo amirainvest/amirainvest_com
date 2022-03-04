@@ -40,15 +40,12 @@ from brokerage_amirainvest_com.repository import (
     get_accounts_by_plaid_ids,
     get_institutions_by_plaid_ids,
     get_investment_transactions_by_plaid_id,
-    get_item_ids_by_user_id,
     get_securities_by_plaid_ids,
 )
 from common_amirainvest_com.schemas.schema import (
     FinancialAccountCurrentHoldings,
-    FinancialAccounts,
     FinancialAccountTransactions,
     FinancialInstitutions,
-    PlaidItems,
     PlaidSecurities,
     PlaidSecurityPrices,
 )

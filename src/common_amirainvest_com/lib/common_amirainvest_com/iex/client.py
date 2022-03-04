@@ -1,6 +1,7 @@
 from typing import Union
 
 import httpx
+import pydantic
 
 from common_amirainvest_com.iex.exceptions import IEXException
 from common_amirainvest_com.iex.model import (
@@ -75,7 +76,13 @@ async def get_stock_quote_prices(symbols: list[str]) -> list[StockQuote]:
         r = await client.get(request_url, timeout=20.0, params=query_strings)
         validate_response(r.status_code, r.text)
         response = r.json()
-        return [StockQuote.parse_obj(response[key]["quote"]) for key in response]
+        res = []
+        for key in response:
+            try:
+                res.append(StockQuote.parse_obj(response[key]["quote"]))
+            except pydantic.ValidationError:
+                continue
+        return res
 
 
 async def get_company_info(symbol: str) -> Company:

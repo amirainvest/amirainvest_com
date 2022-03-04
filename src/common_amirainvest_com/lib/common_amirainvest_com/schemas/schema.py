@@ -659,13 +659,22 @@ class FinancialInstitutions(Base, ToDict):
 
 class PlaidItems(Base, ToDict):
     __tablename__ = "plaid_items"
-    id = Column(Integer, primary_key=True, unique=True, nullable=False, autoincrement=True)
+    id = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
 
     user_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
 
     plaid_item_id = Column(String, unique=True, nullable=False)
 
     institution_id = Column(Integer, ForeignKey("financial_institutions.id"))
+
+
+class BadPlaidItems(Base, ToDict):
+    __tablename__ = "bad_plaid_items"
+    __table_args__ = (UniqueConstraint("user_id", "plaid_item_id"),)
+
+    id = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
+    user_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id"), unique=True, nullable=False)
+    plaid_item_id: int = Column(BigInteger, ForeignKey("plaid_items.id"), unique=True, nullable=False)
 
 
 class FinancialAccounts(Base, ToDict):

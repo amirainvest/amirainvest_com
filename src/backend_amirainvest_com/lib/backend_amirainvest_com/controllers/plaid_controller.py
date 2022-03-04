@@ -1,3 +1,5 @@
+from typing import Optional
+
 import plaid  # type: ignore
 import requests
 from plaid.api import plaid_api  # type: ignore
@@ -8,7 +10,19 @@ from plaid.model.link_token_create_request import LinkTokenCreateRequest  # type
 from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUser  # type: ignore
 from plaid.model.products import Products  # type: ignore
 
-from common_amirainvest_com.utils.consts import PLAID_APPLICATION_NAME, PLAID_CLIENT_ID, PLAID_ENVIRONMENT, PLAID_SECRET
+from common_amirainvest_com.dynamo.utils import get_brokerage_user_item
+from common_amirainvest_com.utils.consts import (
+    PLAID_APPLICATION_NAME,
+    PLAID_CLIENT_ID,
+    PLAID_ENVIRONMENT,
+    PLAID_SECRET,
+    PLAID_WEBHOOK,
+)
+
+from common_amirainvest_com.schemas.schema import BadPlaidItems
+from common_amirainvest_com.utils.decorators import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.dialects.postgresql import insert
 
 
 configuration = plaid.Configuration(
@@ -18,16 +32,28 @@ api_client = plaid.ApiClient(configuration)
 client = plaid_api.PlaidApi(api_client)
 
 
-def generate_link_token(user_id: str) -> str:
-    # TODO Do we have any other meta-data we want to pass plaid for a user?
-    # TODO Do we want to support any other country codes outside of us?
-    request = LinkTokenCreateRequest(
-        products=[Products("investments"), Products("transactions")],
-        client_name=PLAID_APPLICATION_NAME,
-        country_codes=[CountryCode("US")],
-        language="en",
-        user=LinkTokenCreateRequestUser(client_user_id=user_id),
+@Session
+async def add_bad_plaid_item(session: AsyncSession, user_id: str, item_id: str):
+    await session.execute(
+        insert(BadPlaidItems).values({"user_id": user_id, "item_id": item_id}).on_conflict_do_nothing()
     )
+
+
+def generate_link_token(user_id: str, item_id: Optional[str]) -> str:
+    request = LinkTokenCreateRequest(
+        client_name=PLAID_APPLICATION_NAME,
+        language="en",
+        country_codes=[CountryCode("US")],
+        user=LinkTokenCreateRequestUser(client_user_id=user_id),
+        products=[Products("investments"), Products("transactions")],
+        webhook=PLAID_WEBHOOK,
+    )
+
+    if item_id is not None:
+        brokerage_user = await get_brokerage_user_item(user_id=user_id, item_id=item_id)
+        if brokerage_user is not None:
+            request.access_token = brokerage_user.access_token
+
     response = client.link_token_create(request)
     return response["link_token"]
 

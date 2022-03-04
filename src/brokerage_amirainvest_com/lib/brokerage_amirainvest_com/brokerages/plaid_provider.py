@@ -355,17 +355,13 @@ class PlaidHttp:
         end_date: arrow.Arrow = arrow.utcnow(),
         offset: int = 0,
     ) -> InvestmentInformation:
-        brokerage_user = await self.token_repository.get_key(str(user_id))
+        brokerage_user = await self.token_repository.get_key(user_id=user_id, item_id=item_id)
 
         if brokerage_user is None:
             raise Exception("TODO LATER")  # TODO IMPLEMENT EXCEPTION
 
-        if item_id not in brokerage_user.plaid_access_tokens:
-            raise Exception("TODO LATER")  # TODO Implement Exception
-
-        access_token = brokerage_user.plaid_access_tokens[item_id]
         request = InvestmentsTransactionsGetRequest(
-            access_token=access_token,
+            access_token=brokerage_user.access_token,
             start_date=start_date.date(),
             end_date=end_date.date(),
             options=InvestmentsTransactionsGetRequestOptions(offset=offset),
@@ -392,13 +388,12 @@ class PlaidHttp:
         )
 
     async def get_current_holdings(self, user_id: str, item_id: str):
-        brokerage_user = await self.token_repository.get_key(str(user_id))
-        if brokerage_user is None or item_id not in brokerage_user.plaid_access_tokens:
+        brokerage_user = await self.token_repository.get_key(user_id=user_id, item_id=item_id)
+        if brokerage_user is None:
             raise Exception("TODO LATER")
-        access_token = brokerage_user.plaid_access_tokens[item_id]
         response = self.client.investments_holdings_get(
             InvestmentsHoldingsGetRequest(
-                access_token=access_token,
+                access_token=brokerage_user.access_token,
             )
         )
 

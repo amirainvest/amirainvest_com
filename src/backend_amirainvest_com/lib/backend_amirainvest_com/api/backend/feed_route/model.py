@@ -46,9 +46,9 @@ class ListInputModel(BaseModel):
     feed_type: FeedType
     creator_id: Optional[str]
     company_ticker: Optional[str]
-    subscriber_feed_last_loaded_date: Optional[datetime.datetime]
-    creator_feed_last_loaded_date: Optional[datetime.datetime]
-    discovery_feed_last_loaded_date: Optional[datetime.datetime]
+    subscriber_feed_last_loaded_date: datetime.datetime
+    creator_feed_last_loaded_date: datetime.datetime
+    discovery_feed_last_loaded_date: datetime.datetime
 
     @root_validator(pre=False)
     def validate_creator_id_exists_for_feed_type(cls, values):

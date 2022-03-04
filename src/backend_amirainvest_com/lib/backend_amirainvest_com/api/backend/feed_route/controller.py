@@ -1,14 +1,10 @@
-from operator import or_
-
 # from tracemalloc import stop
 from typing import List, Tuple
 
-import sqlalchemy
 import sqlalchemy as sa
-from sqlalchemy import Date
+from sqlalchemy import Date, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.exc import NoResultFound
-from sqlalchemy.sql import text
 
 import common_amirainvest_com.utils.query_fragments.feed as qf
 from backend_amirainvest_com.api.backend.feed_route.model import FeedType, GetResponseModel, ListInputModel
@@ -64,7 +60,6 @@ async def get_subscriber_feed(
         hours_ago=hours_ago,
     )
 
-
     data = await session.execute(query)
     posts = [GetResponseModel.from_orm(post) for post in data]
     return posts
@@ -79,7 +74,6 @@ async def get_creator_feed(
     hours_ago: int = -1,
 ) -> List[GetResponseModel]:
     query = qf.feed_select(subscriber_id=subscriber_id).where(schema.Posts.creator_id == feed_info.creator_id)
-    
 
     query = qf.latest_posts(
         query,
@@ -88,11 +82,10 @@ async def get_creator_feed(
         hours_ago=hours_ago,
     )
 
-
     data = await session.execute(query)
     posts = [GetResponseModel.from_orm(post) for post in data]
     return posts
-    
+
 
 @Session
 async def get_discovery_feed(
@@ -134,17 +127,14 @@ async def get_discovery_feed(
         # how to create a new table in our dev framework and this was faster.
         f = open("/opt/english_stopwords.txt", "r")
         stopwords = f.read()
-
+        f.close()
         # Checks to see if a ticker entered exists in our securities table. If it doesn't assume
         # the ticker is invalid and return null (I would return an error, but I'm unsure
         # how to return errors)
         try:
             company_name = (
                 await session.execute(
-                    text(
-                        f"SELECT name FROM securities WHERE securities.ticker_symbol = \
-                        '{feed_info.company_ticker.upper()}'"
-                    )
+                    select(schema.Securities).where(schema.Securities.ticker_symbol == feed_info.company_ticker.upper())
                 )
             ).one()[0]
         except NoResultFound:

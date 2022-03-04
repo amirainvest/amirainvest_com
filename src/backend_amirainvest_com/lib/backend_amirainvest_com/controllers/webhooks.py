@@ -5,7 +5,6 @@ from common_amirainvest_com.sqs.consts import BROKERAGE_DATA_QUEUE_URL
 from common_amirainvest_com.sqs.models import Brokerage, BrokerageDataActions, BrokerageDataChange
 from common_amirainvest_com.sqs.utils import add_message_to_queue
 
-
 async def handle_holdings_change(holdings: HoldingsUpdate):
     add_message_to_queue(
         BROKERAGE_DATA_QUEUE_URL,

@@ -22,5 +22,9 @@ async def webhook_update(
     if request.webhook_type == "INVESTMENTS_TRANSACTIONS":
         await webhooks.handle_investments_change(cast(InvestmentsUpdate, request))
         return
+    # if request.webhook_type == "ITEM_LOGIN_REQUIRED":
+    #     await
+    # if request.webhook_type == "PENDING_EXPIRATION":
+    #     await
     if request.webhook_type == "TRANSACTIONS":
         print("Validating Transactions Webhook...")

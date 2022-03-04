@@ -39,7 +39,7 @@ async def add_bad_plaid_item(session: AsyncSession, user_id: str, item_id: str):
     )
 
 
-def generate_link_token(user_id: str, item_id: Optional[str]) -> str:
+async def generate_link_token(user_id: str, item_id: str) -> str:
     request = LinkTokenCreateRequest(
         client_name=PLAID_APPLICATION_NAME,
         language="en",
@@ -49,7 +49,7 @@ def generate_link_token(user_id: str, item_id: Optional[str]) -> str:
         webhook=PLAID_WEBHOOK,
     )
 
-    if item_id is not None:
+    if item_id != "":
         brokerage_user = await get_brokerage_user_item(user_id=user_id, item_id=item_id)
         if brokerage_user is not None:
             request.access_token = brokerage_user.access_token

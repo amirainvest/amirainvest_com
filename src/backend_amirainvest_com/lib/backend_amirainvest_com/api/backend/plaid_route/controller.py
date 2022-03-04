@@ -1,3 +1,5 @@
+import asyncio
+
 import plaid
 
 from common_amirainvest_com.dynamo.models import BrokerageUser
@@ -101,18 +103,18 @@ async def get_and_set_access_token(user_id: str, public_token: str, is_update: b
 
     institution = await get_institution(new_plaid_item.institution_id)
     await add_brokerage_user(BrokerageUser(item_id=item_id, access_token=access_token, user_id=user_id))
-    new_internal_item = await add_plaid_item(user_id=user_id, item_id=item_id, institution_id=institution.id)
-    await add_plaid_accounts(accounts=new_plaid_accounts, item_id=new_internal_item.id)
+    new_internal_item_id = await add_plaid_item(user_id=user_id, item_id=item_id, institution_id=institution.id)
+    await add_plaid_accounts(accounts=new_plaid_accounts, user_id=user_id, internal_item_id=new_internal_item_id)
 
-    add_message_to_queue(
-        BROKERAGE_DATA_QUEUE_URL,
-        BrokerageDataChange(
-            brokerage=Brokerage.plaid,
-            user_id=user_id,
-            token_identifier=item_id,
-            action=BrokerageDataActions.upsert_brokerage_account,
-        ),
-    )
+    # add_message_to_queue(
+    #     BROKERAGE_DATA_QUEUE_URL,
+    #     BrokerageDataChange(
+    #         brokerage=Brokerage.plaid,
+    #         user_id=user_id,
+    #         token_identifier=item_id,
+    #         action=BrokerageDataActions.upsert_brokerage_account,
+    #     ),
+    # )
 
 
 @Session
@@ -128,24 +130,25 @@ async def get_internal_item_id(session: AsyncSession, item_id: str) -> PlaidItem
 
 
 @Session
-async def add_plaid_accounts(session: AsyncSession, accounts: list[AccountBase], user_id: str, item_id: int):
+async def add_plaid_accounts(session: AsyncSession, accounts: list[AccountBase], user_id: str, internal_item_id: int):
     inserts = []
     for acc in accounts:
+        print(acc.to_dict())
         inserts.append(
             {
                 'user_id': user_id,
-                'plaid_item_id': item_id,
+                'plaid_item_id': internal_item_id,
                 'plaid_id': acc.account_id,
-                'available_to_withdraw': acc.available,
-                'current_funds': acc.current,
-                'iso_currency_code': acc.iso_currency_code,
-                'limit': acc.limit,
+                'available_to_withdraw': acc.balances.available,
+                'current_funds': acc.balances.current,
+                'iso_currency_code': acc.balances.iso_currency_code,
+                'limit': acc.balances.limit,
                 'mask': acc.mask,
                 'official_account_name': acc.official_name,
-                'sub_type': acc.subtype,
-                'type': acc.type.value,
-                'unofficial_currency_code': acc.unofficial_currency_code,
                 'user_assigned_account_name': acc.name,
+                'sub_type': str(acc.subtype.value),
+                'type': str(acc.type.value),
+                'unofficial_currency_code': acc.balances.unofficial_currency_code,
             }
         )
     await session.execute(insert(FinancialAccounts).values(inserts).on_conflict_do_nothing())
@@ -164,11 +167,10 @@ async def add_plaid_item(session: AsyncSession, user_id: str, item_id: str, inst
 @Session
 async def get_current_accounts(session: AsyncSession, user_id: str) -> list[CurrentPlaidAccounts]:
     response = await session.execute(
-        select(FinancialAccounts, PlaidItems, FinancialInstitutions).join(FinancialAccounts, isouter=True).join(
-            PlaidItems
-        ).join(FinancialInstitutions).where(
-            PlaidItems.user_id == user_id
-        ).order_by(PlaidItems.plaid_item_id)
+        select(FinancialAccounts, PlaidItems, FinancialInstitutions)
+            .join(FinancialAccounts, isouter=True)
+            .join(FinancialInstitutions)
+            .where(PlaidItems.user_id == user_id).order_by(PlaidItems.plaid_item_id)
     )
 
     records = response.all()
@@ -187,10 +189,11 @@ async def get_current_accounts(session: AsyncSession, user_id: str) -> list[Curr
             CurrentPlaidAccounts(
                 item_id=plaid_item.plaid_item_id,
                 plaid_institution_id=institution.plaid_id,
-                account_name=account.official_account_name,
+                account_name=account.user_assigned_account_name,
                 account_mask=account.mask
             )
         )
+    print(cur_accounts)
     return cur_accounts
 
 
@@ -209,3 +212,7 @@ async def remove_bad_item(session: AsyncSession, user_id: str, item_id: str):
     await session.execute(
         delete(BadPlaidItems).where(BadPlaidItems.user_id == user_id, BadPlaidItems.plaid_item_id == item_id)
     )
+
+
+if __name__ == '__main__':
+    asyncio.run(get_current_accounts(user_id="fbf26e93-30f1-4e0b-8a28-df1791bbb42e"))

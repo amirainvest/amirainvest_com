@@ -9,7 +9,7 @@ class PlaidTokenRequest(BaseModel):
 
 
 class UpdatePlaidTokenRequest(BaseModel):
-    item_id: Optional[str]
+    item_id: str
 
 
 class LinkTokenResponse(BaseModel):

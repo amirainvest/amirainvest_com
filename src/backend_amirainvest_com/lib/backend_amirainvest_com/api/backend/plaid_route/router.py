@@ -29,9 +29,9 @@ async def get_plaid_account_issues(token=Depends(auth_depends_user_id)):
 
 
 @router.post("/link", status_code=status.HTTP_200_OK, response_model=LinkTokenResponse)
-async def get_link(update_request: Optional[UpdatePlaidTokenRequest], token=Depends(auth_depends_user_id)):
+async def get_link(update_request: UpdatePlaidTokenRequest, token=Depends(auth_depends_user_id)):
     user_id = token["https://amirainvest.com/user_id"]
-    link_token = generate_link_token(user_id, update_request.item_id)
+    link_token = await generate_link_token(user_id, update_request.item_id)
     return LinkTokenResponse(link_token=link_token)
 
 

@@ -75,11 +75,7 @@ async def get_brokerage_user_items(user_id: str) -> Optional[list[BrokerageUser]
 
 
 async def run():
-    print(await get_brokerage_user_item(user_id="1", item_id="1"))
-    # await create_table("brokerage_users", "user_id", "item_id")
-    # await asyncio.sleep(5)
-    print(await add_brokerage_user(BrokerageUser(**{"item_id": 1, "user_id": 1, "access_token": "asdf"})))
-    # await add_brokerage_user(BrokerageUser(**{"item_id": 2, "user_id": 1, "access_token": "asdfff"}))
+    await create_table("brokerage_users", "user_id", "item_id")
 
 
 if __name__ == "__main__":

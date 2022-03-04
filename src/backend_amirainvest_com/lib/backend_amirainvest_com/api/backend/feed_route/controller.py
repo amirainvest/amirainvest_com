@@ -1,4 +1,5 @@
 # from tracemalloc import stop
+import datetime
 from typing import List, Tuple
 
 import sqlalchemy as sa
@@ -53,6 +54,9 @@ async def get_subscriber_feed(
     page_size: int = qf.PAGE_SIZE,
     hours_ago: int = qf.MAX_HOURS_AGO,
 ) -> List[GetResponseModel]:
+    if feed_info.subscriber_feed_last_loaded_date is None:
+        feed_info.subscriber_feed_last_loaded_date = datetime.datetime.now()
+
     query = qf.subscriber_posts(
         subscriber_id=subscriber_id,
         page_size=page_size,
@@ -74,7 +78,8 @@ async def get_creator_feed(
     hours_ago: int = -1,
 ) -> List[GetResponseModel]:
     query = qf.feed_select(subscriber_id=subscriber_id).where(schema.Posts.creator_id == feed_info.creator_id)
-
+    if feed_info.creator_feed_last_loaded_date is None:
+        feed_info.creator_feed_last_loaded_date = datetime.datetime.now()
     query = qf.latest_posts(
         query,
         page_size=page_size,
@@ -95,6 +100,10 @@ async def get_discovery_feed(
     page_size: int = qf.PAGE_SIZE,
     hours_ago: int = qf.MAX_HOURS_AGO,
 ) -> List[GetResponseModel]:
+
+    if feed_info.subscriber_feed_last_loaded_date is None:
+        feed_info.subscriber_feed_last_loaded_date = datetime.datetime.now()
+
     subscriber_posts_cte = qf.subscriber_posts(
         subscriber_id=subscriber_id,
         page_size=-1,
@@ -115,9 +124,10 @@ async def get_discovery_feed(
             subscriber_count_cte.c.creator_id == schema.Posts.creator_id,
         )
     )
+    if feed_info.discovery_feed_last_loaded_date is None:
+        feed_info.discovery_feed_last_loaded_date = datetime.datetime.now()
 
-    if feed_info.discovery_feed_last_loaded_date is not None:
-        query = query.where(schema.Posts.created_at < feed_info.discovery_feed_last_loaded_date)
+    query = query.where(schema.Posts.created_at < feed_info.discovery_feed_last_loaded_date)
 
     # TODO: Need to add in logic for when a ticker is at the beginning of the text or
     #       if there is a punctuation after it.

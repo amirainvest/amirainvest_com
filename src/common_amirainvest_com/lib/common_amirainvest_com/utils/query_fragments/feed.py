@@ -17,7 +17,7 @@ MAX_FEED_SIZE = 200
 
 def subscriber_posts(
     subscriber_id: str,
-    subscriber_feed_last_loaded_date: datetime.datetime = datetime.datetime.now(),
+    subscriber_feed_last_loaded_date: datetime.datetime,
     page_size: int = PAGE_SIZE,
     hours_ago: int = MAX_HOURS_AGO,
 ) -> Select:
@@ -41,7 +41,7 @@ def subscriber_posts(
 
 def latest_posts(
     query: Select,
-    last_loaded_date: datetime.datetime = datetime.datetime.now(),
+    last_loaded_date: datetime.datetime,
     page_size: int = PAGE_SIZE,
     hours_ago: int = MAX_HOURS_AGO,
 ) -> Select:

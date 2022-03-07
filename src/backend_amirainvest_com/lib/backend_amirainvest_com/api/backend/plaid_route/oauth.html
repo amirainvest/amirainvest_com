@@ -23,23 +23,17 @@
     const x = async () => {
         const authToken = $('#auth-token').val()
 
-        const linkResponse = await fetch('/plaid/link', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authToken}`
-            },
-            body: JSON.stringify({
-                item_id: "N0dXX1LRbBF0gkNZAyOyUPw0zKm5r1fRj4eP0"
-            })
-        })
         const el = $('#status-message-container');
-        const link = await linkResponse.json();
         el.append('<div> Authenticated Correctly...</div>')
+        const link_token = localStorage.getItem('plaid-oauth-link');
+        if (link_token == null || link_token === '') {
+            alert("no link token set");
+            return
+        }
 
-        localStorage.setItem('plaid-oauth-link', link['link_token'])
         const plaidHandler = Plaid.create({
-            token: link['link_token'],
+            token: link_token,
+            receivedRedirectUri: window.location.href,
             onSuccess: function (public_token, metadata) {
                 // Send the public_token to your app server.
                 // The metadata object contains info about the institution the

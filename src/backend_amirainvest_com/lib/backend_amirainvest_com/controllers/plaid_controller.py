@@ -37,15 +37,18 @@ async def add_bad_plaid_item(session: AsyncSession, user_id: str, item_id: str):
     )
 
 
-async def generate_link_token(user_id: str, item_id: str) -> str:
+async def generate_link_token(user_id: str, item_id: str, redirect_uri: str) -> str:
     request = LinkTokenCreateRequest(
         client_name=PLAID_APPLICATION_NAME,
         language="en",
         country_codes=[CountryCode("US")],
         user=LinkTokenCreateRequestUser(client_user_id=user_id),
         products=[Products("investments"), Products("transactions")],
-        webhook=PLAID_WEBHOOK,
+        webhook=PLAID_WEBHOOK
     )
+
+    if redirect_uri != "":
+        request.redirect_uri = redirect_uri
 
     if item_id != "":
         brokerage_user = await get_brokerage_user_item(user_id=user_id, item_id=item_id)

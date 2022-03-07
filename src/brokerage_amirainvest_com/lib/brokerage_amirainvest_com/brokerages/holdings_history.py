@@ -34,6 +34,39 @@ class HistoricalAccount(BaseModel):
     holdings: list[FinancialAccountHoldingsHistory]
 
 
+@Session
+async def get_prices_all_time(
+    session: AsyncSession, plaid_security_ids: set[int], start_time: date, end_time: date
+) -> dict[int, list[SecurityPrices]]:
+    # TODO Add in a with clause here ot get the max EOD price for all days... rather than just grabbing all prices
+    response = await session.execute(
+        select(SecurityPrices)
+            .join(Securities)
+            .join(PlaidSecurities)
+            .where(
+            PlaidSecurities.id.in_(plaid_security_ids),
+            SecurityPrices.price_time <= start_time,
+            SecurityPrices.price_time >= end_time,
+        )
+            .order_by(SecurityPrices.price_time.desc())
+    )
+
+    security_prices = response.scalars().all()
+    prices: dict[int, list[SecurityPrices]] = {}
+    for sp in security_prices:
+        try:
+            prices[sp.security_id].append(sp)
+        except KeyError:
+            prices[sp.security_id] = [sp]
+
+    # Order
+    for p in prices:
+        sp = prices[p]
+        sp.sort(key=lambda x: x.price_time, reverse=True)
+        prices[p] = sp
+    return prices
+
+
 async def compute_account_holdings_history(
     transactions_by_date: dict[date, list[FinancialAccountTransactions]],
     account: FinancialAccounts,
@@ -41,6 +74,7 @@ async def compute_account_holdings_history(
     holdings: list[FinancialAccountCurrentHoldings],
     market_dates: list[date],
     plaid_cash_security: PlaidSecurities,
+    prices_all_time: dict[int, list[SecurityPrices]]
 ) -> list[HistoricalAccount]:
     # Compute array of trading days and then iterate over that... rather than doing it per day and trying to
     # fix the next day, we can always just reference one back
@@ -76,9 +110,11 @@ async def compute_account_holdings_history(
 
         for today_holding in holdings_today.holdings:
             p = today_holding.price
-            sp = await get_closest_price(today_holding.security_id, prior_market_day)
+            sp = get_closest_price(prices_all_time, today_holding.security_id, prior_market_day)
             if sp is not None:
-                p = sp.price
+                p = sp
+            else:
+                print("\n\n NO FOUND!!!!!! \n ", today_holding.security_id, ":", prior_market_day)
             today_holding.price = p
             today_holding.holding_date = prior_market_day
             prior_holdings.holdings.append(today_holding)
@@ -97,6 +133,17 @@ async def run(user_id: str, start_date: date, end_date: date):
 
         holdings = await get_current_financial_holdings(account_id=account.id)
 
+        plaid_security_ids = set()
+        for d in transactions_by_date:
+            for t in transactions_by_date[d]:
+                plaid_security_ids.add(t.plaid_security_id)
+        for h in holdings:
+            plaid_security_ids.add(h.plaid_security_id)
+
+        prices_all_time = await get_prices_all_time(
+            plaid_security_ids=plaid_security_ids, start_time=start_date, end_time=end_date
+        )
+
         account_historical_holdings = await compute_account_holdings_history(
             transactions_by_date=transactions_by_date,
             holdings=holdings,
@@ -104,6 +151,7 @@ async def run(user_id: str, start_date: date, end_date: date):
             plaid_cash_security=plaid_cash_security,
             user_id=user_id,
             account=account,
+            prices_all_time=prices_all_time
         )
 
         await add_holdings_to_database(
@@ -319,18 +367,18 @@ async def get_cash_security_plaid(session: AsyncSession) -> Optional[PlaidSecuri
     return response.scalar()
 
 
-@Session
-async def get_closest_price(
-    session: AsyncSession, security_id: int, posting_date: datetime
-) -> Optional[SecurityPrices]:
-    response = await session.execute(
-        select(SecurityPrices)
-        .join(Securities)
-        .where(Securities.id == security_id, SecurityPrices.price_time <= posting_date)
-        .order_by(SecurityPrices.price_time.desc())
-        .limit(1)
-    )
-    return response.scalar()
+def get_closest_price(
+    prices_all_time: dict[int, list[SecurityPrices]], security_id: int, posting_date: date
+) -> Optional[Decimal]:
+    try:
+        security_prices = prices_all_time[security_id]
+        for sp in security_prices:
+            if sp.price_time.date() <= posting_date:
+                return sp.price
+    except KeyError:
+        print("\n\n\n SECURITY DOES NOT EXIST!!!!!!!  \n\n\n")
+        return None
+    return None
 
 
 @Session
@@ -398,10 +446,10 @@ async def get_financial_accounts(session: AsyncSession, user_id: str) -> list[Fi
 
 
 if __name__ == "__main__":
-    ending_date = datetime.utcnow().replace(year=2021, month=12, day=31, hour=21, minute=0, second=0, microsecond=0)
-    starting_date = datetime.now().replace(hour=21, minute=0, second=0, microsecond=0, day=17) + relativedelta(days=1)
+    ending_date = datetime.utcnow() - relativedelta(years=2)
+    starting_date = datetime.now().replace(hour=21, minute=0, second=0, microsecond=0) - relativedelta(days=1)
     asyncio.run(
         run(
-            user_id="caa264fe-2fe9-465c-b23f-69e3a303edfb", start_date=starting_date.date(), end_date=ending_date.date()
+            user_id="c014c73b-a589-4752-8465-e0980edc2c4b", start_date=starting_date.date(), end_date=ending_date.date()
         )
     )

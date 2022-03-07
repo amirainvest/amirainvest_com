@@ -7,9 +7,20 @@ from typing import Optional
 from dateutil import parser
 from pydantic import BaseModel, validator
 
+class HoldingsRequest(BaseModel):
+    user_id: str
 
 class PortfolioRequest(BaseModel):
     user_id: str
+    symbols: list[str]
+    last_trade_date: Optional[datetime.datetime]
+    limit: int = 50
+
+    @validator("last_trade_date", pre=True)
+    def parse_last_trade_date(cls, value):
+        if isinstance(value, str):
+            return parser.isoparse(value).date()
+        return value
 
 
 class PortfolioSummaryRequest(BaseModel):

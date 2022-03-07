@@ -11,7 +11,7 @@ services:
       context: .
       dockerfile: Dockerfile
     environment:
-      ENVIRONMENT: "local"
+      ENVIRONMENT: "prod"
       DEBUG: "true"
       AWS_DEFAULT_REGION: "us-east-1"
       AWS_CONTAINER_CREDENTIALS_RELATIVE_URI: "/creds"

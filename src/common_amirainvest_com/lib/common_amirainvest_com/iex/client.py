@@ -6,6 +6,7 @@ import pydantic
 from common_amirainvest_com.iex.exceptions import IEXException
 from common_amirainvest_com.iex.model import (
     Company,
+    CompanyQuoteLogo,
     HistoricalPrice,
     HistoricalPriceEnum,
     HistoricalPriceFiveDay,
@@ -93,6 +94,42 @@ async def get_company_info(symbol: str) -> Company:
         validate_response(r.status_code, r.text)
         response = r.json()
         return Company.parse_obj(response)
+
+
+async def get_company_quote_logo_bulk(symbols: list[str]) -> list[CompanyQuoteLogo]:
+    request_url = f"{IEX_URL}/stock/market/batch"
+    query_strings = {"token": IEX_SECRET, "symbols": ",".join(symbols), "types": "company,logo,quote"}
+    async with httpx.AsyncClient() as client:
+        r = await client.get(request_url, timeout=20.0, params=query_strings)
+        validate_response(r.status_code, r.text)
+        response = r.json()
+
+        companies = []
+        for key, val in response.items():
+            company = val["company"]
+            quote = val["quote"]
+            obj = {**company, **quote}
+            logo = val["logo"]["url"]
+            c = CompanyQuoteLogo.parse_obj(obj)
+            c.logo_url = logo
+            companies.append(c)
+        return companies
+
+
+async def get_company_bulk(symbols: list[str]) -> list[Company]:
+    request_url = f"{IEX_URL}/stock/market/batch"
+    query_strings = {"token": IEX_SECRET, "symbols": ",".join(symbols), "types": "company"}
+    async with httpx.AsyncClient() as client:
+        r = await client.get(request_url, timeout=20.0, params=query_strings)
+        validate_response(r.status_code, r.text)
+        response = r.json()
+
+        companies = []
+        for key, val in response.items():
+            company = val["company"]
+            c = Company.parse_obj(company)
+            companies.append(c)
+        return companies
 
 
 async def get_supported_securities_list() -> list[Symbol]:

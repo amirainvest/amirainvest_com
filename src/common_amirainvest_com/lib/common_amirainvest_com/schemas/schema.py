@@ -830,7 +830,7 @@ class Securities(Base, ToDict):
     collect = Column(Boolean, default=False, server_default=expression.false(), index=True)
     is_benchmark = Column(Boolean, default=False, server_default=expression.false(), index=True)
 
-    human_readable_name = Column(String, unique=True, info={"note": "This is manually populated for benchmarks"})
+    human_readable_name = Column(String, info={"note": "This is manually populated for benchmarks"})
     ticker_symbol: str = Column(
         String,
         unique=True,

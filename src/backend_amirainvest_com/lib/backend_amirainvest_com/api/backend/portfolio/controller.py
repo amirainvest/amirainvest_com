@@ -7,7 +7,8 @@ import numpy as np
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy.sql import func, label
+from sqlalchemy.sql import cast, func, label
+from sqlalchemy.types import Date
 
 from backend_amirainvest_com.api.backend.portfolio.model import (
     HistoricalReturn,
@@ -35,13 +36,18 @@ from common_amirainvest_com.schemas.schema import (
 from common_amirainvest_com.utils.decorators import Session
 
 
-async def get_portfolio_trades(user_id: str, creator_id: str) -> TradingHistoryResponse:
+async def get_portfolio_trades(
+    user_id: str, creator_id: str, symbols: list[str], last_date: Optional[datetime.datetime], limit: int
+) -> TradingHistoryResponse:
     creator, is_creator = await get_user_and_if_creator(user_id=user_id, creator_id=creator_id)
-    trading_history = await get_trading_history(user_id=creator.id)
+    trading_history = await get_trading_history(user_id=creator.id, symbols=symbols, last_date=last_date, limit=limit)
     response: list[HistoricalTrade] = []
     for trade in trading_history:
         fat = trade.FinancialAccountTransactions
         mv = fat.price * fat.quantity
+        yesterday_mv = trade[2]
+        change_in_position = abs(mv) / yesterday_mv
+
         response.append(
             HistoricalTrade(
                 trade_date=fat.posting_date,
@@ -49,7 +55,7 @@ async def get_portfolio_trades(user_id: str, creator_id: str) -> TradingHistoryR
                 transaction_type=fat.type,
                 transaction_price=fat.price,
                 transaction_market_value=None if is_creator else mv,
-                percentage_change_in_position=None,
+                percentage_change_in_position=change_in_position,
             )
         )
     return TradingHistoryResponse(
@@ -64,18 +70,22 @@ async def get_portfolio_holdings(user_id: str, creator_id: str) -> HoldingsRespo
 
     response: list[Holding] = []
     for holding in holdings:
-        fa = holding.FinancialAccountCurrentHoldings
+        fa = holding.FinancialAccountHoldingsHistory
         ps = holding.PlaidSecurities
 
-        market_value = fa.latest_price * fa.quantity
+        return_percentage = None
+        if fa.cost_basis is not None:
+            return_percentage = (fa.price - fa.cost_basis) / fa.cost_basis
+
+        market_value = fa.price * fa.quantity
         response.append(
             Holding(
                 ticker=ps.ticker_symbol,
-                ticker_price=fa.latest_price,
-                ticker_price_time=fa.latest_price_date,
+                ticker_price=fa.price,
+                ticker_price_time=datetime.datetime.combine(fa.holding_date, datetime.datetime.min.time()),
                 percentage_of_portfolio=Decimal(market_value / portfolio.value),
-                buy_date=holding.buy_date,
-                return_percentage=Decimal(fa.cost_basis / fa.quantity),
+                buy_date=datetime.datetime.combine(fa.buy_date, datetime.datetime.min.time()),
+                return_percentage=return_percentage,
                 market_value=None if is_creator else market_value,
             )
         )
@@ -184,8 +194,10 @@ async def compute_sharpe_ratio(portfolio_returns: list[HoldingPeriod]) -> Decima
 def get_portfolio_value(holdings: list, user_id: str) -> PortfolioValue:
     portfolio_value = PortfolioValue(user_id=user_id, value=0)
     for holding in holdings:
-        fa = holding.FinancialAccountCurrentHoldings
-        value = portfolio_value.value + Decimal(fa.quantity * fa.latest_price)
+        if holding.FinancialAccountHoldingsHistory is None:
+            continue
+        fa = holding.FinancialAccountHoldingsHistory
+        value = portfolio_value.value + Decimal(fa.quantity * fa.price)
         portfolio_value.value = value
 
     return portfolio_value
@@ -410,12 +422,34 @@ async def get_user_holdings_with_securities_data(session: AsyncSession, user_id:
 
 
 @Session
-async def get_trading_history(session: AsyncSession, user_id: str) -> list:
-    response = await session.execute(
-        select(FinancialAccountTransactions, PlaidSecurities)
+async def get_trading_history(
+    session: AsyncSession, user_id: str, symbols: list[str], last_date: Optional[datetime.datetime], limit: int
+) -> list:
+    inner_query = (
+        select(func.sum(FinancialAccountHoldingsHistory.quantity * FinancialAccountHoldingsHistory.price))
+        .where(FinancialAccountHoldingsHistory.holding_date < cast(FinancialAccountTransactions.posting_date, Date))
+        .group_by(FinancialAccountHoldingsHistory.holding_date)
+        .order_by(FinancialAccountHoldingsHistory.holding_date.desc())
+        .limit(1)
+    )
+
+    query = (
+        select(
+            FinancialAccountTransactions, PlaidSecurities, label("prior_day_market_value", inner_query)  # type: ignore
+        )
         .join(FinancialAccounts)
         .join(PlaidSecurities)
         .where(FinancialAccounts.user_id == user_id)
         .order_by(FinancialAccountTransactions.posting_date.desc())
+        .limit(limit)
     )
+
+    if len(symbols) > 0:
+        capitalized_symbols = [symbol.upper() for symbol in symbols]
+        query = query.where(PlaidSecurities.ticker_symbol.in_(capitalized_symbols))
+
+    if last_date is not None:
+        query = query.where(FinancialAccountTransactions.posting_date < last_date)
+
+    response = await session.execute(query)
     return response.all()

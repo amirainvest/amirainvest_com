@@ -40,17 +40,15 @@ from brokerage_amirainvest_com.repository import (
     get_accounts_by_plaid_ids,
     get_institutions_by_plaid_ids,
     get_investment_transactions_by_plaid_id,
-    get_item_ids_by_user_id,
     get_securities_by_plaid_ids,
 )
 from common_amirainvest_com.schemas.schema import (
     FinancialAccountCurrentHoldings,
-    FinancialAccounts,
     FinancialAccountTransactions,
     FinancialInstitutions,
-    PlaidItems,
     PlaidSecurities,
     PlaidSecurityPrices,
+    Securities,
 )
 from common_amirainvest_com.utils.consts import PLAID_ENVIRONMENT
 from common_amirainvest_com.utils.decorators import Session  # type: ignore
@@ -62,13 +60,6 @@ __all__ = ["PlaidRepository", "PlaidHttp", "PlaidProvider"]
 class PlaidRepository:
     def __init__(self):
         pass
-
-    @Session
-    async def add_plaid_item(self, session: AsyncSession, user_id: str, item_id: str, institution_id: int):
-        result = await session.execute(select(PlaidItems).where(PlaidItems.plaid_item_id == item_id))
-        if result.one_or_none() is not None:
-            return
-        session.add(PlaidItems(user_id=user_id, plaid_item_id=item_id, institution_id=None))
 
     @Session
     async def add_institutions(self, session: AsyncSession, institutions: list[Institution]):
@@ -101,88 +92,58 @@ class PlaidRepository:
     async def add_securities(self, session: AsyncSession, securities: list[Security]):
         plaid_security_ids = set()
         plaid_institution_ids = set()
+        symbols = set()
 
         for security in securities:
-            plaid_institution_ids.add(security.institution_id)
-            plaid_security_ids.add(security.security_id)
-
-        existing_securities = await get_securities_by_plaid_ids(plaid_security_ids)
-        existing_securities_dict: dict[str, None] = {}
-        for ex in existing_securities:
-            existing_securities_dict[ex.plaid_security_id] = None
+            if security.institution_id is not None:
+                plaid_institution_ids.add(security.institution_id)
+            if security.security_id is not None:
+                plaid_security_ids.add(security.security_id)
+            if security.ticker_symbol is not None:
+                symbols.add(security.ticker_symbol.upper())
 
         current_institutions = await get_institutions_by_plaid_ids(plaid_institution_ids)
         existing_institutions_dict: dict[str, int] = {}
         for inst in current_institutions:
             existing_institutions_dict[inst.plaid_id] = inst.id
 
+        iex_securities_res = await session.execute(select(Securities).where(Securities.ticker_symbol.in_(symbols)))
+        iex_securities = iex_securities_res.scalars().all()
+        iex_security_symbol_to_dict: dict[str, int] = {}
+        for iex_sec in iex_securities:
+            iex_security_symbol_to_dict[iex_sec.ticker_symbol.upper()] = iex_sec.id
+
         securities_to_insert = []
         for sec in securities:
-            if sec.security_id in existing_securities_dict:
-                continue
+            iex_security_id = None
+            if sec.ticker_symbol is not None and sec.ticker_symbol.upper() in iex_security_symbol_to_dict:
+                iex_security_id = iex_security_symbol_to_dict[sec.ticker_symbol.upper()]
 
-            security_dao = PlaidSecurities(
-                plaid_security_id=sec.security_id,
-                name=sec.name,
-                ticker_symbol=sec.ticker_symbol,
-                isin=sec.ticker_symbol,
-                cusip=sec.cusip,
-                sedol=sec.sedol,
-                plaid_institution_security_id=sec.institution_security_id,
-                is_cash_equivalent=sec.is_cash_equivalent,
-                type=sec.type.value if sec.type is not None else None,
-                iso_currency_code=sec.iso_currency_code,
-                unofficial_currency_code=sec.unofficial_currency_code,
-                financial_institution_id=None,
+            institution_id = None
+            if sec.institution_id in existing_institutions_dict:
+                institution_id = existing_institutions_dict[sec.institution_id]
+            securities_to_insert.append(
+                {
+                    "financial_institution_id": institution_id,
+                    "plaid_security_id": sec.security_id,
+                    "security_id": iex_security_id,
+                    "ticker_symbol": sec.ticker_symbol,
+                    "name": sec.name,
+                    "cusip": sec.cusip,
+                    "is_cash_equivalent": sec.is_cash_equivalent,
+                    "isin": sec.ticker_symbol,
+                    "iso_currency_code": sec.iso_currency_code,
+                    "plaid_institution_security_id": sec.institution_security_id,
+                    "sedol": sec.sedol,
+                    "type": sec.type.value if sec.type is not None else None,
+                    "unofficial_currency_code": sec.unofficial_currency_code,
+                }
             )
 
-            if str(sec.institution_id) in existing_institutions_dict:
-                security_dao.financial_institution_id = existing_institutions_dict[str(sec.institution_id)]
+        if len(securities_to_insert) <= 0:
+            return
 
-            securities_to_insert.append(security_dao)
-        session.add_all(securities_to_insert)
-
-    @Session
-    async def add_accounts(self, session: AsyncSession, user_id: str, accounts: list[Account]):
-        plaid_account_ids = set()
-        for account in accounts:
-            plaid_account_ids.add(account.account_id)
-
-        # Get all current accounts so we don't accidentally re-ingest again
-        current_accounts = await get_accounts_by_plaid_ids(plaid_account_ids)
-        plaid_to_internal_id = {}
-        for acc in current_accounts:
-            plaid_to_internal_id[acc.plaid_id] = acc.id
-
-        item_ids = await get_item_ids_by_user_id(user_id)
-        item_id_map = {}
-        for item in item_ids:
-            item_id_map[item.plaid_item_id] = item
-
-        accounts_to_insert = []
-        for acc in accounts:
-            if acc.account_id in plaid_to_internal_id:
-                continue
-
-            internal_item_id = item_id_map[acc.item_id].id
-            accounts_to_insert.append(
-                FinancialAccounts(
-                    user_id=user_id,
-                    plaid_item_id=internal_item_id,
-                    plaid_id=acc.account_id,
-                    available_to_withdraw=acc.available,
-                    current_funds=acc.current,
-                    iso_currency_code=acc.iso_currency_code,
-                    limit=acc.limit,
-                    mask=acc.mask,
-                    official_account_name=acc.official_name,
-                    sub_type=acc.subtype,
-                    type=acc.type.value,
-                    unofficial_currency_code=acc.unofficial_currency_code,
-                    user_assigned_account_name=acc.name,
-                )
-            )
-        session.add_all(accounts_to_insert)
+        await session.execute(insert(PlaidSecurities).values(securities_to_insert).on_conflict_do_nothing())
 
     @Session
     async def add_security_prices(self, session: AsyncSession, securities: list[Security]):
@@ -207,7 +168,7 @@ class PlaidRepository:
                     sec.close_price_as_of.month,
                     sec.close_price_as_of.day,
                     21,
-                    30,
+                    0,
                     0,
                 )
 
@@ -287,7 +248,7 @@ class PlaidRepository:
             session.add_all(insertable_investment_transactions)
 
     @Session
-    async def add_holdings(self, session: AsyncSession, holdings: list[Holding], user_id: str):
+    async def add_holdings(self, session: AsyncSession, holdings: list[Holding]):
         plaid_account_ids = set()
         plaid_security_ids = set()
 
@@ -297,7 +258,9 @@ class PlaidRepository:
 
         current_accounts = await get_accounts_by_plaid_ids(plaid_account_ids)
         current_accounts_dict = {}
+        current_accounts_ids = set()
         for ca in current_accounts:
+            current_accounts_ids.add(ca.id)
             current_accounts_dict[ca.plaid_id] = ca.id
 
         current_securities = await get_securities_by_plaid_ids(plaid_security_ids)
@@ -328,11 +291,13 @@ class PlaidRepository:
                     unofficial_currency_code=h.unofficial_currency_code,
                 )
             )
+
         await session.execute(
             delete(FinancialAccountCurrentHoldings).where(
-                FinancialAccountCurrentHoldings.account_id.in_(plaid_account_ids)
+                FinancialAccountCurrentHoldings.account_id.in_(current_accounts_ids)
             )
         )
+
         session.add_all(insertable_holdings)
         await session.commit()
         return
@@ -355,17 +320,13 @@ class PlaidHttp:
         end_date: arrow.Arrow = arrow.utcnow(),
         offset: int = 0,
     ) -> InvestmentInformation:
-        brokerage_user = await self.token_repository.get_key(str(user_id))
+        brokerage_user = await self.token_repository.get_key(user_id=user_id, item_id=item_id)
 
         if brokerage_user is None:
-            raise Exception("TODO LATER")  # TODO IMPLEMENT EXCEPTION
+            raise Exception(f"brokerage user does not exist for user {user_id}")
 
-        if item_id not in brokerage_user.plaid_access_tokens:
-            raise Exception("TODO LATER")  # TODO Implement Exception
-
-        access_token = brokerage_user.plaid_access_tokens[item_id]
         request = InvestmentsTransactionsGetRequest(
-            access_token=access_token,
+            access_token=brokerage_user.access_token,
             start_date=start_date.date(),
             end_date=end_date.date(),
             options=InvestmentsTransactionsGetRequestOptions(offset=offset),
@@ -392,13 +353,13 @@ class PlaidHttp:
         )
 
     async def get_current_holdings(self, user_id: str, item_id: str):
-        brokerage_user = await self.token_repository.get_key(str(user_id))
-        if brokerage_user is None or item_id not in brokerage_user.plaid_access_tokens:
-            raise Exception("TODO LATER")
-        access_token = brokerage_user.plaid_access_tokens[item_id]
+        brokerage_user = await self.token_repository.get_key(user_id=user_id, item_id=item_id)
+        if brokerage_user is None:
+            raise Exception(f"brokerage user does not exist for user {user_id}")
+
         response = self.client.investments_holdings_get(
             InvestmentsHoldingsGetRequest(
-                access_token=access_token,
+                access_token=brokerage_user.access_token,
             )
         )
 
@@ -448,8 +409,6 @@ class PlaidProvider(BrokerageInterface):
         investment_history = await self.http_client.get_investment_history(user_id=user_id, item_id=item_id)
         await self.repository.add_securities(securities=list(investment_history.securities.values()))
         await self.repository.add_security_prices(securities=list(investment_history.securities.values()))
-        await self.repository.add_plaid_item(user_id=user_id, item_id=item_id, institution_id=0)
-        await self.repository.add_accounts(user_id=user_id, accounts=investment_history.accounts)
         await self.repository.add_investment_transactions(
             investment_transactions=investment_history.investment_transactions
         )
@@ -461,7 +420,6 @@ class PlaidProvider(BrokerageInterface):
             )
             await self.repository.add_securities(securities=list(investment_history.securities.values()))
             await self.repository.add_security_prices(securities=list(investment_history.securities.values()))
-            await self.repository.add_accounts(user_id=user_id, accounts=investment_history.accounts)
             await self.repository.add_investment_transactions(
                 investment_transactions=investment_history.investment_transactions
             )
@@ -472,12 +430,7 @@ class PlaidProvider(BrokerageInterface):
 
         await self.repository.add_securities(securities=list(holdings_information.securities.values()))
         await self.repository.add_security_prices(securities=list(holdings_information.securities.values()))
-        await self.repository.add_plaid_item(user_id=user_id, item_id=item_id, institution_id=0)
-        await self.repository.add_accounts(user_id=user_id, accounts=holdings_information.accounts)
-        await self.repository.add_holdings(
-            holdings=holdings_information.holdings,
-            user_id=user_id,
-        )
+        await self.repository.add_holdings(holdings=holdings_information.holdings)
 
     async def collect_institutions(self):
         institution_response = self.http_client.get_institutions(offset=0)

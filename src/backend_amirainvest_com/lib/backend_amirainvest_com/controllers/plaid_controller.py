@@ -1,5 +1,6 @@
 import plaid  # type: ignore
 import requests
+from fastapi import HTTPException, status
 from plaid.api import plaid_api  # type: ignore
 from plaid.model.country_code import CountryCode  # type: ignore
 from plaid.model.item_public_token_exchange_request import ItemPublicTokenExchangeRequest  # type: ignore
@@ -7,8 +8,19 @@ from plaid.model.item_public_token_exchange_response import ItemPublicTokenExcha
 from plaid.model.link_token_create_request import LinkTokenCreateRequest  # type: ignore
 from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUser  # type: ignore
 from plaid.model.products import Products  # type: ignore
+from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from common_amirainvest_com.utils.consts import PLAID_APPLICATION_NAME, PLAID_CLIENT_ID, PLAID_ENVIRONMENT, PLAID_SECRET
+from common_amirainvest_com.dynamo.utils import get_brokerage_user_item
+from common_amirainvest_com.schemas.schema import BadPlaidItems
+from common_amirainvest_com.utils.consts import (
+    PLAID_APPLICATION_NAME,
+    PLAID_CLIENT_ID,
+    PLAID_ENVIRONMENT,
+    PLAID_SECRET,
+    PLAID_WEBHOOK,
+)
+from common_amirainvest_com.utils.decorators import Session
 
 
 configuration = plaid.Configuration(
@@ -18,16 +30,30 @@ api_client = plaid.ApiClient(configuration)
 client = plaid_api.PlaidApi(api_client)
 
 
-def generate_link_token(user_id: str) -> str:
-    # TODO Do we have any other meta-data we want to pass plaid for a user?
-    # TODO Do we want to support any other country codes outside of us?
-    request = LinkTokenCreateRequest(
-        products=[Products("investments"), Products("transactions")],
-        client_name=PLAID_APPLICATION_NAME,
-        country_codes=[CountryCode("US")],
-        language="en",
-        user=LinkTokenCreateRequestUser(client_user_id=user_id),
+@Session
+async def add_bad_plaid_item(session: AsyncSession, user_id: str, item_id: str):
+    await session.execute(
+        insert(BadPlaidItems).values({"user_id": user_id, "item_id": item_id}).on_conflict_do_nothing()
     )
+
+
+async def generate_link_token(user_id: str, item_id: str) -> str:
+    request = LinkTokenCreateRequest(
+        client_name=PLAID_APPLICATION_NAME,
+        language="en",
+        country_codes=[CountryCode("US")],
+        user=LinkTokenCreateRequestUser(client_user_id=user_id),
+        products=[Products("investments"), Products("transactions")],
+        webhook=PLAID_WEBHOOK,
+    )
+
+    if item_id != "":
+        brokerage_user = await get_brokerage_user_item(user_id=user_id, item_id=item_id)
+        if brokerage_user is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="could not find item id")
+        request.access_token = brokerage_user.access_token
+        request.products = []
+
     response = client.link_token_create(request)
     return response["link_token"]
 

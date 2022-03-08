@@ -4,8 +4,14 @@ resource "aws_dynamodb_table" "brokerage_users" {
     type = "S"
   }
 
+  attribute {
+    name = "item_id"
+    type = "S"
+  }
+
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "user_id"
+  range_key    = "item_id"
   name         = "brokerage_users"
 
   point_in_time_recovery {

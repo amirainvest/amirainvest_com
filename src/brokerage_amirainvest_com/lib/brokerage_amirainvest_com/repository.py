@@ -1,9 +1,11 @@
 from typing import Optional
 
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from common_amirainvest_com.schemas.schema import (
+    BadPlaidItems,
     FinancialAccounts,
     FinancialAccountTransactions,
     FinancialInstitutions,
@@ -61,3 +63,10 @@ async def get_investment_transactions_by_plaid_id(
         )
     )
     return result.scalars().all()
+
+
+@Session
+async def add_bad_plaid_item(session: AsyncSession, user_id: str, item_id: str):
+    await session.execute(
+        insert(BadPlaidItems).values({"user_id": user_id, "item_id": item_id}).on_conflict_do_nothing()
+    )

@@ -37,16 +37,6 @@ class Providers:
         self.providers_dict = provider_dict
 
     @manage_job
-    async def collect_institutions(self, provider_key: str, user_id: str, item_id: str):
-        pass
-        # try:
-        #     # provider = self.providers_dict[provider_key]
-        #     # provider.__class__ = plaid_provider.PlaidProvider
-        #     # await provider.collect_institutions()
-        # except Exception as err:
-        #     raise err
-
-    @manage_job
     async def collect_investment_history(self, provider_key: str, user_id: str, item_id: str):
         try:
             provider = self.providers_dict[provider_key]

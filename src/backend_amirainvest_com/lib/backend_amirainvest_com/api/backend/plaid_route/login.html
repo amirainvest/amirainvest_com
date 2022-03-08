@@ -28,7 +28,10 @@
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${authToken}`
-            }
+            },
+            body: JSON.stringify({
+                item_id: "N0dXX1LRbBF0gkNZAyOyUPw0zKm5r1fRj4eP0"
+            })
         })
         const el = $('#status-message-container');
         const link = await linkResponse.json();
@@ -63,7 +66,10 @@
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${authToken}`
                 },
-                body: JSON.stringify({public_token})
+                body: JSON.stringify({
+                    public_token: public_token,
+                    is_update: true
+                })
             });
 
             const body = await response.json()
@@ -72,12 +78,6 @@
         }
     }
     $('#login-btn').click(x);
-</script>
-
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
-<script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
-<script type="text/javascript">
 </script>
 </body>
 </html>

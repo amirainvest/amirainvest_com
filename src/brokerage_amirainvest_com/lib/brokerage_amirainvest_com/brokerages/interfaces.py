@@ -28,7 +28,7 @@ class BrokerageInterface(abc.ABC):
 
 class TokenRepositoryInterface(abc.ABC):
     @abc.abstractmethod
-    async def get_key(self, user_id: str) -> Optional[BrokerageUser]:
+    async def get_key(self, user_id: str, item_id: str) -> Optional[BrokerageUser]:
         """
         Fetches the string associated with the account id
         """

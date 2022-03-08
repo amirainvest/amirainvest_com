@@ -17,5 +17,3 @@ async def run():
 
 def handler(event, context):
     asyncio.run(run())
-
-handler()

@@ -61,29 +61,29 @@ DEBUG = os.environ.get("DEBUG", "true").strip().lower()
 ENVIRONMENT = Environments[os.environ.get("ENVIRONMENT", "local").strip().lower()].value
 PROJECT = Projects[os.environ.get("PROJECT", "mono").strip().lower()].value
 
-# try:
-#     integrations: t.List[Integration] = [SqlalchemyIntegration()]
-#
-#     if PROJECT == "brokerage" or PROJECT == "market_data":
-#         from sentry_sdk.integrations.aws_lambda import AwsLambdaIntegration
-#
-#         integrations.append(AwsLambdaIntegration(timeout_warning=True))
-#
-#     SENTRY_URL = "https://{public_key}@{domain}/{project_id}".format(**decode_env_var("sentry"))
-#
-#     sentry_sdk.init(
-#         SENTRY_URL,
-#         environment=ENVIRONMENT,
-#         sample_rate=1.0,
-#         traces_sample_rate=1.0,
-#         request_bodies="always",
-#         integrations=integrations,
-#         debug=True if DEBUG == "true" else False,
-#         release=pkg_resources.get_distribution("common_amirainvest_com").version,
-#     )
-# except (BadDsn, JSONDecodeError):
-#     if ENVIRONMENT != Environments.local.value:
-#         raise EnvironmentError("Sentry URL not set for non local env")
+try:
+    integrations: t.List[Integration] = [SqlalchemyIntegration()]
+
+    if PROJECT == "brokerage" or PROJECT == "market_data":
+        from sentry_sdk.integrations.aws_lambda import AwsLambdaIntegration
+
+        integrations.append(AwsLambdaIntegration(timeout_warning=True))
+
+    SENTRY_URL = "https://{public_key}@{domain}/{project_id}".format(**decode_env_var("sentry"))
+
+    sentry_sdk.init(
+        SENTRY_URL,
+        environment=ENVIRONMENT,
+        sample_rate=1.0,
+        traces_sample_rate=1.0,
+        request_bodies="always",
+        integrations=integrations,
+        debug=True if DEBUG == "true" else False,
+        release=pkg_resources.get_distribution("common_amirainvest_com").version,
+    )
+except (BadDsn, JSONDecodeError):
+    if ENVIRONMENT != Environments.local.value:
+        raise EnvironmentError("Sentry URL not set for non local env")
 
 POSTGRES_DATABASE_URL = "postgresql://{username}:{password}@{host}/{database}".format(**decode_env_var("postgres"))
 

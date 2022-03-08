@@ -98,7 +98,7 @@ async def get_company_info(symbol: str) -> Company:
 
 async def get_company_quote_logo_bulk(symbols: list[str]) -> list[CompanyQuoteLogo]:
     request_url = f"{IEX_URL}/stock/market/batch"
-    query_strings = {"token": IEX_SECRET, 'symbols': ",".join(symbols), 'types': 'company,logo,quote'}
+    query_strings = {"token": IEX_SECRET, "symbols": ",".join(symbols), "types": "company,logo,quote"}
     async with httpx.AsyncClient() as client:
         r = await client.get(request_url, timeout=20.0, params=query_strings)
         validate_response(r.status_code, r.text)
@@ -118,7 +118,7 @@ async def get_company_quote_logo_bulk(symbols: list[str]) -> list[CompanyQuoteLo
 
 async def get_company_bulk(symbols: list[str]) -> list[Company]:
     request_url = f"{IEX_URL}/stock/market/batch"
-    query_strings = {"token": IEX_SECRET, 'symbols': ",".join(symbols), 'types': 'company'}
+    query_strings = {"token": IEX_SECRET, "symbols": ",".join(symbols), "types": "company"}
     async with httpx.AsyncClient() as client:
         r = await client.get(request_url, timeout=20.0, params=query_strings)
         validate_response(r.status_code, r.text)

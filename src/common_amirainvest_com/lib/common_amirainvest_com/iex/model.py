@@ -119,7 +119,6 @@ class CompanyQuoteLogo(BaseModel):
     previousClose: Optional[decimal.Decimal]
     previousVolume: Optional[decimal.Decimal]
     primaryExchange: Optional[str]
-    symbol: Optional[str]
     volume: Optional[decimal.Decimal]
     week52High: Optional[decimal.Decimal]
     week52Low: Optional[decimal.Decimal]

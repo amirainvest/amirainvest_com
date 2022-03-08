@@ -3,17 +3,10 @@ import asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from common_amirainvest_com.iex.client import (
-    get_supported_securities_list,
-    get_company_quote_logo_bulk,
-)
-
+from common_amirainvest_com.iex.client import get_company_quote_logo_bulk, get_supported_securities_list
 from common_amirainvest_com.iex.model import CompanyQuoteLogo
 from common_amirainvest_com.schemas.schema import Securities
 from common_amirainvest_com.utils.decorators import Session
-
-
-failed_things = []
 
 
 @Session
@@ -27,7 +20,9 @@ async def insert_securities(session: AsyncSession, supported_securities: list[Co
     for sec in securities:
         new_sec: CompanyQuoteLogo = stuff[sec.ticker_symbol]
         del stuff[sec.ticker_symbol]
-        sec.human_readable_name = new_sec.companyName if new_sec.companyName is not None or new_sec.companyName != "" else None
+        sec.human_readable_name = (
+            new_sec.companyName if new_sec.companyName is not None or new_sec.companyName != "" else None
+        )
         sec.close_price = new_sec.close if new_sec.close is not None else 0
         sec.name = new_sec.securityName if new_sec.securityName is not None else ""
         sec.open_price = new_sec.open if new_sec.close is not None else 0
@@ -72,7 +67,7 @@ async def insert_securities(session: AsyncSession, supported_securities: list[Co
                 primary_sic_code=c.primarySicCode,
                 sector=c.sector,
                 type=c.issueType,
-                website=c.website
+                website=c.website,
             )
         )
 

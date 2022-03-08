@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "common_amirainvest_com"
-version = "0.66.0"
+version = "0.67.0"
 description = ""
 authors = ["Peter Hoburg <peterHoburg@users.noreply.github.com>"]
 packages = [

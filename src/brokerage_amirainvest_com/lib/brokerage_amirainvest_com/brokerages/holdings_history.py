@@ -374,7 +374,6 @@ def get_closest_price(
             if sp.price_time.date() <= posting_date:
                 return sp.price
     except KeyError:
-        print("\n\n\n SECURITY DOES NOT EXIST!!!!!!!  \n\n\n")
         return None
     return None
 

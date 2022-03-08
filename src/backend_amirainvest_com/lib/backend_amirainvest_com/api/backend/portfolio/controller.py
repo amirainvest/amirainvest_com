@@ -47,7 +47,7 @@ async def get_portfolio_trades(
         mv = fat.price * fat.quantity
         yesterday_mv = trade[2]
         change_in_position = abs(mv) / yesterday_mv
-        print(fat.posting_date)
+
         response.append(
             HistoricalTrade(
                 trade_date=fat.posting_date,
@@ -70,18 +70,22 @@ async def get_portfolio_holdings(user_id: str, creator_id: str) -> HoldingsRespo
 
     response: list[Holding] = []
     for holding in holdings:
-        fa = holding.FinancialAccountCurrentHoldings
+        fa = holding.FinancialAccountHoldingsHistory
         ps = holding.PlaidSecurities
 
-        market_value = fa.latest_price * fa.quantity
+        return_percentage = None
+        if fa.cost_basis is not None:
+            return_percentage = (fa.price - fa.cost_basis) / fa.cost_basis
+
+        market_value = fa.price * fa.quantity
         response.append(
             Holding(
                 ticker=ps.ticker_symbol,
-                ticker_price=fa.latest_price,
-                ticker_price_time=fa.latest_price_date,
+                ticker_price=fa.price,
+                ticker_price_time=datetime.datetime.combine(fa.holding_date, datetime.datetime.min.time()),
                 percentage_of_portfolio=Decimal(market_value / portfolio.value),
-                buy_date=holding.buy_date,
-                return_percentage=Decimal(fa.cost_basis / fa.quantity),
+                buy_date=datetime.datetime.combine(fa.buy_date, datetime.datetime.min.time()),
+                return_percentage=return_percentage,
                 market_value=None if is_creator else market_value,
             )
         )
@@ -166,7 +170,7 @@ async def get_portfolio_summary(user_id: str, creator_id: str, start_date: date,
         benchmark_return_history=benchmark_historical_time_weighted_returns,
         total_return=portfolio_historical_time_weighted_returns[
             len(portfolio_historical_time_weighted_returns) - 1
-            ].daily_return,
+        ].daily_return,
         beta=beta,
         sharpe_ratio=sharpe_ratio,
         percentage_long=long,
@@ -190,10 +194,10 @@ async def compute_sharpe_ratio(portfolio_returns: list[HoldingPeriod]) -> Decima
 def get_portfolio_value(holdings: list, user_id: str) -> PortfolioValue:
     portfolio_value = PortfolioValue(user_id=user_id, value=0)
     for holding in holdings:
-        if holding.FinancialAccountCurrentHoldings is None:
+        if holding.FinancialAccountHoldingsHistory is None:
             continue
-        fa = holding.FinancialAccountCurrentHoldings
-        value = portfolio_value.value + Decimal(fa.quantity * fa.latest_price)
+        fa = holding.FinancialAccountHoldingsHistory
+        value = portfolio_value.value + Decimal(fa.quantity * fa.price)
         portfolio_value.value = value
 
     return portfolio_value
@@ -207,8 +211,8 @@ async def get_user_and_if_creator(session: AsyncSession, user_id: str, creator_i
 
     response = await session.execute(
         select(Users)
-            .join(UserSubscriptions, UserSubscriptions.subscriber_id == Users.id)
-            .where(UserSubscriptions.subscriber_id == user_id, UserSubscriptions.creator_id == creator_id)
+        .join(UserSubscriptions, UserSubscriptions.subscriber_id == Users.id)
+        .where(UserSubscriptions.subscriber_id == user_id, UserSubscriptions.creator_id == creator_id)
     )
 
     user = response.scalar_one_or_none()
@@ -235,8 +239,8 @@ async def get_cash_transactions_by_date(
 ) -> dict[date, Decimal]:
     transactions_response = await session.execute(
         select(FinancialAccountTransactions)
-            .join(FinancialAccounts)
-            .where(
+        .join(FinancialAccounts)
+        .where(
             FinancialAccounts.user_id == user_id,
             FinancialAccountTransactions.posting_date >= start_date,
             FinancialAccountTransactions.posting_date <= end_date,
@@ -265,9 +269,9 @@ async def get_cash_transactions_by_date(
 async def get_portfolio_allocation(session: AsyncSession, user_id: int) -> list[SectionAllocation]:
     response = await session.execute(
         select(FinancialAccountHoldingsHistory, Securities)
-            .join(FinancialAccounts)
-            .join(Securities)
-            .where(
+        .join(FinancialAccounts)
+        .join(Securities)
+        .where(
             FinancialAccounts.user_id == user_id,
             FinancialAccountHoldingsHistory.holding_date
             == select(func.min(FinancialAccountHoldingsHistory.holding_date)),
@@ -304,14 +308,14 @@ async def get_market_values(session: AsyncSession, user_id: int, start_date: dat
                 func.sum(FinancialAccountHoldingsHistory.price * FinancialAccountHoldingsHistory.quantity),
             ),
         )
-            .join(FinancialAccounts)
-            .where(
+        .join(FinancialAccounts)
+        .where(
             FinancialAccounts.user_id == user_id,
             FinancialAccountHoldingsHistory.holding_date >= start_date,
             FinancialAccountHoldingsHistory.holding_date <= end_date,
         )
-            .group_by(FinancialAccountHoldingsHistory.holding_date)
-            .order_by(FinancialAccountHoldingsHistory.holding_date.asc())
+        .group_by(FinancialAccountHoldingsHistory.holding_date)
+        .order_by(FinancialAccountHoldingsHistory.holding_date.asc())
     )
 
     results = market_value_by_day_response.all()
@@ -358,8 +362,8 @@ async def compute_benchmark(
 
     response = await session.execute(
         select(SecurityPrices)
-            .where(SecurityPrices.security_id == benchmark_id, SecurityPrices.price_time.in_(date_times))
-            .order_by(SecurityPrices.price_time.asc())
+        .where(SecurityPrices.security_id == benchmark_id, SecurityPrices.price_time.in_(date_times))
+        .order_by(SecurityPrices.price_time.asc())
     )
 
     all = response.scalars().all()
@@ -392,8 +396,8 @@ async def get_current_holdings_from_history(
 ) -> list[FinancialAccountHoldingsHistory]:
     response = await session.execute(
         select(FinancialAccountHoldingsHistory)
-            .join(FinancialAccounts)
-            .where(
+        .join(FinancialAccounts)
+        .where(
             FinancialAccounts.user_id == user_id,
             FinancialAccountHoldingsHistory.holding_date
             == select(func.max(FinancialAccountHoldingsHistory.holding_date)),
@@ -406,9 +410,9 @@ async def get_current_holdings_from_history(
 async def get_user_holdings_with_securities_data(session: AsyncSession, user_id: str) -> list:
     response = await session.execute(
         select(FinancialAccountHoldingsHistory, PlaidSecurities)
-            .join(PlaidSecurities)
-            .join(FinancialAccounts)
-            .where(
+        .join(PlaidSecurities)
+        .join(FinancialAccounts)
+        .where(
             FinancialAccounts.user_id == user_id,
             FinancialAccountHoldingsHistory.holding_date
             == select(func.max(FinancialAccountHoldingsHistory.holding_date)),
@@ -423,19 +427,21 @@ async def get_trading_history(
 ) -> list:
     inner_query = (
         select(func.sum(FinancialAccountHoldingsHistory.quantity * FinancialAccountHoldingsHistory.price))
-            .where(FinancialAccountHoldingsHistory.holding_date < cast(FinancialAccountTransactions.posting_date, Date))
-            .group_by(FinancialAccountHoldingsHistory.holding_date)
-            .order_by(FinancialAccountHoldingsHistory.holding_date.desc())
-            .limit(1)
+        .where(FinancialAccountHoldingsHistory.holding_date < cast(FinancialAccountTransactions.posting_date, Date))
+        .group_by(FinancialAccountHoldingsHistory.holding_date)
+        .order_by(FinancialAccountHoldingsHistory.holding_date.desc())
+        .limit(1)
     )
 
     query = (
-        select(FinancialAccountTransactions, PlaidSecurities, label("prior_day_market_value", inner_query))
-            .join(FinancialAccounts)
-            .join(PlaidSecurities)
-            .where(FinancialAccounts.user_id == user_id)
-            .order_by(FinancialAccountTransactions.posting_date.desc())
-            .limit(limit)
+        select(
+            FinancialAccountTransactions, PlaidSecurities, label("prior_day_market_value", inner_query)  # type: ignore
+        )
+        .join(FinancialAccounts)
+        .join(PlaidSecurities)
+        .where(FinancialAccounts.user_id == user_id)
+        .order_by(FinancialAccountTransactions.posting_date.desc())
+        .limit(limit)
     )
 
     if len(symbols) > 0:

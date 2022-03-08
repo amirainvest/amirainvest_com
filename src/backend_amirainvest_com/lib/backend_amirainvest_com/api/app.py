@@ -64,5 +64,5 @@ def root():
     return RedirectResponse(url="/docs")
 
 
-# if ENVIRONMENT != Environments.local.value:
-#     app = SentryAsgiMiddleware(app)  # type: ignore
+if ENVIRONMENT != Environments.local.value:
+    app = SentryAsgiMiddleware(app)  # type: ignore

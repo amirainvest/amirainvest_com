@@ -7,8 +7,10 @@ from typing import Optional
 from dateutil import parser
 from pydantic import BaseModel, validator
 
+
 class HoldingsRequest(BaseModel):
     user_id: str
+
 
 class PortfolioRequest(BaseModel):
     user_id: str
@@ -47,7 +49,7 @@ class Holding(BaseModel):
     ticker_price_time: datetime.datetime
     percentage_of_portfolio: Decimal
     buy_date: datetime.datetime
-    return_percentage: Decimal
+    return_percentage: Optional[Decimal]
     market_value: Decimal
 
 

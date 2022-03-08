@@ -41,14 +41,14 @@ async def get_prices_all_time(
     # TODO Add in a with clause here ot get the max EOD price for all days... rather than just grabbing all prices
     response = await session.execute(
         select(SecurityPrices)
-            .join(Securities)
-            .join(PlaidSecurities)
-            .where(
+        .join(Securities)
+        .join(PlaidSecurities)
+        .where(
             PlaidSecurities.id.in_(plaid_security_ids),
             SecurityPrices.price_time <= start_time,
             SecurityPrices.price_time >= end_time,
         )
-            .order_by(SecurityPrices.price_time.desc())
+        .order_by(SecurityPrices.price_time.desc())
     )
 
     security_prices = response.scalars().all()
@@ -74,7 +74,7 @@ async def compute_account_holdings_history(
     holdings: list[FinancialAccountCurrentHoldings],
     market_dates: list[date],
     plaid_cash_security: PlaidSecurities,
-    prices_all_time: dict[int, list[SecurityPrices]]
+    prices_all_time: dict[int, list[SecurityPrices]],
 ) -> list[HistoricalAccount]:
     # Compute array of trading days and then iterate over that... rather than doing it per day and trying to
     # fix the next day, we can always just reference one back
@@ -113,8 +113,6 @@ async def compute_account_holdings_history(
             sp = get_closest_price(prices_all_time, today_holding.security_id, prior_market_day)
             if sp is not None:
                 p = sp
-            else:
-                print("\n\n NO FOUND!!!!!! \n ", today_holding.security_id, ":", prior_market_day)
             today_holding.price = p
             today_holding.holding_date = prior_market_day
             prior_holdings.holdings.append(today_holding)
@@ -151,7 +149,7 @@ async def run(user_id: str, start_date: date, end_date: date):
             plaid_cash_security=plaid_cash_security,
             user_id=user_id,
             account=account,
-            prices_all_time=prices_all_time
+            prices_all_time=prices_all_time,
         )
 
         await add_holdings_to_database(

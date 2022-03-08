@@ -23,6 +23,7 @@ async def insert_securities(session: AsyncSession, supported_securities: list[Co
         sec.human_readable_name = (
             new_sec.companyName if new_sec.companyName is not None or new_sec.companyName != "" else None
         )
+
         sec.close_price = new_sec.close if new_sec.close is not None else 0
         sec.name = new_sec.securityName if new_sec.securityName is not None else ""
         sec.open_price = new_sec.open if new_sec.close is not None else 0

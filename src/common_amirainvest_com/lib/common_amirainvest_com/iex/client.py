@@ -106,12 +106,21 @@ async def get_company_quote_logo_bulk(symbols: list[str]) -> list[CompanyQuoteLo
 
         companies = []
         for key, val in response.items():
-            company = val["company"]
-            quote = val["quote"]
-            obj = {**company, **quote}
-            logo = val["logo"]["url"]
+            company = {}
+            if "company" in val:
+                company = val["company"]
+
+            quote = {}
+            if "quote" in val:
+                quote = val["quote"]
+            obj = {**quote, **company}
+
             c = CompanyQuoteLogo.parse_obj(obj)
-            c.logo_url = logo
+            if "logo" in val:
+                if "url" in val:
+                    logo = val["logo"]["url"]
+                    c.logo_url = logo
+
             companies.append(c)
         return companies
 

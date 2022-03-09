@@ -7,7 +7,7 @@ from pydantic import BaseModel, validator
 
 class MediaPlatformDataLoadQueueModel(BaseModel):
     platform: str
-    unique_platform_id: str
+    platform_unique_id: str
 
 
 class BrokerageDataActions(Enum):

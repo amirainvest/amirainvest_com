@@ -65,7 +65,7 @@ PROJECT = Projects[os.environ.get("PROJECT", "mono").strip().lower()].value
 try:
     integrations: t.List[Integration] = [SqlalchemyIntegration()]
 
-    if PROJECT == "brokerage" or PROJECT == "market_data" or PROJECT == "data_imports":
+    if PROJECT == "brokerage" or PROJECT == "market_data":
         from sentry_sdk.integrations.aws_lambda import AwsLambdaIntegration
 
         integrations.append(AwsLambdaIntegration(timeout_warning=True))

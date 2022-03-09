@@ -20,9 +20,7 @@ async def insert_securities(session: AsyncSession, supported_securities: list[Co
     for sec in securities:
         new_sec: CompanyQuoteLogo = stuff[sec.ticker_symbol]
         del stuff[sec.ticker_symbol]
-        sec.human_readable_name = (
-            new_sec.companyName if new_sec.companyName is not None or new_sec.companyName != "" else None
-        )
+        sec.search_name = new_sec.companyName if new_sec.companyName is not None or new_sec.companyName != "" else None
 
         sec.close_price = new_sec.close if new_sec.close is not None else 0
         sec.name = new_sec.securityName if new_sec.securityName is not None else ""
@@ -50,7 +48,7 @@ async def insert_securities(session: AsyncSession, supported_securities: list[Co
             continue
         values.append(
             Securities(
-                human_readable_name=c.companyName,
+                search_name=c.companyName,
                 ticker_symbol=c.symbol,
                 close_price=c.close if c.close is not None else 0,
                 name=c.securityName if c.securityName is not None else "",

@@ -34,4 +34,4 @@ COPY ./src/common_amirainvest_com/ ./src/common_amirainvest_com/
 ENV AWS_LAMBDA_RUNTIME_API=python3.9
 
 # Set the CMD to your handler (could also be done as a parameter override outside of the Dockerfile)
-ENTRYPOINT ["/bin/bash", ".src/data_imports_amirainvest_com/entrypoint.sh"]
+ENTRYPOINT ["/bin/bash", "/function/src/data_imports_amirainvest_com/entrypoint.sh"]

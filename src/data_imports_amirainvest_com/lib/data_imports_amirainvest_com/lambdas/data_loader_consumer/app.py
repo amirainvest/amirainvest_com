@@ -1,6 +1,5 @@
-import json
-
 import asyncio
+import json
 
 from data_imports_amirainvest_com.controllers.data_loader import load_platform_user_data
 from data_imports_amirainvest_com.sqs.sqs_pydantic_models import SQSDataLoad
@@ -16,5 +15,6 @@ def handler(event: dict, context):
 
 
 # if __name__ == '__main__':
-#     event = {'Records':[{"platform": "substack", "unique_platform_id": "tanay", "creator_id": "77ba34ef-5472-4ca1-9f70-4dacb98ebed0"}]}
+#     event = {'Records':[{"platform": "substack", "unique_platform_id": "tanay",
+#  "creator_id": "77ba34ef-5472-4ca1-9f70-4dacb98ebed0"}]}
 #     asyncio.run(run(event))

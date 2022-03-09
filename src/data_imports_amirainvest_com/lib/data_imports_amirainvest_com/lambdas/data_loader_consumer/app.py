@@ -15,6 +15,6 @@ def handler(event: dict, context):
 
 
 # if __name__ == '__main__':
-#     event = {'Records':[{"platform": "substack", "unique_platform_id": "tanay",
+#     event = {'Records':[{"platform": "substack", "platform_unique_id": "tanay",
 #  "creator_id": "77ba34ef-5472-4ca1-9f70-4dacb98ebed0"}]}
 #     asyncio.run(run(event))

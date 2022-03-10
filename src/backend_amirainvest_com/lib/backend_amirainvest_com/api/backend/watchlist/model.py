@@ -46,8 +46,6 @@ class CreateModel(BaseModel):
 class UpdateModel(BaseModel):
     id: int
     name: Optional[str]
-    tickers: Optional[List[str]]
-    note: Optional[str]
 
 
 class DeleteModel(BaseModel):

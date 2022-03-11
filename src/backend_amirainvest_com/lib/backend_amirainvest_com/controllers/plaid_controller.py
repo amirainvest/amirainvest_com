@@ -44,7 +44,7 @@ async def generate_link_token(user_id: str, item_id: str, redirect_uri: str) -> 
         country_codes=[CountryCode("US")],
         user=LinkTokenCreateRequestUser(client_user_id=user_id),
         products=[Products("investments"), Products("transactions")],
-        webhook=PLAID_WEBHOOK
+        webhook=PLAID_WEBHOOK,
     )
 
     if redirect_uri != "":

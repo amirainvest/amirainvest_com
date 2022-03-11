@@ -17,7 +17,7 @@ templates = Jinja2Templates(directory="src/backend_amirainvest_com/lib/backend_a
 
 
 @router.get("/", status_code=status.HTTP_200_OK)
-async def get_plaid(request: Request):
+async def get_plaid_route(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
 

@@ -68,7 +68,6 @@ try:
     if PROJECT == "brokerage" or PROJECT == "market_data" or PROJECT == "data_imports":
         from sentry_sdk.integrations.aws_lambda import AwsLambdaIntegration
 
-
         integrations.append(AwsLambdaIntegration(timeout_warning=True))
 
     SENTRY_URL = "https://{public_key}@{domain}/{project_id}".format(**decode_env_var("sentry"))

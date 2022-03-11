@@ -73,15 +73,15 @@ def handle_data_imports(
     sqs_digestible_platform_data = []
     if substack_username != "":
         sqs_digestible_platform_data.append(
-            {"platform": "substack", "unique_platform_id": substack_username, "creator_id": creator_id}
+            {"platform": "substack", "platform_unique_id": substack_username, "creator_id": creator_id}
         )
     if youtube_channel_id != "":
         sqs_digestible_platform_data.append(
-            {"platform": "youtube", "unique_platform_id": youtube_channel_id, "creator_id": creator_id}
+            {"platform": "youtube", "platform_unique_id": youtube_channel_id, "creator_id": creator_id}
         )
     if twitter_username != "":
         sqs_digestible_platform_data.append(
-            {"platform": "twitter", "unique_platform_id": twitter_username, "creator_id": creator_id}
+            {"platform": "twitter", "platform_unique_id": twitter_username, "creator_id": creator_id}
         )
     if sqs_digestible_platform_data:
         add_data_import_data_to_sqs_queue(

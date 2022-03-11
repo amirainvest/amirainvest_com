@@ -16,7 +16,7 @@ async def get_benchmarks(session):
     benchmarks = (
         (await session.execute(select(Securities).where(Securities.is_benchmark == True))).scalars().all()  # noqa: E712
     )
-    return [{"id": x.id, "benchmark": x.human_readable_name} for x in benchmarks]
+    return [{"id": x.id, "benchmark": x.benchmark_alias} for x in benchmarks]
 
 
 @Session

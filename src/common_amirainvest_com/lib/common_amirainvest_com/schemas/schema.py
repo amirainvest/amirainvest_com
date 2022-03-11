@@ -827,10 +827,6 @@ class Securities(Base, ToDict):
     __tablename__ = "securities"
     id = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
 
-    collect = Column(Boolean, default=False, server_default=expression.false(), index=True)
-    is_benchmark = Column(Boolean, default=False, server_default=expression.false(), index=True)
-
-    human_readable_name = Column(String, unique=True, info={"note": "This is manually populated for benchmarks"})
     ticker_symbol: str = Column(
         String,
         unique=True,
@@ -838,9 +834,17 @@ class Securities(Base, ToDict):
         info={"factory": FactoryInfo(default="", generator=(fake.unique.name, None)).dict()},
     )
 
-    close_price = Column(DECIMAL(19, 4), nullable=False)
     name = Column(String, nullable=False)
+    close_price = Column(DECIMAL(19, 4), nullable=False)
     open_price = Column(DECIMAL(19, 4), nullable=False)
+
+    human_readable_name = Column(String, info={"note": "Remove after deploy"})
+    benchmark_alias = Column(String, unique=True, info={"note": "This is manually populated for benchmarks"})
+
+    collect = Column(Boolean, default=False, server_default=expression.false(), index=True)
+    is_benchmark = Column(Boolean, default=False, server_default=expression.false(), index=True)
+
+    search_name = Column(String)
 
     founding_date = Column(Date)
     asset_type = Column(String)
@@ -862,7 +866,6 @@ class Securities(Base, ToDict):
     last_updated = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
 
-# TODO Note.. we should be cognizant of time and time zone...
 class SecurityInformation(Base, ToDict):
     __tablename__ = "security_information"
 

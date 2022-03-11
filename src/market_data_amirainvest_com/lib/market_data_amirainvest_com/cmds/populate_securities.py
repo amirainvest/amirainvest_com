@@ -1,116 +1,93 @@
 import asyncio
-import decimal
-import pprint
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from common_amirainvest_com.iex.client import get_company_info, get_stock_quote, get_supported_securities_list
-from common_amirainvest_com.iex.exceptions import IEXException
-from common_amirainvest_com.iex.model import Symbol
+from common_amirainvest_com.iex.client import get_company_quote_logo_bulk, get_supported_securities_list
+from common_amirainvest_com.iex.model import CompanyQuoteLogo
 from common_amirainvest_com.schemas.schema import Securities
-from common_amirainvest_com.utils import logger
-from common_amirainvest_com.utils.async_utils import run_async_function_synchronously
 from common_amirainvest_com.utils.decorators import Session
 
 
-failed_things = []
-
-
-# TODO: Write timeout/limit logic... should retry but sleep if issues(do some type of backoff)?
 @Session
-async def insert_securities(
-    session: AsyncSession, supported_securities: list[Symbol], current_securities: dict[str, None]
-):
-    grouping = []
-    sub_group = []
-    for s in supported_securities:
-        if s.symbol is None or s.symbol in current_securities:
+async def insert_securities(session: AsyncSession, supported_securities: list[CompanyQuoteLogo]):
+    stuff: dict[str, CompanyQuoteLogo] = {}
+    for ss in supported_securities:
+        stuff[ss.symbol] = ss
+
+    response = await session.execute(select(Securities).where(Securities.ticker_symbol.in_(stuff.keys())))
+    securities: list[Securities] = response.scalars().all()
+    for sec in securities:
+        new_sec: CompanyQuoteLogo = stuff[sec.ticker_symbol]
+        del stuff[sec.ticker_symbol]
+        sec.search_name = new_sec.companyName if new_sec.companyName is not None or new_sec.companyName != "" else None
+
+        sec.close_price = new_sec.close if new_sec.close is not None else 0
+        sec.name = new_sec.securityName if new_sec.securityName is not None else ""
+        sec.open_price = new_sec.open if new_sec.close is not None else 0
+        sec.asset_type = new_sec.issueType
+        sec.address = new_sec.address
+        sec.ceo = new_sec.CEO
+        sec.currency = new_sec.currency
+        sec.description = new_sec.description
+        sec.employee_count = new_sec.employees
+        sec.exchange = new_sec.exchange
+        sec.industry = new_sec.industry
+        sec.issue_type = new_sec.issueType
+        sec.phone = new_sec.phone
+        sec.primary_sic_code = new_sec.primarySicCode
+        sec.sector = new_sec.sector
+        sec.website = new_sec.website
+
+    await session.flush()
+
+    values = []
+    for key in stuff:
+        c = stuff[key]
+        if c.symbol is None:
             continue
-        sub_group.append(s)
-        if (
-            len(sub_group) >= 33
-        ):  # We use groups of 50 since we make two api calls / security and we are limited to 100 a second
-            grouping.append(sub_group)
-            sub_group = []
-
-    counter = 1
-    for group in grouping:
-        await asyncio.gather(*(work(params) for params in group))
-        await asyncio.sleep(2)
-        counter = counter + 1
-        await session.commit()
-
-
-@Session
-async def work(session: AsyncSession, s: Symbol):
-    try:
-        if s.symbol is None or s.symbol == "":
-            return
-
-        company = await get_company_info(s.symbol)
-        if company is None:
-            logger.log.info(f"could not fetch company information for {s.symbol}")
-            return
-
-        quote = await get_stock_quote(s.symbol)
-        if quote is None:
-            logger.log.info(f"could not fetch quote for {s.symbol}")
-
-        open_price = decimal.Decimal(0)
-        if quote.open is not None:
-            open_price = quote.open
-
-        close_price = decimal.Decimal(0)
-        if quote.close is not None:
-            close_price = quote.close
-
-        session.add(
+        values.append(
             Securities(
-                name=s.name,
-                ticker_symbol=s.symbol,
-                exchange=s.exchange,
-                description=company.description,
-                website=company.website,
-                industry=company.industry,
-                ceo=company.CEO,
-                issue_type=company.issueType,
-                sector=company.sector,
-                primary_sic_code=company.primarySicCode,
-                employee_count=company.employees,
-                address=company.address,
-                phone=company.phone,
-                open_price=open_price,
-                close_price=close_price,
-                type=s.type,
-                currency=quote.currency,
+                search_name=c.companyName,
+                ticker_symbol=c.symbol,
+                close_price=c.close if c.close is not None else 0,
+                name=c.securityName if c.securityName is not None else "",
+                open_price=c.open if c.open is not None else 0,
+                asset_type=c.issueType,
+                address=c.address,
+                ceo=c.CEO,
+                currency=c.currency,
+                description=c.description,
+                employee_count=c.employees,
+                exchange=c.exchange,
+                industry=c.industry,
+                issue_type=c.issueType,
+                phone=c.phone,
+                primary_sic_code=c.primarySicCode,
+                sector=c.sector,
+                type=c.issueType,
+                website=c.website,
             )
         )
-    except IEXException as err:
-        global failed_things
-        failed_things.append({"symbol": s.symbol, "error": err})
 
-
-@Session
-async def fetch_existing_records(session: AsyncSession, securities: list[Symbol]) -> dict[str, None]:
-    symbols = []
-    for security in securities:
-        symbols.append(security.symbol)
-
-    result = await session.execute(select(Securities).where(Securities.ticker_symbol.in_(symbols)))
-    current_internal_securities = result.scalars().all()
-    cur_secs_dict: dict[str, None] = {}
-    for c_sec in current_internal_securities:
-        cur_secs_dict[c_sec.ticker_symbol] = None
-    return cur_secs_dict
+    session.add_all(values)
 
 
 async def run():
     supported_securities = await get_supported_securities_list()
-    current_securities = await fetch_existing_records(supported_securities)
-    await insert_securities(supported_securities, current_securities)
+
+    groups: list[list] = []
+    group = []
+    for idx, ss in enumerate(supported_securities):
+        group.append(ss)
+        if len(group) == 100 or idx == len(supported_securities) - 1:
+            groups.append(group)
+            group = []
+
+    for g in groups:
+        companies = await get_company_quote_logo_bulk([s.symbol for s in g])
+        await insert_securities(companies)
 
 
 if __name__ == "__main__":
-    run_async_function_synchronously(run)
-    pprint.pprint(failed_things)
+    asyncio.run(run())

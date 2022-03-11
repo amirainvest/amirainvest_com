@@ -6,6 +6,7 @@ from backend_amirainvest_com.api.backend.portfolio.controller import (
     get_portfolio_trades,
 )
 from backend_amirainvest_com.api.backend.portfolio.model import (
+    HoldingsRequest,
     HoldingsResponse,
     PortfolioRequest,
     PortfolioResponse,
@@ -30,12 +31,18 @@ async def route_get_portfolio_summary(portfolio_request: PortfolioSummaryRequest
 
 
 @router.post("/holdings", status_code=status.HTTP_200_OK, response_model=HoldingsResponse)
-async def route_get_portfolio_holdings(portfolio_request: PortfolioRequest, token=Depends(auth_depends_user_id)):
+async def route_get_portfolio_holdings(holdings_request: HoldingsRequest, token=Depends(auth_depends_user_id)):
     user_id = token["https://amirainvest.com/user_id"]
-    return await get_portfolio_holdings(user_id=user_id, creator_id=portfolio_request.user_id)
+    return await get_portfolio_holdings(user_id=user_id, creator_id=holdings_request.user_id)
 
 
 @router.post("/trades", status_code=status.HTTP_200_OK, response_model=TradingHistoryResponse)
 async def route_get_portfolio_trades(portfolio_request: PortfolioRequest, token=Depends(auth_depends_user_id)):
     user_id = token["https://amirainvest.com/user_id"]
-    return await get_portfolio_trades(user_id=user_id, creator_id=portfolio_request.user_id)
+    return await get_portfolio_trades(
+        user_id=user_id,
+        creator_id=portfolio_request.user_id,
+        symbols=portfolio_request.symbols,
+        last_date=portfolio_request.last_trade_date,
+        limit=portfolio_request.limit,
+    )

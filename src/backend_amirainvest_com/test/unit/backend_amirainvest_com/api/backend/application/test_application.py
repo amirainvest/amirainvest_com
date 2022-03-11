@@ -7,7 +7,7 @@ from backend_amirainvest_com.api.app import app
 async def test_config(factory):
     await factory.gen("chip_labels", {"chip_labels": {"name": "Test chip"}})
     await factory.gen("trading_strategies", {"trading_strategies": {"name": "Test trading"}})
-    await factory.gen("securities", {"securities": {"is_benchmark": True, "human_readable_name": "Test benchmark"}})
+    await factory.gen("securities", {"securities": {"is_benchmark": True, "benchmark_alias": "Test benchmark"}})
 
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post("/application/config/get")

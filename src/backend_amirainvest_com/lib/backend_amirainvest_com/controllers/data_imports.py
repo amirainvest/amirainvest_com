@@ -12,7 +12,7 @@ def add_data_import_data_to_sqs_queue(data_import: List[dict], expedited: bool =
             message = MediaPlatformDataLoadQueueModel(
                 **{
                     "platform": data["platform"],
-                    "unique_platform_id": data["unique_platform_id"],
+                    "platform_unique_id": data["platform_unique_id"],
                     "creator_id": data["creator_id"],
                 }
             )
@@ -22,5 +22,5 @@ def add_data_import_data_to_sqs_queue(data_import: List[dict], expedited: bool =
             )
         except Exception as e:
             log.exception(
-                f"SQS data load exception: {e} for platform: {data['platform']} id:{data['unique_platform_id']}"
+                f"SQS data load exception: {e} for platform: {data['platform']} id:{data['platform_unique_id']}"
             )

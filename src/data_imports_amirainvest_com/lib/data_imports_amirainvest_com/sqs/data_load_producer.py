@@ -13,7 +13,7 @@ async def get_refresh_ready_platform_data() -> List[Tuple[str, str, str]]:
     all_twitter_users = await twitter_users.get_all_twitter_users()
     all_youtubers = await youtubers.get_all_youtubers()
     all_substack_users = await substack_users.get_all_substack_users()
-    data.extend([("twitter", x.twitter_user_id, str(x.creator_id)) for x in all_twitter_users])
+    data.extend([("twitter", x.username, str(x.creator_id)) for x in all_twitter_users])
     data.extend([("youtube", x.channel_id, str(x.creator_id)) for x in all_youtubers])
     data.extend([("substack", x.username, str(x.creator_id)) for x in all_substack_users])
     return data

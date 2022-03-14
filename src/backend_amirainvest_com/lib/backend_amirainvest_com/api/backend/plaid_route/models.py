@@ -10,6 +10,7 @@ class PlaidTokenRequest(BaseModel):
 
 class UpdatePlaidTokenRequest(BaseModel):
     item_id: str
+    redirect_uri: str
 
 
 class LinkTokenResponse(BaseModel):

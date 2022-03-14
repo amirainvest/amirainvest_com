@@ -106,8 +106,8 @@ AUTH0_MANAGEMENT_DOMAIN = _auth0_management_dict["domain"]
 _plaid_dict = decode_env_var("plaid")
 PLAID_CLIENT_ID = _plaid_dict["client_id"]
 PLAID_SECRET = _plaid_dict["secret"]
-PLAID_APPLICATION_NAME = "amira"  # _plaid_dict["application_name"]
-PLAID_ENVIRONMENT = plaid.Environment.Development
+PLAID_APPLICATION_NAME = _plaid_dict["application_name"]
+PLAID_ENVIRONMENT = plaid.Environment.Sandbox
 PLAID_WEBHOOK = _plaid_dict["webhook"]
 # TODO This is a catch all for the time being -- we should change this once we get production credentials attached
 if ENVIRONMENT == Environments.prod.value or ENVIRONMENT == Environments.staging.value:

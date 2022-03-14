@@ -39,15 +39,11 @@ class ListModel(BaseModel):
 
 class CreateModel(BaseModel):
     name: str
-    created_at: Optional[datetime.datetime]
-    updated_at: Optional[datetime.datetime]
 
 
 class UpdateModel(BaseModel):
     id: int
     name: Optional[str]
-    tickers: Optional[List[str]]
-    note: Optional[str]
 
 
 class DeleteModel(BaseModel):

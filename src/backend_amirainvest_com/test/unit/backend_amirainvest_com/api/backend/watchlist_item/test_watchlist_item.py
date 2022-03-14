@@ -14,6 +14,7 @@ from ...config import AUTH_HEADERS
 async def test_create_watchlist_item(async_session_maker_test, mock_auth, factory):
     session_test: AsyncSession = async_session_maker_test()
     watchlist = await factory.gen("watchlists")
+    securities = await factory.gen("securities")
     await mock_auth(watchlist["users"].id)
     async with AsyncClient(app=app, base_url="http://test") as async_client:
         response = await async_client.post(
@@ -23,7 +24,7 @@ async def test_create_watchlist_item(async_session_maker_test, mock_auth, factor
                 {
                     "creator_id": str(watchlist["users"].id),
                     "watchlist_id": watchlist["watchlists"].id,
-                    "ticker": "APPL",
+                    "ticker": securities["securities"].ticker_symbol,
                     "note": "This is a note",
                 }
             ),
@@ -41,7 +42,7 @@ async def test_create_watchlist_item(async_session_maker_test, mock_auth, factor
         .all()
     )
     assert watchlist_items
-    assert watchlist_items[0].ticker == "APPL"
+    assert watchlist_items[0].ticker == securities["securities"].ticker_symbol
     assert watchlist_items[0].note == "This is a note"
     assert watchlist_items[0].watchlist_id == watchlist["watchlists"].id
 

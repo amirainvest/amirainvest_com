@@ -9,11 +9,11 @@ from common_amirainvest_com.utils.decorators import Session
 
 @Session
 async def get_watchlist_creator(
-    session: AsyncSession, creator_id: Optional[int] = None, watchlist_item_id: Optional[int] = None
+    session: AsyncSession, watchlist_id: Optional[int] = None, watchlist_item_id: Optional[int] = None
 ) -> Optional[str]:
-    if creator_id:
+    if watchlist_id:
         return (
-            (await session.execute(select(Watchlists.creator_id).where(Watchlists.creator_id == creator_id)))
+            (await session.execute(select(Watchlists.creator_id).where(Watchlists.id == watchlist_id)))
             .scalars()
             .one()
         )

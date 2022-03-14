@@ -20,7 +20,7 @@ router = APIRouter(prefix="/company", tags=["Company"])
 
 # TODO Will the ticker_symbol be passed in via a route/query param/body?
 @router.post("", status_code=status.HTTP_200_OK, response_model=CompanyResponse)
-async def get_company_info_route(company_info_req: CompanyRequest, token=Depends(auth_depends_user_id)):
+async def get_company_info_route(company_info_req: CompanyRequest):
     return await get_company_breakdown(ticker_symbol=company_info_req.ticker_symbol)
 
 

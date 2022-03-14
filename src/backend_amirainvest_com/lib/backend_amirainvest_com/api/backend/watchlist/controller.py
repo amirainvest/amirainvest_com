@@ -1,8 +1,8 @@
-from sqlalchemy import delete, insert, update
+from sqlalchemy import delete, insert, update, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend_amirainvest_com.api.backend.watchlist.model import CreateModel, GetModel, ListModel, UpdateModel
-from common_amirainvest_com.schemas.schema import Watchlists
+from common_amirainvest_com.schemas.schema import Watchlists, Users
 from common_amirainvest_com.utils.decorators import Session
 from common_amirainvest_com.utils.generic_utils import calculate_percent_change
 from common_amirainvest_com.utils.query_fragments.watchlist_item import watchlist_items_select
@@ -67,6 +67,9 @@ async def list_controller(session: AsyncSession, creator_id: str) -> ListModel:
                         security.close_price, security_price.price
                     )
                     watchlist_data[watchlist["id"]]["items"].append(watchlist_item)
+
+    if creator is None:
+        creator = (await session.execute(select(Users).where(Users.id == creator_id))).scalars().one().dict()
     return ListModel(creator=creator, watchlists=[v for k, v in watchlist_data.items()])
 
 

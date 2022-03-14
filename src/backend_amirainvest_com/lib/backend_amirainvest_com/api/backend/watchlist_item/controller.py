@@ -4,7 +4,7 @@ from sqlalchemy import delete, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend_amirainvest_com.api.backend.watchlist_item.model import CreateModel, UpdateModel
-from common_amirainvest_com.schemas.schema import WatchlistItems, Watchlists, Securities
+from common_amirainvest_com.schemas.schema import Securities, WatchlistItems, Watchlists
 from common_amirainvest_com.utils.decorators import Session
 
 
@@ -57,17 +57,16 @@ async def delete_controller(session: AsyncSession, watchlist_item_id: int) -> No
 
 @Session
 async def passable_ticker(session: AsyncSession, ticker: str, watchlist_id: Optional[int] = None) -> int:
-    tickers = (await (session.execute(
-        select(WatchlistItems.ticker)
-        .join(Watchlists)
-        .where(Watchlists.id == watchlist_id)
-    ))).scalars().all()
+    tickers = (
+        (await (session.execute(select(WatchlistItems.ticker).join(Watchlists).where(Watchlists.id == watchlist_id))))
+        .scalars()
+        .all()
+    )
     if ticker in tickers:
         return 1
-    
-    total_tickers = (
-        await (session.execute(select(Securities.ticker_symbol)))).scalars().all()
+
+    total_tickers = (await (session.execute(select(Securities.ticker_symbol)))).scalars().all()
     if ticker not in total_tickers:
         return 0
-    
+
     return 2

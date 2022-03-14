@@ -1,8 +1,8 @@
-from sqlalchemy import delete, insert, update, select
+from sqlalchemy import delete, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend_amirainvest_com.api.backend.watchlist.model import CreateModel, GetModel, ListModel, UpdateModel
-from common_amirainvest_com.schemas.schema import Watchlists, Users
+from common_amirainvest_com.schemas.schema import Users, Watchlists
 from common_amirainvest_com.utils.decorators import Session
 from common_amirainvest_com.utils.generic_utils import calculate_percent_change
 from common_amirainvest_com.utils.query_fragments.watchlist_item import watchlist_items_select

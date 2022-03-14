@@ -13,9 +13,7 @@ async def get_watchlist_creator(
 ) -> Optional[str]:
     if watchlist_id:
         return (
-            (await session.execute(select(Watchlists.creator_id).where(Watchlists.id == watchlist_id)))
-            .scalars()
-            .one()
+            (await session.execute(select(Watchlists.creator_id).where(Watchlists.id == watchlist_id))).scalars().one()
         )
     if watchlist_item_id:
         return (

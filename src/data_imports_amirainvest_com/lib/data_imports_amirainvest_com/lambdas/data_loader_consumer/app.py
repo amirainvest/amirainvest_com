@@ -6,7 +6,7 @@ from data_imports_amirainvest_com.sqs.sqs_pydantic_models import SQSDataLoad
 
 
 async def run(event: dict):
-    data = SQSDataLoad.parse_raw(json.dumps(event["Records"][0]))
+    data = SQSDataLoad.parse_raw(json.dumps(event["Records"][0]["body"]))
     await load_platform_user_data(data=data)
 
 

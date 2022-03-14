@@ -13,7 +13,7 @@ async def test_existing_user_upload(async_session_maker_test, factory):
     user = await factory.gen("users")
     await load_user_data(twitter_handle, user["users"].id)
     await load_user_data(twitter_handle, user["users"].id)
-    assert (await session_test.execute(select(Posts).where(Posts.creator_id == user["users"].id))).scalars().all()
+    assert (await session_test.execute(select(Posts).where(Posts.creator_id == user["users"].id))).all()
     twitter_user = (
         (await session_test.execute(select(TwitterUsers).where(TwitterUsers.creator_id == user["users"].id)))
         .scalars()

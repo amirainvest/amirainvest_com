@@ -17,11 +17,11 @@ from backend_amirainvest_com.controllers.plaid_controller import exchange_public
 from common_amirainvest_com.dynamo.models import BrokerageUser
 from common_amirainvest_com.dynamo.utils import add_brokerage_user
 from common_amirainvest_com.schemas.schema import BadPlaidItems, FinancialAccounts, FinancialInstitutions, PlaidItems
+from common_amirainvest_com.sqs.consts import BROKERAGE_DATA_QUEUE_URL
+from common_amirainvest_com.sqs.models import Brokerage, BrokerageDataActions, BrokerageDataChange
+from common_amirainvest_com.sqs.utils import add_message_to_queue
 from common_amirainvest_com.utils.consts import PLAID_CLIENT_ID, PLAID_ENVIRONMENT, PLAID_SECRET
 from common_amirainvest_com.utils.decorators import Session
-from common_amirainvest_com.sqs.models import BrokerageDataActions, Brokerage, BrokerageDataChange
-from common_amirainvest_com.sqs.utils import add_message_to_queue
-from common_amirainvest_com.sqs.consts import BROKERAGE_DATA_QUEUE_URL
 
 
 def account_is_in(
@@ -117,8 +117,8 @@ async def get_institution(session: AsyncSession, plaid_institution_id: str) -> F
                 select(FinancialInstitutions).where(FinancialInstitutions.plaid_id == plaid_institution_id)
             )
         )
-            .scalars()
-            .one()
+        .scalars()
+        .one()
     )
 
 
@@ -155,9 +155,9 @@ async def add_plaid_accounts(session: AsyncSession, accounts: list[AccountBase],
 async def add_plaid_item(session: AsyncSession, user_id: str, item_id: str, institution_id: int) -> PlaidItems:
     response = await session.execute(
         insert(PlaidItems)
-            .values({"user_id": user_id, "plaid_item_id": item_id, "institution_id": institution_id})
-            .on_conflict_do_nothing()
-            .returning(PlaidItems)
+        .values({"user_id": user_id, "plaid_item_id": item_id, "institution_id": institution_id})
+        .on_conflict_do_nothing()
+        .returning(PlaidItems)
     )
     return response.scalars().one()
 
@@ -166,10 +166,10 @@ async def add_plaid_item(session: AsyncSession, user_id: str, item_id: str, inst
 async def get_current_accounts(session: AsyncSession, user_id: str) -> list[CurrentPlaidAccounts]:
     response = await session.execute(
         select(FinancialAccounts, PlaidItems, FinancialInstitutions)
-            .join(FinancialAccounts, isouter=True)
-            .join(FinancialInstitutions)
-            .where(PlaidItems.user_id == user_id)
-            .order_by(PlaidItems.plaid_item_id)
+        .join(FinancialAccounts, isouter=True)
+        .join(FinancialInstitutions)
+        .where(PlaidItems.user_id == user_id)
+        .order_by(PlaidItems.plaid_item_id)
     )
 
     records = response.all()

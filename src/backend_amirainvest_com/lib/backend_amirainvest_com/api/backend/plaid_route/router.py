@@ -17,8 +17,13 @@ templates = Jinja2Templates(directory="src/backend_amirainvest_com/lib/backend_a
 
 
 @router.get("/", status_code=status.HTTP_200_OK)
-async def get_plaid(request: Request):
+async def get_plaid_route(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
+
+
+@router.get("/oauth", status_code=status.HTTP_200_OK)
+async def get_plaid(request: Request):
+    return templates.TemplateResponse("oauth.html", {"request": request})
 
 
 @router.get("/issues", status_code=status.HTTP_200_OK, response_model=list[BadItem])
@@ -30,7 +35,7 @@ async def get_plaid_account_issues(token=Depends(auth_depends_user_id)):
 @router.post("/link", status_code=status.HTTP_200_OK, response_model=LinkTokenResponse)
 async def get_link(update_request: UpdatePlaidTokenRequest, token=Depends(auth_depends_user_id)):
     user_id = token["https://amirainvest.com/user_id"]
-    link_token = await generate_link_token(user_id, update_request.item_id)
+    link_token = await generate_link_token(user_id, update_request.item_id, update_request.redirect_uri)
     return LinkTokenResponse(link_token=link_token)
 
 

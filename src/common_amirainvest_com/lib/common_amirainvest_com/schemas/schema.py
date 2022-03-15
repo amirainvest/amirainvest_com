@@ -617,6 +617,7 @@ class WatchlistItems(Base, ToDict):
     ticker = Column(String, nullable=False)
     note = Column(String)
     created_at = Column(DateTime, server_default=UTCNow())
+    updated_at = Column(DateTime, server_default=UTCNow(), onupdate=datetime.datetime.utcnow)
 
 
 class WatchlistItemsModel(BaseModel):
@@ -625,6 +626,7 @@ class WatchlistItemsModel(BaseModel):
     ticker: str
     note: Optional[str]
     created_at: Optional[datetime.datetime]
+    updated_at: Optional[datetime.datetime]
 
 
 class WatchlistFollows(Base, ToDict):

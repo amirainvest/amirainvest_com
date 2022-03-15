@@ -37,6 +37,6 @@ async def get_five_day_pricing_route(five_day_req: CompanyRequest, token=Depends
 
 
 @router.post("/list", status_code=status.HTTP_200_OK, response_model=list[ListedCompany])
-async def get_listed_companies_route(token=Depends(auth_depends_user_id)):
+async def get_listed_companies_route():
     listed_companies = await get_listed_companies()
     return listed_companies

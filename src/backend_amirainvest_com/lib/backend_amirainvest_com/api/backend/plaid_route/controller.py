@@ -1,4 +1,3 @@
-import asyncio
 from typing import Optional
 
 import plaid  # type: ignore
@@ -18,6 +17,9 @@ from backend_amirainvest_com.controllers.plaid_controller import exchange_public
 from common_amirainvest_com.dynamo.models import BrokerageUser
 from common_amirainvest_com.dynamo.utils import add_brokerage_user
 from common_amirainvest_com.schemas.schema import BadPlaidItems, FinancialAccounts, FinancialInstitutions, PlaidItems
+from common_amirainvest_com.sqs.consts import BROKERAGE_DATA_QUEUE_URL
+from common_amirainvest_com.sqs.models import Brokerage, BrokerageDataActions, BrokerageDataChange
+from common_amirainvest_com.sqs.utils import add_message_to_queue
 from common_amirainvest_com.utils.consts import PLAID_CLIENT_ID, PLAID_ENVIRONMENT, PLAID_SECRET
 from common_amirainvest_com.utils.decorators import Session
 
@@ -96,15 +98,15 @@ async def get_and_set_access_token(user_id: str, public_token: str, is_update: b
     new_internal_item_id = await add_plaid_item(user_id=user_id, item_id=item_id, institution_id=institution.id)
     await add_plaid_accounts(accounts=new_plaid_accounts, user_id=user_id, internal_item_id=new_internal_item_id)
 
-    # add_message_to_queue(
-    #     BROKERAGE_DATA_QUEUE_URL,
-    #     BrokerageDataChange(
-    #         brokerage=Brokerage.plaid,
-    #         user_id=user_id,
-    #         token_identifier=item_id,
-    #         action=BrokerageDataActions.upsert_brokerage_account,
-    #     ),
-    # )
+    add_message_to_queue(
+        BROKERAGE_DATA_QUEUE_URL,
+        BrokerageDataChange(
+            brokerage=Brokerage.plaid,
+            user_id=user_id,
+            token_identifier=item_id,
+            action=BrokerageDataActions.upsert_brokerage_account,
+        ),
+    )
 
 
 @Session
@@ -129,7 +131,6 @@ async def get_internal_item_id(session: AsyncSession, item_id: str) -> PlaidItem
 async def add_plaid_accounts(session: AsyncSession, accounts: list[AccountBase], user_id: str, internal_item_id: int):
     inserts = []
     for acc in accounts:
-        print(acc.to_dict())
         inserts.append(
             {
                 "user_id": user_id,
@@ -191,7 +192,6 @@ async def get_current_accounts(session: AsyncSession, user_id: str) -> list[Curr
                 account_mask=account.mask,
             )
         )
-    print(cur_accounts)
     return cur_accounts
 
 
@@ -210,7 +210,3 @@ async def remove_bad_item(session: AsyncSession, user_id: str, item_id: str):
     await session.execute(
         delete(BadPlaidItems).where(BadPlaidItems.user_id == user_id, BadPlaidItems.plaid_item_id == item_id)
     )
-
-
-if __name__ == "__main__":
-    asyncio.run(get_current_accounts(user_id="fbf26e93-30f1-4e0b-8a28-df1791bbb42e"))

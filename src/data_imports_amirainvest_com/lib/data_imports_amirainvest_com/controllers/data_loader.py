@@ -1,5 +1,5 @@
-from common_amirainvest_com.utils.logger import log
 from common_amirainvest_com.sqs.models import MediaPlatformDataLoadQueueModel
+from common_amirainvest_com.utils.logger import log
 from data_imports_amirainvest_com.platforms import substack, twitter, youtube
 
 

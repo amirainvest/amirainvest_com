@@ -1,9 +1,9 @@
+from common_amirainvest_com.sqs.models import MediaPlatformDataLoadQueueModel
 from common_amirainvest_com.utils.logger import log
 from data_imports_amirainvest_com.platforms import substack, twitter, youtube
-from data_imports_amirainvest_com.sqs.sqs_pydantic_models import SQSDataLoad
 
 
-async def load_platform_user_data(data: SQSDataLoad):
+async def load_platform_user_data(data: MediaPlatformDataLoadQueueModel):
     platform = data.platform
     platform_unique_id = data.platform_unique_id
     creator_id = data.creator_id

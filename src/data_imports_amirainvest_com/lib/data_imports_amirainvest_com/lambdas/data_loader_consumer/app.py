@@ -1,7 +1,7 @@
 import asyncio
 
 from data_imports_amirainvest_com.controllers.data_loader import load_platform_user_data
-from data_imports_amirainvest_com.sqs.sqs_pydantic_models import SQSDataLoad
+from common_amirainvest_com.sqs.models import MediaPlatformDataLoadQueueModel as SQSDataLoad
 
 
 # import json

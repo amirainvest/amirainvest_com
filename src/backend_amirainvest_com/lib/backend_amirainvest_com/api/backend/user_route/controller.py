@@ -114,6 +114,7 @@ async def create_controller(session: AsyncSession, user_data: model.InitPostMode
     if result is None:
         user = user_data.dict(exclude_none=True)
         user["sub"] = sub
+        user["is_claimed"]=True
 
         created_user = (await session.execute(insert(Users).values(**user).returning(Users))).one()
 
@@ -127,7 +128,7 @@ async def create_controller(session: AsyncSession, user_data: model.InitPostMode
                 detail=model.Http409Enum.user_sub_missmatch.value.dict(),
             )
 
-    metadata = {"UserId": str(user_id)}
+    metadata = {"https://amirainvest.com/user_id": str(user_id)}
     try:
         await auth0_utils.update_user_app_metadata(sub, metadata)
     except HTTPException:

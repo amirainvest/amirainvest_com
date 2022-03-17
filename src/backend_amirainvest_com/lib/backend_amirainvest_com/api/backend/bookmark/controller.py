@@ -18,10 +18,10 @@ async def list_controller(session: AsyncSession, user_id: str) -> t.List[Bookmar
 
 
 @Session
-async def create_controller(session: AsyncSession, user_id: str, bookmark_data: CreateModel) -> Bookmarks:
+async def create_controller(session: AsyncSession, user_id: str, bookmark_data: CreateModel) -> dict:
     response = await recreate_bookmark(user_id, bookmark_data)
     if response:
-        return response.dict()
+        return response._asdict()
     bookmark_data_dict = bookmark_data.dict(exclude_none=True)
     bookmark_data_dict["user_id"] = user_id
     bookmark = Bookmarks(**bookmark_data_dict)

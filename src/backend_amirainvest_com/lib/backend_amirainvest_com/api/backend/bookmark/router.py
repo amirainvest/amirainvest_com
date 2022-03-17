@@ -24,9 +24,10 @@ async def list_route(token=Depends(auth_depends_user_id)):
 async def create_route(bookmark_data: CreateModel, token=Depends(auth_depends_user_id)):
     user_id = token["https://amirainvest.com/user_id"]
     bookmark = await create_controller(user_id, bookmark_data)
-    bookmark = bookmark.dict()
-    return bookmark
-
+    if type(bookmark) is dict:
+        return bookmark
+    else:
+        return bookmark.dict()
 
 @router.post("/delete", status_code=status.HTTP_200_OK)
 async def delete_route(bookmark_id: int, token=Depends(auth_depends_user_id)):

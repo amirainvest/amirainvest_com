@@ -1,22 +1,27 @@
 import asyncio
-import decimal
 from copy import deepcopy
 from datetime import date, datetime
 from decimal import Decimal
 from typing import Optional, Tuple
 
 from dateutil.relativedelta import relativedelta
-from pydantic import BaseModel
 from sqlalchemy.dialects.postgresql import DATE, TIME
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.sql import cast
 
+from brokerage_amirainvest_com.brokerages.transformers.transform import (
+    transform_accounts,
+    transform_holdings,
+    transform_transactions,
+)
+from brokerage_amirainvest_com.models import HistoricalAccount
 from common_amirainvest_com.schemas.schema import (
     FinancialAccountCurrentHoldings,
     FinancialAccountHoldingsHistory,
     FinancialAccounts,
     FinancialAccountTransactions,
+    FinancialInstitutions,
     MarketHolidays,
     PlaidSecurities,
     Securities,
@@ -25,15 +30,84 @@ from common_amirainvest_com.schemas.schema import (
 from common_amirainvest_com.utils.decorators import Session
 
 
-class HistoricalAccount(BaseModel):
-    class Config:
-        arbitrary_types_allowed = True
+async def run_by_account(
+    user_id: str,
+    financial_institution: FinancialInstitutions,
+    account_ids: list[int],
+    future_start_date: date,
+    past_end_date: date,
+):
+    """
+    all accounts used by run_by_account must belong to a single financial institution
+    TODO single function to (re)compute holding history across the board
+    """
+    accounts = await get_financial_accounts_by_ids(account_ids=account_ids)
+    transactions = await get_financial_transactions_by_account_ids(account_ids=account_ids)
+    holdings = await get_financial_holdings_by_account_ids(account_ids=account_ids)
 
-    id: int
-    date: date
-    user_id: str
-    cash: decimal.Decimal
-    holdings: list[FinancialAccountHoldingsHistory]
+    transformed_accounts = await transform_accounts(financial_institution, accounts, transactions, holdings)
+    transformed_transactions = await transform_transactions(financial_institution, accounts, transactions, holdings)
+    transformed_holdings = await transform_holdings(financial_institution, accounts, transactions, holdings)
+
+    plaid_cash_security = await get_cash_security_plaid()
+    market_dates = await get_market_dates(future_start_date=future_start_date, past_end_date=past_end_date)
+
+    for account in transformed_accounts:
+        account_transactions = get_account_transactions(account.id, transformed_transactions)
+        account_holdings = get_account_holdings(account.id, transformed_holdings)
+        account_transactions_by_date = group_transactions_by_date(account_transactions)
+        plaid_security_ids = get_plaid_security_ids(account_transactions_by_date, holdings)
+        all_security_prices = await get_prices_all_time(
+            plaid_security_ids=plaid_security_ids, future_start_date=future_start_date, past_end_date=past_end_date
+        )
+
+        account_historical_holdings = await compute_account_holdings_history(
+            transactions_by_date=account_transactions_by_date,
+            holdings=account_holdings,
+            market_dates=market_dates,
+            plaid_cash_security=plaid_cash_security,
+            user_id=user_id,
+            account=account,
+            all_security_prices=all_security_prices,
+        )
+
+        await add_holdings_to_database(
+            end_date=past_end_date,
+            historical_holdings=account_historical_holdings,
+            plaid_cash_security=plaid_cash_security,
+        )
+
+
+def get_account_transactions(
+    account_id: int, transactions: list[FinancialAccountTransactions]
+) -> list[FinancialAccountTransactions]:
+    res = []
+    for t in transactions:
+        if t.account_id == account_id:
+            res.append(t)
+    return res
+
+
+def get_account_holdings(
+    account_id: int, holdings: list[FinancialAccountCurrentHoldings]
+) -> list[FinancialAccountCurrentHoldings]:
+    res = []
+    for h in holdings:
+        if h.account_id == account_id:
+            res.append(h)
+    return res
+
+
+def group_transactions_by_date(
+    transactions: list[FinancialAccountTransactions],
+) -> dict[date, list[FinancialAccountTransactions]]:
+    transaction_history_day_dict: dict[date, list[FinancialAccountTransactions]] = {}
+    for tx in transactions:
+        try:
+            transaction_history_day_dict[tx.posting_date.date()].append(tx)
+        except KeyError:
+            transaction_history_day_dict[tx.posting_date.date()] = [tx]
+    return transaction_history_day_dict
 
 
 @Session
@@ -123,36 +197,6 @@ async def compute_account_holdings_history(
         idx = idx + 1
     account_historical_holdings.sort(key=lambda x: x.date)
     return account_historical_holdings
-
-
-async def run(user_id: str, future_start_date: date, past_end_date: date):
-    accounts = await get_financial_accounts(user_id=user_id)
-    plaid_cash_security = await get_cash_security_plaid()
-    market_dates = await get_market_dates(future_start_date=future_start_date, past_end_date=past_end_date)
-
-    for account in accounts:
-        transactions_by_date = await get_financial_transactions_dict(account_id=account.id)
-        holdings = await get_current_financial_holdings(account_id=account.id)
-        plaid_security_ids = get_plaid_security_ids(transactions_by_date, holdings)
-        all_security_prices = await get_prices_all_time(
-            plaid_security_ids=plaid_security_ids, future_start_date=future_start_date, past_end_date=past_end_date
-        )
-
-        account_historical_holdings = await compute_account_holdings_history(
-            transactions_by_date=transactions_by_date,
-            holdings=holdings,
-            market_dates=market_dates,
-            plaid_cash_security=plaid_cash_security,
-            user_id=user_id,
-            account=account,
-            all_security_prices=all_security_prices,
-        )
-
-        await add_holdings_to_database(
-            end_date=past_end_date,
-            historical_holdings=account_historical_holdings,
-            plaid_cash_security=plaid_cash_security,
-        )
 
 
 def get_plaid_security_ids(
@@ -429,23 +473,7 @@ async def get_market_holidays_dict(session: AsyncSession) -> dict[date, None]:
 
 
 @Session
-async def get_financial_transactions_dict(
-    session: AsyncSession, account_id: str
-) -> dict[date, list[FinancialAccountTransactions]]:
-    response = await session.execute(
-        select(FinancialAccountTransactions).where(FinancialAccountTransactions.account_id == account_id)
-    )
-    transaction_history_day_dict: dict[date, list[FinancialAccountTransactions]] = {}
-    for tx in response.scalars().all():
-        try:
-            transaction_history_day_dict[tx.posting_date.date()].append(tx)
-        except KeyError:
-            transaction_history_day_dict[tx.posting_date.date()] = [tx]
-    return transaction_history_day_dict
-
-
-@Session
-async def get_current_financial_holdings(
+async def get_account_financial_holdings_by_account_id(
     session: AsyncSession, account_id: int
 ) -> list[FinancialAccountCurrentHoldings]:
     response = await session.execute(
@@ -455,7 +483,33 @@ async def get_current_financial_holdings(
 
 
 @Session
-async def get_financial_accounts(session: AsyncSession, user_id: str) -> list[FinancialAccounts]:
+async def get_financial_holdings_by_account_ids(
+    session: AsyncSession, account_ids: list[int]
+) -> list[FinancialAccountCurrentHoldings]:
+    response = await session.execute(
+        select(FinancialAccountCurrentHoldings).where(FinancialAccountCurrentHoldings.account_id.in_(account_ids))
+    )
+    return response.scalars().all()
+
+
+@Session
+async def get_financial_transactions_by_account_ids(
+    session: AsyncSession, account_ids: list[int]
+) -> list[FinancialAccountTransactions]:
+    response = await session.execute(
+        select(FinancialAccountTransactions).where(FinancialAccountTransactions.account_id.in_(account_ids))
+    )
+    return response.scalars().all()
+
+
+@Session
+async def get_financial_accounts_by_ids(session: AsyncSession, account_ids: list[int]) -> list[FinancialAccounts]:
+    response = await session.execute(select(FinancialAccounts).where(FinancialAccounts.id.in_(account_ids)))
+    return response.scalars().all()
+
+
+@Session
+async def get_financial_accounts_by_user_id(session: AsyncSession, user_id: str) -> list[FinancialAccounts]:
     response = await session.execute(select(FinancialAccounts).where(FinancialAccounts.user_id == user_id))
     return response.scalars().all()
 
@@ -464,7 +518,13 @@ if __name__ == "__main__":
     f_start = datetime.now().replace(year=2022, month=2, day=1, hour=21, minute=0, second=0, microsecond=0)
     p_end = datetime.now().replace(year=2022, month=1, day=1, hour=21, minute=0, second=0, microsecond=0)
     asyncio.run(
-        run(
-            user_id="c5ac2722-a876-47ed-8575-f9d7e674b785", future_start_date=f_start.date(), past_end_date=p_end.date()
+        run_by_account(
+            user_id="c5ac2722-a876-47ed-8575-f9d7e674b785",
+            account_ids=[68],
+            future_start_date=f_start.date(),
+            past_end_date=p_end.date(),
+            financial_institution=FinancialInstitutions(
+                id=831, plaid_id="ins_115610", third_party_institution_id="ins_115610", name="Merrill Edge"
+            ),
         )
     )

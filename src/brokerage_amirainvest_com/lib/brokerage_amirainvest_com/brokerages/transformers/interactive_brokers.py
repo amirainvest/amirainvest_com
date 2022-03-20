@@ -6,7 +6,7 @@ from common_amirainvest_com.schemas.schema import (
 )
 
 
-class Robinhood(BrokerageTransformer):
+class InteractiveBrokers(BrokerageTransformer):
     async def transform_transactions(
         self,
         financial_accounts: list[FinancialAccounts],

@@ -667,7 +667,7 @@ class FinancialInstitutions(Base, ToDict):
 
 class PlaidItems(Base, ToDict):
     __tablename__ = "plaid_items"
-    id = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
+    id: int = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
 
     user_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
 
@@ -678,7 +678,7 @@ class PlaidItems(Base, ToDict):
 
 class FinancialAccounts(Base, ToDict):
     __tablename__ = "financial_accounts"
-    id = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
+    id: int = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
 
     user_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
     plaid_item_id = Column(BigInteger, ForeignKey("plaid_items.id"), nullable=False)
@@ -713,7 +713,7 @@ class FinancialAccountTransactions(Base, ToDict):
     plaid_investment_transaction_id = Column(String, unique=True, nullable=False)
 
     name = Column(String, nullable=False)
-    posting_date = Column(TIMESTAMP(timezone=True), nullable=False)
+    posting_date: datetime.datetime = Column(TIMESTAMP(timezone=True), nullable=False)
     price: decimal.Decimal = Column(DECIMAL(19, 4), nullable=False)
     quantity: Decimal = Column(DECIMAL, nullable=False)
     type: str = Column(String, nullable=False)
@@ -730,7 +730,7 @@ class FinancialAccountTransactions(Base, ToDict):
 class FinancialAccountCurrentHoldings(Base, ToDict):
     __tablename__ = "financial_account_current_holdings"
     __table_args__ = (UniqueConstraint("account_id", "plaid_security_id"),)
-    id = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
+    id: int = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
 
     account_id: int = Column(BigInteger, ForeignKey("financial_accounts.id"), nullable=False)
     plaid_security_id: int = Column(BigInteger, ForeignKey("plaid_securities.id"), nullable=False)
@@ -752,7 +752,7 @@ class FinancialAccountHoldingsHistory(Base, ToDict):
     __tablename__ = "financial_account_holdings_history"
     __table_args__ = (UniqueConstraint("account_id", "security_id", "holding_date"),)
 
-    id = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
+    id: int = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
 
     account_id: int = Column(BigInteger, ForeignKey("financial_accounts.id"), nullable=False)
     plaid_security_id: int = Column(BigInteger, ForeignKey("plaid_securities.id"), nullable=False)
@@ -798,7 +798,7 @@ class PlaidSecurities(Base, ToDict):
 class PlaidSecurityPrices(Base, ToDict):
     __tablename__ = "plaid_security_prices"
     __table_args__ = (UniqueConstraint("price_time", "plaid_securities_id"),)
-    id = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
+    id: int = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
 
     plaid_securities_id = Column(BigInteger, ForeignKey("plaid_securities.id"), nullable=False)
 
@@ -810,7 +810,7 @@ class PlaidSecurityPrices(Base, ToDict):
 
 class BrokerageJobs(Base, ToDict):
     __tablename__ = "brokerage_jobs"
-    id = Column(Integer, primary_key=True, unique=True, nullable=False, autoincrement=True)
+    id: int = Column(Integer, primary_key=True, unique=True, nullable=False, autoincrement=True)
 
     user_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
     status = Column(Enum(JobsStatus), server_default=JobsStatus.pending.value, nullable=False)

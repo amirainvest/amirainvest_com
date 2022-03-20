@@ -5,6 +5,8 @@ from typing import List, Optional
 
 from pydantic import BaseModel
 
+from common_amirainvest_com.schemas.schema import FinancialAccountHoldingsHistory
+
 
 class PlaidError(BaseModel):
     error_type: str
@@ -141,3 +143,14 @@ class Institution(BaseModel):
     plaid_institution_id: str
     name: str
     oauth: bool  # Does institution has Oauth login flow
+
+
+class HistoricalAccount(BaseModel):
+    class Config:
+        arbitrary_types_allowed = True
+
+    id: int
+    date: date
+    user_id: str
+    cash: Decimal
+    holdings: list[FinancialAccountHoldingsHistory]

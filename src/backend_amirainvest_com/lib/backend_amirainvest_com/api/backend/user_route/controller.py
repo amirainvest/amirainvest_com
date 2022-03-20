@@ -114,7 +114,7 @@ async def create_controller(session: AsyncSession, user_data: model.InitPostMode
     if result is None:
         user = user_data.dict(exclude_none=True)
         user["sub"] = sub
-        user["is_claimed"]=True
+        user["is_claimed"] = True
 
         created_user = (await session.execute(insert(Users).values(**user).returning(Users))).one()
 

@@ -741,7 +741,7 @@ class FinancialAccountCurrentHoldings(Base, ToDict):
 
     cost_basis = Column(DECIMAL(19, 4))
     iso_currency_code = Column(String)
-    latest_price_date = Column(TIMESTAMP(timezone=True), nullable=False)
+    latest_price_date = Column(TIMESTAMP(timezone=True))
     unofficial_currency_code = Column(String)
 
     created_at = Column(DateTime, server_default=UTCNow())

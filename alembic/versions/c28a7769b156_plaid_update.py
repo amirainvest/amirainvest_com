@@ -30,6 +30,13 @@ def upgrade():
     )
 
     op.add_column('financial_accounts', sa.Column('error_message', sa.String(), nullable=True))
+    op.alter_column('financial_account_current_holdings', 'latest_price_date',
+               existing_type=postgresql.TIMESTAMP(timezone=True),
+               nullable=True)
+    op.alter_column('financial_accounts', 'status',
+               existing_type=postgresql.ENUM('active', 'inactive', 'error', name='financialaccountstatus'),
+               server_default='active',
+               existing_nullable=True)
     # ### end Alembic commands ###
 
 
@@ -50,4 +57,11 @@ def downgrade():
         sa.UniqueConstraint('user_id', 'plaid_item_id', name='bad_plaid_items_user_id_plaid_item_id_key'),
         sa.UniqueConstraint('user_id', name='bad_plaid_items_user_id_key')
     )
+    op.alter_column('financial_accounts', 'status',
+               existing_type=postgresql.ENUM('active', 'inactive', 'error', name='financialaccountstatus'),
+               server_default=None,
+               existing_nullable=True)
+    op.alter_column('financial_account_current_holdings', 'latest_price_date',
+               existing_type=postgresql.TIMESTAMP(timezone=True),
+               nullable=False)
     # ### end Alembic commands ###

@@ -1,6 +1,6 @@
+import datetime
 import decimal
 import enum
-from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, validator
@@ -12,19 +12,19 @@ class MarketHolidayDirection(enum.Enum):
 
 
 class MarketHoliday(BaseModel):
-    date: datetime
-    settlementDate: datetime
+    date: datetime.date
+    settlementDate: datetime.date
 
     @validator("date", pre=True)
     def parse_date(cls, value):
         if isinstance(value, str):
-            return datetime.strptime(value, "%Y-%m-%d")
+            return datetime.datetime.strptime(value, "%Y-%m-%d").date()
         return value
 
     @validator("settlementDate", pre=True)
     def parse_settlementDate(cls, value):
         if isinstance(value, str):
-            return datetime.strptime(value, "%Y-%m-%d")
+            return datetime.datetime.strptime(value, "%Y-%m-%d").date()
         return value
 
 

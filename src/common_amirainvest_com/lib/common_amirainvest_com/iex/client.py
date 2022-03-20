@@ -152,7 +152,7 @@ async def get_supported_securities_list() -> list[Symbol]:
 
 
 async def get_market_holidays(holiday_direction: MarketHolidayDirection) -> list[MarketHoliday]:
-    request_url = f"{IEX_URL}/ref-data/us/dates/holiday/{holiday_direction.value}"
+    request_url = f"{IEX_URL}/ref-data/us/dates/holiday/{holiday_direction.value}/365"
     query_strings = {"token": IEX_SECRET}
     async with httpx.AsyncClient() as client:
         r = await client.get(request_url, timeout=20.0, params=query_strings)

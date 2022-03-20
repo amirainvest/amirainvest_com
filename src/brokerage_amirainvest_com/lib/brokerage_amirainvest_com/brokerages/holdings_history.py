@@ -7,8 +7,10 @@ from typing import Optional, Tuple
 
 from dateutil.relativedelta import relativedelta
 from pydantic import BaseModel
+from sqlalchemy.dialects.postgresql import DATE, TIME
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.sql import cast
 
 from common_amirainvest_com.schemas.schema import (
     FinancialAccountCurrentHoldings,
@@ -36,19 +38,20 @@ class HistoricalAccount(BaseModel):
 
 @Session
 async def get_prices_all_time(
-    session: AsyncSession, plaid_security_ids: set[int], start_time: date, end_time: date
+    session: AsyncSession, plaid_security_ids: set[int], future_start_date: date, past_end_date: date
 ) -> dict[int, list[SecurityPrices]]:
-    # TODO Add in a with clause here ot get the max EOD price for all days... rather than just grabbing all prices
+    hour = datetime.now().replace(hour=21, minute=0, second=0, microsecond=0)
     response = await session.execute(
         select(SecurityPrices)
         .join(Securities)
         .join(PlaidSecurities)
         .where(
-            PlaidSecurities.id.in_(plaid_security_ids),
-            SecurityPrices.price_time <= start_time,
-            SecurityPrices.price_time >= end_time,
+            PlaidSecurities.id.in_(plaid_security_ids),  # type: ignore
+            cast(SecurityPrices.price_time, DATE) <= cast(future_start_date, DATE),  # type: ignore
+            cast(SecurityPrices.price_time, DATE) >= cast(past_end_date, DATE),  # type: ignore
+            cast(SecurityPrices.price_time, TIME) == cast(hour, TIME),  # type: ignore
         )
-        .order_by(SecurityPrices.price_time.desc())
+        .order_by(SecurityPrices.price_time.desc())  # type: ignore
     )
 
     security_prices = response.scalars().all()
@@ -59,7 +62,6 @@ async def get_prices_all_time(
         except KeyError:
             prices[sp.security_id] = [sp]
 
-    # Order
     for p in prices:
         sp = prices[p]
         sp.sort(key=lambda x: x.price_time, reverse=True)
@@ -74,7 +76,7 @@ async def compute_account_holdings_history(
     holdings: list[FinancialAccountCurrentHoldings],
     market_dates: list[date],
     plaid_cash_security: PlaidSecurities,
-    prices_all_time: dict[int, list[SecurityPrices]],
+    all_security_prices: dict[int, list[SecurityPrices]],
 ) -> list[HistoricalAccount]:
     # Compute array of trading days and then iterate over that... rather than doing it per day and trying to
     # fix the next day, we can always just reference one back
@@ -85,6 +87,7 @@ async def compute_account_holdings_history(
         user_id=user_id,
         cash_security=plaid_cash_security,
         trading_day=market_dates[0],
+        all_security_prices=all_security_prices,
     )
 
     account_historical_holdings: list = [historical_account]
@@ -110,7 +113,7 @@ async def compute_account_holdings_history(
 
         for today_holding in holdings_today.holdings:
             p = today_holding.price
-            sp = get_closest_price(prices_all_time, today_holding.security_id, prior_market_day)
+            sp = get_closest_price(all_security_prices, today_holding.security_id, prior_market_day)
             if sp is not None:
                 p = sp
             today_holding.price = p
@@ -122,24 +125,17 @@ async def compute_account_holdings_history(
     return account_historical_holdings
 
 
-async def run(user_id: str, start_date: date, end_date: date):
+async def run(user_id: str, future_start_date: date, past_end_date: date):
     accounts = await get_financial_accounts(user_id=user_id)
     plaid_cash_security = await get_cash_security_plaid()
-    market_dates = await get_market_dates(start_date=start_date, end_date=end_date)
+    market_dates = await get_market_dates(future_start_date=future_start_date, past_end_date=past_end_date)
+
     for account in accounts:
         transactions_by_date = await get_financial_transactions_dict(account_id=account.id)
-
         holdings = await get_current_financial_holdings(account_id=account.id)
-
-        plaid_security_ids = set()
-        for d in transactions_by_date:
-            for t in transactions_by_date[d]:
-                plaid_security_ids.add(t.plaid_security_id)
-        for h in holdings:
-            plaid_security_ids.add(h.plaid_security_id)
-
-        prices_all_time = await get_prices_all_time(
-            plaid_security_ids=plaid_security_ids, start_time=start_date, end_time=end_date
+        plaid_security_ids = get_plaid_security_ids(transactions_by_date, holdings)
+        all_security_prices = await get_prices_all_time(
+            plaid_security_ids=plaid_security_ids, future_start_date=future_start_date, past_end_date=past_end_date
         )
 
         account_historical_holdings = await compute_account_holdings_history(
@@ -149,12 +145,27 @@ async def run(user_id: str, start_date: date, end_date: date):
             plaid_cash_security=plaid_cash_security,
             user_id=user_id,
             account=account,
-            prices_all_time=prices_all_time,
+            all_security_prices=all_security_prices,
         )
 
         await add_holdings_to_database(
-            end_date=end_date, historical_holdings=account_historical_holdings, plaid_cash_security=plaid_cash_security
+            end_date=past_end_date,
+            historical_holdings=account_historical_holdings,
+            plaid_cash_security=plaid_cash_security,
         )
+
+
+def get_plaid_security_ids(
+    transactions_by_date: dict[date, list[FinancialAccountTransactions]],
+    holdings: list[FinancialAccountCurrentHoldings],
+) -> set:
+    plaid_security_ids = set()
+    for d in transactions_by_date:
+        for t in transactions_by_date[d]:
+            plaid_security_ids.add(t.plaid_security_id)
+    for h in holdings:
+        plaid_security_ids.add(h.plaid_security_id)
+    return plaid_security_ids
 
 
 async def add_holdings_to_database(
@@ -204,16 +215,18 @@ async def add_holdings_to_database(
     await insert_historical_holdings(insertable)
 
 
-async def get_market_dates(start_date: date, end_date: date) -> list[date]:
+async def get_market_dates(future_start_date: date, past_end_date: date) -> list[date]:
     market_holidays = await get_market_holidays_dict()
     market_dates: list[date] = []
-    end_date = end_date + relativedelta(days=1)
-    while start_date >= end_date:
-        start_date = start_date - relativedelta(days=1)
-        if not is_trading_day(day=start_date, market_holidays=market_holidays):
+    future_start_date = future_start_date + relativedelta(days=1)
+
+    while future_start_date > past_end_date:
+        future_start_date = future_start_date - relativedelta(days=1)
+        if not is_trading_day(day=future_start_date, market_holidays=market_holidays):
             continue
-        market_dates.append(start_date)
+        market_dates.append(future_start_date)
     market_dates.sort(reverse=True)
+
     return market_dates
 
 
@@ -229,6 +242,7 @@ async def create_historical_account(
     user_id: str,
     cash_security: PlaidSecurities,
     trading_day: date,
+    all_security_prices: dict[int, list[SecurityPrices]],
 ) -> HistoricalAccount:
     historical_account = HistoricalAccount(id=account.id, date=trading_day, user_id=user_id, holdings=[], cash=0)
 
@@ -239,13 +253,17 @@ async def create_historical_account(
             historical_account.cash = holding.quantity
             continue
 
+        price = holding.latest_price
+        sp = get_closest_price(all_security_prices, security_id, trading_day)
+        if sp is not None:
+            price = sp
         historical_account.holdings.append(
             FinancialAccountHoldingsHistory(
                 account_id=holding.account_id,
                 plaid_security_id=holding.plaid_security_id,
                 security_id=security_id,
                 quantity=holding.quantity,
-                price=holding.latest_price,
+                price=price,
                 holding_date=trading_day,
             )
         )
@@ -366,10 +384,10 @@ async def get_cash_security_plaid(session: AsyncSession) -> Optional[PlaidSecuri
 
 
 def get_closest_price(
-    prices_all_time: dict[int, list[SecurityPrices]], security_id: int, posting_date: date
+    all_security_prices: dict[int, list[SecurityPrices]], security_id: int, posting_date: date
 ) -> Optional[Decimal]:
     try:
-        security_prices = prices_all_time[security_id]
+        security_prices = all_security_prices[security_id]
         for sp in security_prices:
             if sp.price_time.date() <= posting_date:
                 return sp.price
@@ -443,10 +461,10 @@ async def get_financial_accounts(session: AsyncSession, user_id: str) -> list[Fi
 
 
 if __name__ == "__main__":
-    ending_date = datetime.utcnow() - relativedelta(years=2)
-    starting_date = datetime.now().replace(hour=21, minute=0, second=0, microsecond=0) - relativedelta(days=1)
+    f_start = datetime.now().replace(year=2022, month=2, day=1, hour=21, minute=0, second=0, microsecond=0)
+    p_end = datetime.now().replace(year=2022, month=1, day=1, hour=21, minute=0, second=0, microsecond=0)
     asyncio.run(
         run(
-            user_id="c014c73b-a589-4752-8465-e0980edc2c4b", start_date=starting_date.date(), end_date=ending_date.date()
+            user_id="c5ac2722-a876-47ed-8575-f9d7e674b785", future_start_date=f_start.date(), past_end_date=p_end.date()
         )
     )

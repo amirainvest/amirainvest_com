@@ -452,7 +452,7 @@ class PlaidProvider(BrokerageInterface):
         #   from there...? if oldest transaction is < 2 years, then adjust to two years
         start_date = datetime.datetime.utcnow().date()
         end_date = (datetime.datetime.utcnow() - relativedelta.relativedelta(years=2)).date()
-        await holdings_history.run(user_id=user_id, start_date=start_date, end_date=end_date)
+        await holdings_history.run(user_id=user_id, future_start_date=start_date, past_end_date=end_date)
 
 
 def plaid_account_to_account(pa: PlaidAccount, item_id: str) -> Account:

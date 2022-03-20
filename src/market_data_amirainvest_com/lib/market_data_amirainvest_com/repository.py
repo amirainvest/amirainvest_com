@@ -293,5 +293,6 @@ async def add_market_holidays(session: AsyncSession, market_holidays: list[Marke
     for mh in market_holidays:
         if mh.date in date_dict:
             continue
+
         insertable.append(mh)
     session.add_all(insertable)

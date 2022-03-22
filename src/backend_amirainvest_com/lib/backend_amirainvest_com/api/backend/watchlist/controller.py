@@ -1,14 +1,18 @@
-from datetime import datetime
+# from datetime import datetime
 
-from sqlalchemy import delete, insert, select, update
 import sqlalchemy as sa
+from sqlalchemy import delete, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend_amirainvest_com.api.backend.watchlist.model import CreateModel, GetModel, ListModel, UpdateModel
-from common_amirainvest_com.schemas.schema import Users, Watchlists, SecurityPrices, Securities
+from common_amirainvest_com.schemas.schema import Users, Watchlists
 from common_amirainvest_com.utils.decorators import Session
-from common_amirainvest_com.utils.generic_utils import calculate_percent_change
-from common_amirainvest_com.utils.query_fragments.watchlist_item import watchlist_items_select
+
+
+# from common_amirainvest_com.utils.generic_utils import calculate_percent_change
+
+
+# from common_amirainvest_com.utils.query_fragments.watchlist_item import watchlist_items_select
 
 
 @Session
@@ -21,28 +25,42 @@ async def create_controller(session: AsyncSession, watchlist_data: CreateModel, 
 @Session
 async def get_controller(session: AsyncSession, watchlist_id: int) -> GetModel:
     watchlist_data = {}
-    statement = sa.text("""select watchlist_items.id as id ,watchlist_items.ticker as ticker, watchlist_items.note as note, current_price, close_price, case close_price when 0 then 0 else (current_price-close_price)/close_price end as percent_change
+    statement = sa.text(
+        """select watchlist_items.id as id ,watchlist_items.ticker as ticker,
+                            watchlist_items.note as note, current_price, close_price,
+                            case close_price when 0 then 0 else (current_price-close_price)/close_price end
+                            as percent_change
                             from watchlist_items
                             left join
-                            (select securities.id as sec_id, securities.ticker_symbol as ticker, security_prices.price_time as timestamp, security_prices.price as current_price, securities.close_price as close_price
+                            (select securities.id as sec_id, securities.ticker_symbol as ticker,
+                            security_prices.price_time as timestamp, security_prices.price as current_price,
+                            securities.close_price as close_price
                             from securities
                             left join security_prices on security_prices.security_id = securities.id
-                            where (securities.id,security_prices.price_time) in 
-                            (select securities.id, max(security_prices.price_time) 
-                            from securities 
+                            where (securities.id,security_prices.price_time) in
+                            (select securities.id, max(security_prices.price_time)
+                            from securities
                             left join security_prices on security_prices.security_id = securities.id
                             group by securities.id)) as Q
                             on Q.ticker = watchlist_items.ticker
-                            where watchlist_id = {0}""".format(watchlist_id))
+                            where watchlist_id = {0}""".format(
+            watchlist_id
+        )
+    )
 
     watchlist_items = [x._asdict() for x in (await session.execute(statement)).all()]
     print(watchlist_items)
     statement = sa.text("""select * from watchlists where id = {0}""".format(watchlist_id))
     watchlist_data = (await session.execute(statement)).all()[0]._asdict()
-    creator = (await session.execute(select(Users).where(Users.id == str(watchlist_data['creator_id'])))).scalars().one().dict()
+    creator = (
+        (await session.execute(select(Users).where(Users.id == str(watchlist_data["creator_id"]))))
+        .scalars()
+        .one()
+        .dict()
+    )
 
     return GetModel(
-        id=watchlist_data["id"],    
+        id=watchlist_data["id"],
         name=watchlist_data["name"],
         created_at=watchlist_data["created_at"],
         updated_at=watchlist_data["updated_at"],
@@ -53,15 +71,21 @@ async def get_controller(session: AsyncSession, watchlist_id: int) -> GetModel:
 
 @Session
 async def list_controller(session: AsyncSession, creator_id: str) -> ListModel:
-    watchlist_data = {}
+
     creator = None
-    statement = sa.text("""select watchlists.name as name, watchlists.id as id, count(watchlist_items.id) as num_items, watchlists.created_at, watchlists.updated_at
+    statement = sa.text(
+        """select watchlists.name as name, watchlists.id as id, count(watchlist_items.id) as num_items,
+                             watchlists.created_at, watchlists.updated_at
                             from watchlists
                             left join watchlist_items
                             on watchlist_items.watchlist_id = watchlists.id
                             where watchlists.creator_id = '{0}'
-                            group by watchlists.creator_id, watchlists.name, watchlists.id, watchlists.created_at, watchlists.updated_at
-                            """.format(creator_id))
+                            group by watchlists.creator_id, watchlists.name, watchlists.id, watchlists.created_at,
+                            watchlists.updated_at
+                            """.format(
+            creator_id
+        )
+    )
     watchlist_data = [x._asdict() for x in (await session.execute(statement)).all()]
 
     if creator is None:

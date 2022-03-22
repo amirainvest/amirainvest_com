@@ -8,7 +8,7 @@ from backend_amirainvest_com.api.backend.watchlist_follow.controller import (
     get_controller,
     list_controller,
 )
-from backend_amirainvest_com.api.backend.watchlist_follow.model import CreateModel, WatchlistAttributesModel, GetModel
+from backend_amirainvest_com.api.backend.watchlist_follow.model import CreateModel, GetModel, WatchlistAttributesModel
 from backend_amirainvest_com.controllers.auth import auth_depends_user_id
 
 

@@ -59,7 +59,7 @@ async def test_get_watchlist(mock_auth, factory):
     assert response_data
     assert str(response_data["creator"]["id"]) == str(user["users"].id)
     assert response_data["name"] == watchlist["watchlists"].name
-    assert response_data["items"][0]["percent_change"] == 25
+    assert response_data["items"][0]["percent_change"] == 0.25
     assert response_data["items"][0]["ticker"] == "APPL"
     assert response_data["items"][0]["close_price"] == 200
     assert response_data["items"][0]["note"] is None
@@ -86,11 +86,7 @@ async def test_list_watchlist(async_session_maker_test, mock_auth, factory):
     assert len(response_data["watchlists"]) == 5
     assert type(response_data["watchlists"]) == list
     for watchlist in response_data["watchlists"]:
-        assert watchlist["items"][0]["percent_change"] == 25
-        assert watchlist["items"][0]["ticker"] == "APPL"
-        assert watchlist["items"][0]["close_price"] == 200
-        assert watchlist["items"][0]["note"] is None
-        assert watchlist["items"][0]["current_price"] == 250
+        assert watchlist["num_items"] == 1
 
 
 async def test_update_watchlist(async_session_maker_test, mock_auth, factory):

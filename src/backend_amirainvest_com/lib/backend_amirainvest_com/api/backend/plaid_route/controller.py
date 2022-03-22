@@ -7,16 +7,15 @@ from plaid.model.account_base import AccountBase  # type: ignore
 from plaid.model.accounts_get_request import AccountsGetRequest  # type: ignore
 from plaid.model.item import Item  # type: ignore
 from plaid.model.item_get_request import ItemGetRequest  # type: ignore
-from sqlalchemy import delete
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from backend_amirainvest_com.api.backend.plaid_route.models import BadItem, CurrentPlaidAccounts
+from backend_amirainvest_com.api.backend.plaid_route.models import CurrentPlaidAccounts, FinancialAccount
 from backend_amirainvest_com.controllers.plaid_controller import exchange_public_for_access_token
 from common_amirainvest_com.dynamo.models import BrokerageUser
 from common_amirainvest_com.dynamo.utils import add_brokerage_user
-from common_amirainvest_com.schemas.schema import BadPlaidItems, FinancialAccounts, FinancialInstitutions, PlaidItems
+from common_amirainvest_com.schemas.schema import FinancialAccounts, FinancialInstitutions, PlaidItems
 from common_amirainvest_com.sqs.consts import BROKERAGE_DATA_QUEUE_URL
 from common_amirainvest_com.sqs.models import Brokerage, BrokerageDataActions, BrokerageDataChange
 from common_amirainvest_com.sqs.utils import add_message_to_queue
@@ -74,7 +73,6 @@ async def get_and_set_access_token(user_id: str, public_token: str, is_update: b
 
     if is_update:
         await add_brokerage_user(BrokerageUser(item_id=item_id, access_token=access_token, user_id=user_id))
-        await remove_bad_item(user_id=user_id, item_id=item_id)
         internal_plaid_item = await get_internal_item_id(item_id=item_id)
         await add_plaid_accounts(accounts=new_plaid_accounts, item_id=internal_plaid_item.id)
         return
@@ -196,17 +194,32 @@ async def get_current_accounts(session: AsyncSession, user_id: str) -> list[Curr
 
 
 @Session
-async def get_bad_items(session: AsyncSession, user_id: str) -> list[BadItem]:
-    response = await session.execute(select(BadPlaidItems).where(BadPlaidItems.user_id == user_id))
-    items = response.scalars().all()
-    if items is None:
+async def get_financial_accounts(session: AsyncSession, user_id: str) -> list[FinancialAccount]:
+    response = await session.execute(
+        select(FinancialAccounts, FinancialInstitutions, PlaidItems)
+        .join(PlaidItems, PlaidItems.id == FinancialAccounts.plaid_item_id)
+        .join(FinancialInstitutions, FinancialInstitutions.id == PlaidItems.institution_id)
+        .where(FinancialAccounts.user_id == user_id)
+    )
+
+    records = response.all()
+    if records is None:
         return []
 
-    return [BadItem.parse_obj(item.dict()) for item in items]
+    fin_accounts: list[FinancialAccount] = []
+    for record in records:
+        account = record.FinancialAccounts
+        institution = record.FinancialInstitutions
+        item = record.PlaidItems
+        fin_accounts.append(
+            FinancialAccount(
+                item_id=item.plaid_item_id,
+                institution_name=institution.name,
+                account_name=account.user_assigned_account_name,
+                status=account.status.value,
+                account_type=account.type,
+                account_sub_type=account.sub_type,
+            )
+        )
 
-
-@Session
-async def remove_bad_item(session: AsyncSession, user_id: str, item_id: str):
-    await session.execute(
-        delete(BadPlaidItems).where(BadPlaidItems.user_id == user_id, BadPlaidItems.plaid_item_id == item_id)
-    )
+    return fin_accounts

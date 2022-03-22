@@ -28,7 +28,7 @@ class GetModel(BaseModel):
 class WatchlistAttributesModel(BaseModel):
     id: int
     name: str
-    items: Optional[List[WatchlistItemsReturnModel]]
+    num_items: int
     created_at: Optional[datetime.datetime]
     updated_at: Optional[datetime.datetime]
 

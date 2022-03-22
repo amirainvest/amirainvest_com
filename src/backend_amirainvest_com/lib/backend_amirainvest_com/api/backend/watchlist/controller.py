@@ -1,10 +1,11 @@
 from datetime import datetime
-from operator import and_
-from sqlalchemy import delete, insert, select, update, and_
+
+from sqlalchemy import delete, insert, select, update
+import sqlalchemy as sa
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend_amirainvest_com.api.backend.watchlist.model import CreateModel, GetModel, ListModel, UpdateModel
-from common_amirainvest_com.schemas.schema import Users, Watchlists, SecurityPrices
+from common_amirainvest_com.schemas.schema import Users, Watchlists, SecurityPrices, Securities
 from common_amirainvest_com.utils.decorators import Session
 from common_amirainvest_com.utils.generic_utils import calculate_percent_change
 from common_amirainvest_com.utils.query_fragments.watchlist_item import watchlist_items_select
@@ -25,7 +26,8 @@ async def get_controller(session: AsyncSession, watchlist_id: int) -> GetModel:
 
     statement = watchlist_items_select().where(Watchlists.id == watchlist_id)
     statement = statement.where(SecurityPrices.price_time == datetime(datetime.today().year, datetime.today().month,datetime.today().day-1, 21,0,0,0))
-
+    sub_q1 = select(Securities.id, max(SecurityPrices.price_time)).outerjoin(SecurityPrices, SecurityPrices.security_id == Securities.id).where(Securities.id == 24)
+    print((await session.execute(sub_q1)).all())
     for watchlist, watchlist_item, user, security_price, security in (await session.execute(statement)).all():
         watchlist_data = watchlist.dict() if watchlist else None
         creator = user.dict() if user else None
@@ -52,38 +54,19 @@ async def get_controller(session: AsyncSession, watchlist_id: int) -> GetModel:
 async def list_controller(session: AsyncSession, creator_id: str) -> ListModel:
     watchlist_data = {}
     creator = None
-    statement = watchlist_items_select().where(Watchlists.creator_id == creator_id)
-    statement = statement.where(SecurityPrices.price_time == datetime(datetime.today().year, datetime.today().month,datetime.today().day-1, 21,0,0,0))
-    for watchlist, watchlist_item, user, security_price, security in (await session.execute(statement)).all():
-        creator = user.dict() if user else None
-        watchlist = watchlist.dict() if watchlist else None
-        watchlist_item = watchlist_item.dict() if watchlist_item else None
-        if watchlist is not None:
-            if watchlist["id"] not in watchlist_data:
-                watchlist_data[watchlist["id"]] = watchlist
-                if watchlist_item is not None:
-                    watchlist_item["close_price"] = security.close_price
-                    watchlist_item["current_price"] = security_price.price
-                    watchlist_item["percent_change"] = 0
-                    """
-                    watchlist_item["percent_change"] = calculate_percent_change(
-                        security.close_price, security_price.price
-                    )
-                    """
-                    watchlist_data[watchlist["id"]]["items"] = [watchlist_item]
-            else:
-                if watchlist_item is not None:
-                    watchlist_item["close_price"] = security.close_price
-                    watchlist_item["current_price"] = security_price.price
-                    watchlist_item["percent_change"] = 0
-                    #watchlist_item["percent_change"] = calculate_percent_change(
-                    #    security.close_price, security_price.price
-                    #)
-                    watchlist_data[watchlist["id"]]["items"].append(watchlist_item)
+    statement = sa.text("""select watchlists.name as name, watchlist_items.watchlist_id as id, count(watchlist_items.id) as num_items, watchlists.created_at, watchlists.updated_at
+                            from watchlists
+                            left join watchlist_items
+                            on watchlist_items.watchlist_id = watchlists.id
+                            where watchlists.creator_id = '{0}'
+                            group by watchlists.creator_id, watchlists.name, watchlist_items.watchlist_id, watchlists.created_at, watchlists.updated_at
+                            """.format(creator_id))
+    watchlist_data = [x._asdict() for x in (await session.execute(statement)).all()]
+    print(watchlist_data)
 
     if creator is None:
         creator = (await session.execute(select(Users).where(Users.id == creator_id))).scalars().one().dict()
-    return ListModel(creator=creator, watchlists=[v for k, v in watchlist_data.items()])
+    return ListModel(creator=creator, watchlists=watchlist_data)
 
 
 @Session

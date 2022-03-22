@@ -1,9 +1,9 @@
 from typing import List
 
-from sqlalchemy import delete, insert, select
+from sqlalchemy import delete, insert, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend_amirainvest_com.api.backend.watchlist_follow.model import CreateModel, FollowedWatchlistModel
+from backend_amirainvest_com.api.backend.watchlist_follow.model import CreateModel, WatchlistAttributesModel
 from common_amirainvest_com.schemas.schema import WatchlistFollows, Watchlists
 from common_amirainvest_com.utils.decorators import Session
 
@@ -35,24 +35,27 @@ async def get_controller(session: AsyncSession, watchlist_follow_id: int, user_i
 
 
 @Session
-async def list_controller(session: AsyncSession, user_id: str) -> List[FollowedWatchlistModel]:
-    # GETS FOLLOWERS WATCHLISTS
-    return [
-        x.dict()
-        for x in (
-            await session.execute(
-                select(Watchlists, WatchlistFollows).join(Watchlists).where(WatchlistFollows.follower_id == user_id)
-            )
+async def list_controller(session: AsyncSession, user_id: str) -> List[WatchlistAttributesModel]:
+
+    statement = text(
+        """select w.id, name, w.created_at, w.updated_at,
+            (select count(*) from watchlist_items where watchlist_id = w.id) as num_items
+            from watchlists w
+            inner join watchlist_follows wf
+            on wf.watchlist_id = w.id and wf.follower_id = '{0}'""".format(
+            user_id
         )
-        .scalars()
-        .all()
-    ]
+    )
+
+    watchlist_data = [x._asdict() for x in (await session.execute(statement)).all()]
+
+    return watchlist_data
 
 
 @Session
-async def delete_controller(session: AsyncSession, watchlist_follow_id: int, user_id: str) -> None:
+async def delete_controller(session: AsyncSession, watchlist_id: int, user_id: str) -> None:
     await session.execute(
         delete(WatchlistFollows)
-        .where(WatchlistFollows.id == watchlist_follow_id)
+        .where(WatchlistFollows.watchlist_id == watchlist_id)
         .where(WatchlistFollows.follower_id == user_id)
     )

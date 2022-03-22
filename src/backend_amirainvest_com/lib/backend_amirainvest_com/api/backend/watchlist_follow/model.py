@@ -1,5 +1,5 @@
 import datetime
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -15,13 +15,12 @@ class CreateModel(BaseModel):
     updated_at: Optional[datetime.datetime]
 
 
-class FollowedWatchlistModel(BaseModel):
+class WatchlistAttributesModel(BaseModel):
     id: int
     name: str
-    note: Optional[str]
-    tickers: Optional[List[str]]
-    created_at: datetime.datetime
-    updated_at: datetime.datetime
+    num_items: int
+    created_at: Optional[datetime.datetime]
+    updated_at: Optional[datetime.datetime]
 
 
 class DeleteModel(BaseModel):

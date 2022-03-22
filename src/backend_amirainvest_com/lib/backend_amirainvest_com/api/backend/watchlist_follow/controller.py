@@ -41,7 +41,7 @@ async def list_controller(session: AsyncSession, user_id: str) -> List[Watchlist
         """select w.id, name, w.created_at, w.updated_at,
             (select count(*) from watchlist_items where watchlist_id = w.id) as num_items
             from watchlists w
-            inner join watchlist_follows wf 
+            inner join watchlist_follows wf
             on wf.watchlist_id = w.id and wf.follower_id = '{0}'""".format(
             user_id
         )

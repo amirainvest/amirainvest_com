@@ -1,4 +1,4 @@
-from sqlalchemy import delete, insert, select, update, text
+from sqlalchemy import delete, insert, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend_amirainvest_com.api.backend.watchlist.model import CreateModel, GetModel, ListModel, UpdateModel
@@ -42,11 +42,7 @@ async def get_controller(session: AsyncSession, watchlist_id: int) -> GetModel:
     watchlist_items = [x._asdict() for x in (await session.execute(statement)).all()]
 
     watchlist_data = (
-        (await session.execute(select(Watchlists).where(
-        Watchlists.id == watchlist_id)))
-        .scalars()
-        .one_or_none()
-        .dict()
+        (await session.execute(select(Watchlists).where(Watchlists.id == watchlist_id))).scalars().one().dict()
     )
 
     creator = (
@@ -69,7 +65,6 @@ async def get_controller(session: AsyncSession, watchlist_id: int) -> GetModel:
 @Session
 async def list_controller(session: AsyncSession, creator_id: str) -> ListModel:
 
-    creator = None
     statement = text(
         """select watchlists.name as name, watchlists.id as id, count(watchlist_items.id) as num_items,
                              watchlists.created_at, watchlists.updated_at
@@ -85,8 +80,8 @@ async def list_controller(session: AsyncSession, creator_id: str) -> ListModel:
     )
     watchlist_data = [x._asdict() for x in (await session.execute(statement)).all()]
 
-    if creator is None:
-        creator = (await session.execute(select(Users).where(Users.id == creator_id))).scalars().one().dict()
+    creator = (await session.execute(select(Users).where(Users.id == creator_id))).scalars().one().dict()
+
     return ListModel(creator=creator, watchlists=watchlist_data)
 
 

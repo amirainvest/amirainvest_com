@@ -8,11 +8,8 @@ from plaid.model.item_public_token_exchange_response import ItemPublicTokenExcha
 from plaid.model.link_token_create_request import LinkTokenCreateRequest  # type: ignore
 from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUser  # type: ignore
 from plaid.model.products import Products  # type: ignore
-from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from common_amirainvest_com.dynamo.utils import get_brokerage_user_item
-from common_amirainvest_com.schemas.schema import BadPlaidItems
 from common_amirainvest_com.utils.consts import (
     PLAID_APPLICATION_NAME,
     PLAID_CLIENT_ID,
@@ -20,7 +17,6 @@ from common_amirainvest_com.utils.consts import (
     PLAID_SECRET,
     PLAID_WEBHOOK,
 )
-from common_amirainvest_com.utils.decorators import Session
 
 
 configuration = plaid.Configuration(
@@ -28,13 +24,6 @@ configuration = plaid.Configuration(
 )
 api_client = plaid.ApiClient(configuration)
 client = plaid_api.PlaidApi(api_client)
-
-
-@Session
-async def add_bad_plaid_item(session: AsyncSession, user_id: str, item_id: str):
-    await session.execute(
-        insert(BadPlaidItems).values({"user_id": user_id, "item_id": item_id}).on_conflict_do_nothing()
-    )
 
 
 async def generate_link_token(user_id: str, item_id: str, redirect_uri: str) -> str:

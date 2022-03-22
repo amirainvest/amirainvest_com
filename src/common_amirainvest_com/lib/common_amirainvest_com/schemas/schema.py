@@ -104,6 +104,12 @@ class NotificationTypes(enum.Enum):
     shared_price = "shared_watchlist_price_movement"
 
 
+class FinancialAccountStatus(enum.Enum):
+    active = "active"
+    inactive = "inactive"
+    error = "error"
+
+
 class Users(Base, ToDict):
     __tablename__ = "users"
     id: str = Column(
@@ -670,15 +676,6 @@ class PlaidItems(Base, ToDict):
     institution_id = Column(Integer, ForeignKey("financial_institutions.id"))
 
 
-class BadPlaidItems(Base, ToDict):
-    __tablename__ = "bad_plaid_items"
-    __table_args__ = (UniqueConstraint("user_id", "plaid_item_id"),)
-
-    id = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
-    user_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id"), unique=True, nullable=False)
-    plaid_item_id: int = Column(BigInteger, ForeignKey("plaid_items.id"), unique=True, nullable=False)
-
-
 class FinancialAccounts(Base, ToDict):
     __tablename__ = "financial_accounts"
     id = Column(BigInteger, primary_key=True, unique=True, nullable=False, autoincrement=True)
@@ -688,6 +685,9 @@ class FinancialAccounts(Base, ToDict):
 
     plaid_id = Column(String, unique=True, nullable=False)
 
+    status = Column(Enum(FinancialAccountStatus), server_default=FinancialAccountStatus.active.value, nullable=True)
+
+    error_message = Column(String)
     available_to_withdraw = Column(DECIMAL(19, 4))
     current_funds = Column(DECIMAL(19, 4))
     iso_currency_code = Column(String)
@@ -741,7 +741,7 @@ class FinancialAccountCurrentHoldings(Base, ToDict):
 
     cost_basis = Column(DECIMAL(19, 4))
     iso_currency_code = Column(String)
-    latest_price_date = Column(TIMESTAMP(timezone=True), nullable=False)
+    latest_price_date = Column(TIMESTAMP(timezone=True))
     unofficial_currency_code = Column(String)
 
     created_at = Column(DateTime, server_default=UTCNow())

@@ -1,7 +1,6 @@
 from typing import List
 
-import sqlalchemy as sa
-from sqlalchemy import delete, insert, select
+from sqlalchemy import delete, insert, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend_amirainvest_com.api.backend.watchlist_follow.model import CreateModel, WatchlistAttributesModel
@@ -37,20 +36,13 @@ async def get_controller(session: AsyncSession, watchlist_follow_id: int, user_i
 
 @Session
 async def list_controller(session: AsyncSession, user_id: str) -> List[WatchlistAttributesModel]:
-    # GETS FOLLOWERS WATCHLISTS
-    statement = sa.text(
-        """select watchlist_follows.watchlist_id as id, T.name, T.num_items, T.created_at, T.updated_at
-                        from watchlist_follows
-                        left join
-                        (select watchlists.name as name, watchlists.id as id, count(watchlist_items.id) as num_items,
-                         watchlists.created_at, watchlists.updated_at
-                        from watchlists
-                        left join watchlist_items
-                        on watchlist_items.watchlist_id = watchlists.id
-                        group by watchlists.creator_id, watchlists.name, watchlists.id, watchlists.created_at,
-                         watchlists.updated_at) as T
-                        on T.id = watchlist_follows.watchlist_id
-                        where watchlist_follows.follower_id = '{0}'""".format(
+
+    statement = text(
+        """select w.id, name, w.created_at, w.updated_at,
+            (select count(*) from watchlist_items where watchlist_id = w.id) as num_items
+            from watchlists w
+            inner join watchlist_follows wf 
+            on wf.watchlist_id = w.id and wf.follower_id = '{0}'""".format(
             user_id
         )
     )

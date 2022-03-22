@@ -1,18 +1,9 @@
-# from datetime import datetime
-
-import sqlalchemy as sa
-from sqlalchemy import delete, insert, select, update
+from sqlalchemy import delete, insert, select, update, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend_amirainvest_com.api.backend.watchlist.model import CreateModel, GetModel, ListModel, UpdateModel
 from common_amirainvest_com.schemas.schema import Users, Watchlists
 from common_amirainvest_com.utils.decorators import Session
-
-
-# from common_amirainvest_com.utils.generic_utils import calculate_percent_change
-
-
-# from common_amirainvest_com.utils.query_fragments.watchlist_item import watchlist_items_select
 
 
 @Session
@@ -24,8 +15,8 @@ async def create_controller(session: AsyncSession, watchlist_data: CreateModel, 
 
 @Session
 async def get_controller(session: AsyncSession, watchlist_id: int) -> GetModel:
-    watchlist_data = {}
-    statement = sa.text(
+
+    statement = text(
         """select watchlist_items.id as id ,watchlist_items.ticker as ticker,
                             watchlist_items.note as note, current_price, close_price,
                             case close_price when 0 then 0 else (current_price-close_price)/close_price end
@@ -49,9 +40,15 @@ async def get_controller(session: AsyncSession, watchlist_id: int) -> GetModel:
     )
 
     watchlist_items = [x._asdict() for x in (await session.execute(statement)).all()]
-    print(watchlist_items)
-    statement = sa.text("""select * from watchlists where id = {0}""".format(watchlist_id))
-    watchlist_data = (await session.execute(statement)).all()[0]._asdict()
+
+    watchlist_data = (
+        (await session.execute(select(Watchlists).where(
+        Watchlists.id == watchlist_id)))
+        .scalars()
+        .one_or_none()
+        .dict()
+    )
+
     creator = (
         (await session.execute(select(Users).where(Users.id == str(watchlist_data["creator_id"]))))
         .scalars()
@@ -73,7 +70,7 @@ async def get_controller(session: AsyncSession, watchlist_id: int) -> GetModel:
 async def list_controller(session: AsyncSession, creator_id: str) -> ListModel:
 
     creator = None
-    statement = sa.text(
+    statement = text(
         """select watchlists.name as name, watchlists.id as id, count(watchlist_items.id) as num_items,
                              watchlists.created_at, watchlists.updated_at
                             from watchlists

@@ -8,7 +8,7 @@ from backend_amirainvest_com.api.backend.watchlist_follow.controller import (
     get_controller,
     list_controller,
 )
-from backend_amirainvest_com.api.backend.watchlist_follow.model import CreateModel, FollowedWatchlistModel, GetModel
+from backend_amirainvest_com.api.backend.watchlist_follow.model import CreateModel, WatchlistAttributesModel, GetModel
 from backend_amirainvest_com.controllers.auth import auth_depends_user_id
 
 
@@ -27,13 +27,13 @@ async def get_route(watchlist_follow_id: int, token=Depends(auth_depends_user_id
     return await get_controller(watchlist_follow_id, follower_id)
 
 
-@router.post("/list", status_code=status.HTTP_200_OK, response_model=List[FollowedWatchlistModel])
+@router.post("/list", status_code=status.HTTP_200_OK, response_model=List[WatchlistAttributesModel])
 async def list_route(token=Depends(auth_depends_user_id)):
     follower_id = token["https://amirainvest.com/user_id"]
     return await list_controller(follower_id)
 
 
 @router.post("/delete", status_code=status.HTTP_200_OK)
-async def delete_route(watchlist_follow_id: int, token=Depends(auth_depends_user_id)):
+async def delete_route(watchlist_id: int, token=Depends(auth_depends_user_id)):
     follower_id = token["https://amirainvest.com/user_id"]
-    return await delete_controller(watchlist_follow_id, follower_id)
+    return await delete_controller(watchlist_id, follower_id)

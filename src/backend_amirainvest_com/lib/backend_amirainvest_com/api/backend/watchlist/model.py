@@ -8,8 +8,8 @@ from common_amirainvest_com.models.creator import CreatorModel
 
 
 class WatchlistItemsReturnModel(BaseModel):
-    close_price: int
-    current_price: int
+    close_price: Decimal
+    current_price: Decimal
     ticker: str
     note: Optional[str]
     percent_change: Decimal

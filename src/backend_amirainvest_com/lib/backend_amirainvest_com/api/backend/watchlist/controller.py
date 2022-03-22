@@ -1,8 +1,10 @@
-from sqlalchemy import delete, insert, select, update
+from datetime import datetime
+from operator import and_
+from sqlalchemy import delete, insert, select, update, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend_amirainvest_com.api.backend.watchlist.model import CreateModel, GetModel, ListModel, UpdateModel
-from common_amirainvest_com.schemas.schema import Users, Watchlists
+from common_amirainvest_com.schemas.schema import Users, Watchlists, SecurityPrices
 from common_amirainvest_com.utils.decorators import Session
 from common_amirainvest_com.utils.generic_utils import calculate_percent_change
 from common_amirainvest_com.utils.query_fragments.watchlist_item import watchlist_items_select
@@ -20,7 +22,10 @@ async def get_controller(session: AsyncSession, watchlist_id: int) -> GetModel:
     watchlist_items = []
     watchlist_data = {}
     creator = None
+
     statement = watchlist_items_select().where(Watchlists.id == watchlist_id)
+    statement = statement.where(SecurityPrices.price_time == datetime(datetime.today().year, datetime.today().month,datetime.today().day-1, 21,0,0,0))
+
     for watchlist, watchlist_item, user, security_price, security in (await session.execute(statement)).all():
         watchlist_data = watchlist.dict() if watchlist else None
         creator = user.dict() if user else None
@@ -28,7 +33,10 @@ async def get_controller(session: AsyncSession, watchlist_id: int) -> GetModel:
             watchlist_item = watchlist_item.dict()
             watchlist_item["close_price"] = security.close_price
             watchlist_item["current_price"] = security_price.price
-            watchlist_item["percent_change"] = calculate_percent_change(security.close_price, security_price.price)
+            if security.close_price == 0:
+                watchlist_item["percent_change"] = 0
+            else:
+                watchlist_item["percent_change"] = calculate_percent_change(security.close_price, security_price.price)
             watchlist_items.append(watchlist_item)
     return GetModel(
         id=watchlist_data["id"],
@@ -45,6 +53,7 @@ async def list_controller(session: AsyncSession, creator_id: str) -> ListModel:
     watchlist_data = {}
     creator = None
     statement = watchlist_items_select().where(Watchlists.creator_id == creator_id)
+    statement = statement.where(SecurityPrices.price_time == datetime(datetime.today().year, datetime.today().month,datetime.today().day-1, 21,0,0,0))
     for watchlist, watchlist_item, user, security_price, security in (await session.execute(statement)).all():
         creator = user.dict() if user else None
         watchlist = watchlist.dict() if watchlist else None
@@ -55,17 +64,21 @@ async def list_controller(session: AsyncSession, creator_id: str) -> ListModel:
                 if watchlist_item is not None:
                     watchlist_item["close_price"] = security.close_price
                     watchlist_item["current_price"] = security_price.price
+                    watchlist_item["percent_change"] = 0
+                    """
                     watchlist_item["percent_change"] = calculate_percent_change(
                         security.close_price, security_price.price
                     )
+                    """
                     watchlist_data[watchlist["id"]]["items"] = [watchlist_item]
             else:
                 if watchlist_item is not None:
                     watchlist_item["close_price"] = security.close_price
                     watchlist_item["current_price"] = security_price.price
-                    watchlist_item["percent_change"] = calculate_percent_change(
-                        security.close_price, security_price.price
-                    )
+                    watchlist_item["percent_change"] = 0
+                    #watchlist_item["percent_change"] = calculate_percent_change(
+                    #    security.close_price, security_price.price
+                    #)
                     watchlist_data[watchlist["id"]]["items"].append(watchlist_item)
 
     if creator is None:

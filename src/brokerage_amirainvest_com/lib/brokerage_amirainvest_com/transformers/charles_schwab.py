@@ -1,4 +1,4 @@
-from brokerage_amirainvest_com.brokerages.transformers.transformer import BrokerageTransformer
+from brokerage_amirainvest_com.transformers.transformer import BrokerageTransformer
 from common_amirainvest_com.schemas.schema import (
     FinancialAccountCurrentHoldings,
     FinancialAccounts,

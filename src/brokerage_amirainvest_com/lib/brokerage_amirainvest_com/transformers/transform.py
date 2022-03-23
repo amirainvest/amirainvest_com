@@ -1,4 +1,4 @@
-from brokerage_amirainvest_com.brokerages.transformers import (
+from brokerage_amirainvest_com.transformers import (
     charles_schwab,
     e_trade,
     interactive_brokers,
@@ -6,7 +6,7 @@ from brokerage_amirainvest_com.brokerages.transformers import (
     robinhood,
     td_ameritrade,
 )
-from brokerage_amirainvest_com.brokerages.transformers.transformer import BrokerageTransformer
+from brokerage_amirainvest_com.transformers.transformer import BrokerageTransformer
 from common_amirainvest_com.schemas.schema import (
     FinancialAccountCurrentHoldings,
     FinancialAccounts,
@@ -64,7 +64,7 @@ async def transform_holdings(
 
 
 institution_ids_to_class: dict[str, BrokerageTransformer] = {
-    "ins_64": robinhood.Robinhood(),
+    "ins_54": robinhood.Robinhood(),
     "ins_115610": merrill_edge.MerrillEdge(),
     "ins_11": charles_schwab.CharlesSchwab(),
     "ins_116530": interactive_brokers.InteractiveBrokers(),

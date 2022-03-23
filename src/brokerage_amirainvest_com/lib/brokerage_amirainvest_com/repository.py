@@ -14,6 +14,12 @@ from common_amirainvest_com.utils.decorators import Session
 
 
 @Session
+async def get_cash_security_plaid(session: AsyncSession) -> Optional[PlaidSecurities]:
+    response = await session.execute(select(PlaidSecurities).where(PlaidSecurities.ticker_symbol == "CUR:USD"))
+    return response.scalar()
+
+
+@Session
 async def get_financial_account(session: AsyncSession, item_id: str) -> Optional[FinancialAccounts]:
     financial_account = await session.execute(select(FinancialAccounts).where(FinancialAccounts.plaid_id == item_id))
     return financial_account.scalar()

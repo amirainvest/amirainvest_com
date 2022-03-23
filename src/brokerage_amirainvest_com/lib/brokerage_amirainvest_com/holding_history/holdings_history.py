@@ -10,12 +10,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.sql import cast
 
-from brokerage_amirainvest_com.brokerages.transformers.transform import (
+from brokerage_amirainvest_com.models import HistoricalAccount
+from brokerage_amirainvest_com.repository import get_cash_security_plaid
+from brokerage_amirainvest_com.transformers.transform import (
     transform_accounts,
     transform_holdings,
     transform_transactions,
 )
-from brokerage_amirainvest_com.models import HistoricalAccount
 from common_amirainvest_com.schemas.schema import (
     FinancialAccountCurrentHoldings,
     FinancialAccountHoldingsHistory,
@@ -48,7 +49,6 @@ async def run_by_account(
     transformed_accounts = await transform_accounts(financial_institution, accounts, transactions, holdings)
     transformed_transactions = await transform_transactions(financial_institution, accounts, transactions, holdings)
     transformed_holdings = await transform_holdings(financial_institution, accounts, transactions, holdings)
-
     plaid_cash_security = await get_cash_security_plaid()
     market_dates = await get_market_dates(future_start_date=future_start_date, past_end_date=past_end_date)
 
@@ -421,12 +421,6 @@ async def insert_historical_holdings(session: AsyncSession, historical_holdings:
     session.add_all(historical_holdings)
 
 
-@Session
-async def get_cash_security_plaid(session: AsyncSession) -> Optional[PlaidSecurities]:
-    response = await session.execute(select(PlaidSecurities).where(PlaidSecurities.ticker_symbol == "CUR:USD"))
-    return response.scalar()
-
-
 def get_closest_price(
     all_security_prices: dict[int, list[SecurityPrices]], security_id: int, posting_date: date
 ) -> Optional[Decimal]:
@@ -519,12 +513,12 @@ if __name__ == "__main__":
     p_end = datetime.now().replace(year=2022, month=1, day=1, hour=21, minute=0, second=0, microsecond=0)
     asyncio.run(
         run_by_account(
-            user_id="c5ac2722-a876-47ed-8575-f9d7e674b785",
-            account_ids=[68],
+            user_id="e7763d6a-7b96-4c39-a37a-4569ce60fc4b",
+            account_ids=[106, 105],
             future_start_date=f_start.date(),
             past_end_date=p_end.date(),
             financial_institution=FinancialInstitutions(
-                id=831, plaid_id="ins_115610", third_party_institution_id="ins_115610", name="Merrill Edge"
+                id=159, plaid_id="ins_54", third_party_institution_id="ins_54", name="Robinhood"
             ),
         )
     )

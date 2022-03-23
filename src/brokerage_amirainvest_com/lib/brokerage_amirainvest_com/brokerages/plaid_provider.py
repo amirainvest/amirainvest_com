@@ -22,8 +22,8 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from brokerage_amirainvest_com.brokerages import holdings_history
 from brokerage_amirainvest_com.brokerages.interfaces import BrokerageInterface, TokenRepositoryInterface
+from brokerage_amirainvest_com.holding_history import holdings_history
 from brokerage_amirainvest_com.models import (
     Account,
     AccountType,

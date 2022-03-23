@@ -63,6 +63,14 @@ async def update_controller(session, user_id: str, user_data: model.UserUpdate) 
     ).one()
 
 
+@Session
+async def update_controller_profile_pic(session, user_id: str, s3_url: str) -> Users:
+    s3_url_dict = {"picture_url": s3_url}
+    return (
+        await (session.execute(update(Users).where(Users.id == user_id).values(**s3_url_dict).returning(Users)))
+    ).one()
+
+
 def handle_data_imports(
     creator_id: str,
     expedited: bool,

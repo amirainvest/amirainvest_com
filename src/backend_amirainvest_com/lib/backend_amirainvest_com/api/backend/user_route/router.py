@@ -8,6 +8,7 @@ from backend_amirainvest_com.api.backend.user_route.controller import (
     list_controller,
     reactivate_controller,
     update_controller,
+    update_controller_profile_pic,
 )
 from backend_amirainvest_com.api.backend.user_route.model import (
     DeleteUserModel,
@@ -58,11 +59,7 @@ async def update_route(user_data: UserUpdate, token=Depends(auth_depends_user_id
 async def upload_profile_picture_route(image: UploadFile = File(...), token=Depends(auth_depends_user_id)):
     user_id = token["https://amirainvest.com/user_id"]
     s3_file_url = uploads.upload_profile_photo(image.file.read(), image.filename, user_id)
-    user = await get_controller(
-        user_id,
-    )
-    user.picture_url = s3_file_url
-    return (await update_controller(user.__dict__))._asdict()
+    return (await update_controller_profile_pic(user_id=user_id, s3_url=s3_file_url))._asdict()
 
 
 @router.post(

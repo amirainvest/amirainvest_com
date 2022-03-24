@@ -15,5 +15,5 @@ Proceed to the next step once the terminal window shows that debugpy has finishe
 The debugger will now attach. In your original terminal window, the backend app will now proceed and launch backend, broadcasting the app on port `5000`.
 
 
-_Debugging_
-You can now debug your VS Code debugger to debug the app running within Docker. You can add breakpoints from within the IDE. When you execute a request, either through postman, curl, or the /docs page in your browser, the breakpoint will apply and you can view the contents of the objects, processes, etc that are in flux.
+# _Debugging_
+You can now debug your VS Code debugger to debug the app running within Docker. You can add breakpoints from within VS Code. When you execute a request, either through postman, curl, or the /docs page in your browser, the breakpoint will apply and you can view the contents of the objects, processes, etc that are in flux.

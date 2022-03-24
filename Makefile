@@ -44,6 +44,10 @@ backend:
 db_only: _down
 	docker-compose  -f docker-compose.yaml up --abort-on-container-exit --remove-orphans postgres
 
+vs_code_debug: _down
+	docker-compose build --build-arg USER_UID=$(UID) --progress plain backend_vscode_debugger
+	docker-compose  -f docker-compose.yaml -f docker-compose.yaml run --service-ports --rm backend_vscode_debugger
+
 
 ### Commands to alter postgres data
 # Runs the db migrations and inserts test data

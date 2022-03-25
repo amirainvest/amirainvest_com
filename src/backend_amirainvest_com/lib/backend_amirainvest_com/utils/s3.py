@@ -16,6 +16,13 @@ class S3:
         self.s3_resource.Bucket(bucket).upload_fileobj(Fileobj=BytesIO(file_bytes), Key=s3_filepath)
         return build_s3_url(bucket, s3_filepath)
 
+    def set_object_acl(self, acl: str, bucket: str, key: str):
+        self.s3_client.put_object_acl(
+            ACL=acl,
+            Bucket=bucket,
+            Key=key,
+        )
+
 
 def build_s3_url(bucket, s3_filepath):
     return f"https://s3.amazonaws.com/{bucket}/{s3_filepath}"

@@ -72,18 +72,20 @@ class SubscriptionLevel(enum.Enum):
     premium = "premium"
 
 
-class ClaimablePlatform(enum.Enum):
-    youtube = "youtube"
-    substack = "substack"
-    twitter = "twitter"
-
-
 class MediaPlatform(enum.Enum):
     youtube = "youtube"
     substack = "substack"
     twitter = "twitter"
     brokerage = "brokerage"
     amira = "amira"
+
+    @classmethod
+    def ClaimablePlatform(cls):
+        return enum.Enum("ClaimablePlatform", [(a.name, a.value) for a in (cls.youtube, cls.substack, cls.twitter)])
+
+    @classmethod
+    def InteractivePlatform(cls):
+        return enum.Enum("InteractivePlatform", [(a.name, a.value) for a in (cls.brokerage, cls.amira)])
 
 
 class JobsStatus(enum.Enum):
@@ -1033,4 +1035,12 @@ class PostReports(Base, ToDict):
     id = Column(Integer, primary_key=True, unique=True, autoincrement=True)
     user_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
+    created_at = Column(DateTime, server_default=UTCNow())
+
+
+class PostUpvotes(Base, ToDict):
+    __tablename__ = "post_upvotes"
+    id = Column(Integer, primary_key=True, unique=True, autoincrement=True)
+    post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
+    user_id: str = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(DateTime, server_default=UTCNow())

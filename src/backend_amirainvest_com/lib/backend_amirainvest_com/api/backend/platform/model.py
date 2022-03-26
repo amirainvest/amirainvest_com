@@ -3,11 +3,11 @@ from enum import Enum
 from pydantic import BaseModel
 
 from backend_amirainvest_com.utils.model import ErrorMessageModelBase, StatusDetailModel
-from common_amirainvest_com.schemas.schema import ClaimablePlatform
+from common_amirainvest_com.schemas.schema import MediaPlatform
 
 
 class DeletePlatformModel(BaseModel):
-    platform: ClaimablePlatform
+    platform: MediaPlatform.ClaimablePlatform()
 
 
 class PlatformModel(DeletePlatformModel):

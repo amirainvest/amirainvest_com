@@ -14,6 +14,8 @@ Install Poetry
 
 `make interactive` 
 
+To use the VS Code debugger within the interactive docker environment, see [VSCode](VSCODE.md)
+
 # whiteboards
 Each microservice should architect their infrastructure on a shareable whiteboard (like whiteboard.microsoft.com or miro.com)
 

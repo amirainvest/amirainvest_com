@@ -21,7 +21,7 @@ boto3-stubs = { extras = ["sqs", "dynamodb", "secretsmanager", "s3"], version = 
 plaid-python = "^8.9.0"
 pydantic = "^1.8.2"
 python-dotenv = ">= 0.19.2 < 1"
-sentry-sdk = "^1.5.3"
+sentry-sdk = "^1.14.0"
 SQLAlchemy = "^1.4.27"
 Faker = "^12.0.0"
 

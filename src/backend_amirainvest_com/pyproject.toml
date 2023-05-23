@@ -27,7 +27,7 @@ pydantic = "^1.8.2"
 PyJWT = "^2.3.0"
 python-jose = {extras = ["cryptography"], version = "^3.3.0"}
 python-multipart = "^0"
-requests = "^2.26.0"
+requests = "^2.31.0"
 SQLAlchemy = "^1.4.27"
 uvicorn = ">= 0.15 < 1"
 pytz = "^2021.3"
